@@ -36,6 +36,7 @@ DanceTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization).
 - **Payments:** `mppx` (client + server), **viem** + **Tempo** chain actions (`viem/tempo`, `viem/chains`)  
 - **Backend:** Node.js, Express 5  
 - **Docs in repo:** [`DANCETECH_USE_CASES.md`](./DANCETECH_USE_CASES.md) — flows, endpoints, testing notes  
+- **Landing / Lovable handoff:** [`DANCE_TECH_PROTOCOL_AZ.md`](./DANCE_TECH_PROTOCOL_AZ.md) — A–Z narrative + GitHub links for marketing sites  
 - **Agent / tribal knowledge:** [`CLAWHUB.md`](./CLAWHUB.md) — successes, failures, debugging checklists  
 
 ### Local dev (Vite + API)
@@ -169,6 +170,7 @@ See `.env.example` for the full list and placeholders.
 ├── server/        # Express API (index.js, payments.js)
 ├── public/        # Static assets
 ├── DANCETECH_USE_CASES.md
+├── DANCE_TECH_PROTOCOL_AZ.md  # A–Z protocol copy for landing pages (e.g. Lovable)
 ├── CLAWHUB.md     # Learning notes, failures, debugging playbooks
 ├── LOVABLE_HANDOFF.md
 └── vite.config.ts # dev proxy: /api → http://localhost:8787

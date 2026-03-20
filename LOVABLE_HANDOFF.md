@@ -1,5 +1,7 @@
 # Lovable Frontend Handoff
 
+**Full protocol narrative (A–Z) for marketing / landing pages:** see [`DANCE_TECH_PROTOCOL_AZ.md`](./DANCE_TECH_PROTOCOL_AZ.md) — copy blocks, CTAs, and GitHub links for Lovable or similar builders.
+
 This project includes a working demo frontend for the Krump DanceTech Phase 1 flows:
 
 - Battle Entry + Auto Payout
