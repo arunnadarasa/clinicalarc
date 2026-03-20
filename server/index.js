@@ -1418,23 +1418,16 @@ app.post('/api/travel/stable/flights-search', async (req, res) => {
 
   try {
     const response = await fetch(url, { method: 'GET' })
+    // StableTravel uses x402/MPP. Preserve upstream `402` challenge so the frontend
+    // can solve it via `mppx` (Tempo MPP wallet flow).
+    if (response.status === 402) return sendFetchResponse(res, response)
+
     const text = await response.text()
     let data = null
     try {
       data = text ? JSON.parse(text) : null
     } catch {
       data = null
-    }
-
-    // StableTravel uses x402/MPP. If payment challenge is returned, surface a clear operator hint.
-    if (response.status === 402) {
-      return res.status(402).json({
-        error: 'StableTravel payment required (x402/MPP challenge).',
-        details:
-          'Use an MPP-capable client (e.g., npx agentcash fetch) or route via your MPP wallet flow for paid endpoint access.',
-        endpoint: url,
-        upstream: data ?? text,
-      })
     }
 
     if (!response.ok) {
