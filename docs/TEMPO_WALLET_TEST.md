@@ -2,6 +2,18 @@
 
 Last verified with **Tempo CLI v1.4.3** and DanceTempo `server/index.js` on `http://127.0.0.1:8787`.
 
+## Official Tempo agent skill (upstream)
+
+Tempo publishes **[tempo.xyz/SKILL.md](https://tempo.xyz/SKILL.md)** for coding agents: use **`tempo` / `tempo request`** when the user says “use tempo”, discover endpoints via **`tempo wallet -t services`**, prefer **absolute paths** to `"$HOME/.tempo/bin/tempo"`, and allow **long timeouts** for **`tempo wallet login`** (passkey).
+
+**Get the exact file (avoid summarized web-fetch):**
+
+```bash
+curl -fsSL https://tempo.xyz/SKILL.md
+```
+
+In-app explainer: **`/tempo-wallet`** on DanceTempo.
+
 ## 1) API returns `402` (no wallet)
 
 ```bash

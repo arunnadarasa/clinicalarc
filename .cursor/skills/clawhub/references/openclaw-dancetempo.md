@@ -25,6 +25,24 @@ No secrets, no network calls.
 
 ---
 
+## Optional: **Anyway** OpenClaw plugin (`@anyway-sh/anyway-openclaw`)
+
+The DanceTempo skill does **not** bundle third-party plugins. For OpenClaw users who want **Anyway** capabilities alongside this repo’s skill:
+
+```bash
+openclaw plugins install @anyway-sh/anyway-openclaw
+openclaw plugins list
+# If your gateway needs a reload:
+openclaw gateway restart
+```
+
+- **DanceTempo skill** → *what to read* (`llm-full.txt`, `CLAWHUB.md`, API smoke tests).
+- **Anyway plugin** → *extra tools/integrations* inside OpenClaw (upstream package; trust path per your org).
+
+Install order does not matter; both can coexist.
+
+---
+
 ## Workspace files (manual injection)
 
 If you use `~/.openclaw/workspace/`:

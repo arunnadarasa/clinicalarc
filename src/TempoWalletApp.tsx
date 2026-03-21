@@ -16,6 +16,9 @@ import type { TempoHubNetwork } from './danceExtrasLiveMpp'
 
 const INSTALL = `curl -fsSL https://tempo.xyz/install | bash`
 
+/** Exact upstream text — web fetch tools may summarize; agents should use curl. @see https://tempo.xyz/SKILL.md */
+const FETCH_TEMPO_SKILL = `curl -fsSL https://tempo.xyz/SKILL.md`
+
 const TEMPO_CATALOG = `# Preview cost
 tempo request --dry-run \\
   "https://aviationstack.mpp.tempo.xyz/v1/flights?flight_iata=AA100"
@@ -62,7 +65,12 @@ export default function TempoWalletApp() {
           ]}
         />
         <p className="doc-prose-muted" style={{ marginTop: '0.85rem' }}>
-          Long-form log: <code>docs/TEMPO_WALLET_TEST.md</code> in the repo.
+          Long-form log: <code>docs/TEMPO_WALLET_TEST.md</code> in the repo.{' '}
+          <strong>Agents:</strong> official instructions live at{' '}
+          <a href="https://tempo.xyz/SKILL.md" target="_blank" rel="noreferrer">
+            tempo.xyz/SKILL.md
+          </a>{' '}
+          — fetch the exact file with <code>curl</code> (see below).
         </p>
       </header>
 
@@ -116,6 +124,24 @@ export default function TempoWalletApp() {
           agents. Tempo Wallet uses passkey login (<code>tempo wallet login</code>) and scoped session keys — a
           first-class alternative to MetaMask for terminal and automation workflows.
         </p>
+      </section>
+
+      <section className="card doc-alert" style={{ borderLeftColor: '#0ea5e9' }}>
+        <h2 style={{ marginTop: 0 }}>Official Tempo agent skill</h2>
+        <p className="doc-prose-muted">
+          Upstream publishes a dedicated <strong>SKILL.md</strong> for coding agents: when the user says{' '}
+          <strong>&quot;use tempo&quot;</strong>, use <code>tempo</code> / <code>tempo request</code> (not generic HTTP
+          tools), discover services with <code>tempo wallet -t services</code>, use absolute paths to{' '}
+          <code>$HOME/.tempo/bin/tempo</code>, and allow long timeouts for <code>tempo wallet login</code>.
+        </p>
+        <p className="doc-prose-muted">
+          <a href="https://tempo.xyz/SKILL.md" target="_blank" rel="noreferrer">
+            Open tempo.xyz/SKILL.md
+          </a>{' '}
+          in a browser, or pull the <strong>verbatim</strong> file (recommended for agents — avoids summarized web
+          fetch):
+        </p>
+        <DocCodeBlock label="bash" code={FETCH_TEMPO_SKILL} />
       </section>
 
       <section className="card">
@@ -193,6 +219,7 @@ export default function TempoWalletApp() {
       <section className="card api">
         <h3>References</h3>
         <div className="api-list">
+          <a href="https://tempo.xyz/SKILL.md">tempo.xyz/SKILL.md (agent skill)</a>
           <a href="https://github.com/tempoxyz/wallet">tempoxyz/wallet (GitHub)</a>
           <a href="https://tempo.xyz">tempo.xyz</a>
           <a href="https://mpp.dev">mpp.dev</a>

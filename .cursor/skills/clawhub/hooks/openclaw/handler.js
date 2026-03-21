@@ -8,6 +8,8 @@ const REMINDER_CONTENT = `
 
 **Published skill:** https://clawhub.ai/arunnadarasa/dancetempo
 
+**OpenClaw (optional):** \`openclaw plugins install @anyway-sh/anyway-openclaw\`
+
 **Full repo bundle:** \`public/llm-full.txt\` — regenerate: \`npm run build:llm\` (also runs before \`npm run build\`). Running app: **\`/llm-full.txt\`**.
 
 **Tribal debugging:** \`CLAWHUB.md\` (successes, failures, MPP, port **8787**, purl, AgentMail).

@@ -4,6 +4,8 @@ This folder is the **authoritative** copy of the **ClawHub + DanceTempo** agent 
 
 **Published listing:** [clawhub.ai/arunnadarasa/dancetempo](https://clawhub.ai/arunnadarasa/dancetempo) — upload a fresh zip here when you change the skill.
 
+**OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — **Anyway** runtime plugin (npm); complements this skill (see `references/openclaw-dancetempo.md`).
+
 ## Purpose
 
 - Point agents at **`public/llm-full.txt`** (full repo bundle) and **`CLAWHUB.md`** (tribal debugging).

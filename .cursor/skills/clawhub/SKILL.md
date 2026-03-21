@@ -7,7 +7,8 @@ description: >-
   stale API, or port 8787 issues, (3) Editing docs that feed llm-full.txt, (4) Working on hub routes,
   server/index.js, or integrations (AgentMail, purl, OpenAI MPP, etc.), (5) EVVM deploy/docs,
   (6) Preparing a ClawHub or Copilot instruction bundle, (7) MPPScan/OpenAPI discovery at
-  GET /openapi.json. For raw EVVM protocol depth, fetch
+  GET /openapi.json, (8) OpenClaw runtime — optional **@anyway-sh/anyway-openclaw** plugin
+  (`openclaw plugins install @anyway-sh/anyway-openclaw`). For raw EVVM protocol depth, fetch
   https://www.evvm.info/llms-full.txt (not vendored in-repo).
 metadata: {}
 ---
@@ -30,6 +31,7 @@ metadata: {}
 | **Changed markdown** included in bundle | **`npm run build:llm`** (runs before **`npm run build`**). |
 | **EVVM** (deploy, CLI, Tempo testnet) | **`docs/EVVM_TEMPO.md`**, **`/evvm`**; deep: **`https://www.evvm.info/llms-full.txt`**. |
 | **MPPScan / OpenAPI** | **`GET /openapi.json`**; **`npm run discovery`** · **`docs/MPPSCAN_DISCOVERY.md`** |
+| **OpenClaw + extra capabilities** | Optional plugin: **`openclaw plugins install @anyway-sh/anyway-openclaw`** — then restart gateway if needed; see **`references/openclaw-dancetempo.md`** |
 | **Promotion** of a fix for future agents | Short entry under **Successes** or **Failures** in **`CLAWHUB.md`** (no secrets). |
 
 ---
@@ -70,6 +72,18 @@ cp -r .cursor/skills/clawhub ~/.openclaw/skills/dancetempo-clawhub
 ```
 
 **ClawHub (publish):** Zip **`clawhub/`** (this folder) so the listing includes **`SKILL.md`**, **`references/`**, **`assets/`**, **`hooks/`**, **`scripts/`**. See **`README.md`** in this folder for a file manifest.
+
+### OpenClaw: optional **Anyway** plugin
+
+This skill is **context-only**; **`@anyway-sh/anyway-openclaw`** extends the **OpenClaw** runtime with additional capabilities (separate from DanceTempo). Install when you want both:
+
+```bash
+openclaw plugins install @anyway-sh/anyway-openclaw
+# If your setup requires it:
+openclaw gateway restart
+```
+
+Pair with: **this skill** (or [ClawHub listing](https://clawhub.ai/arunnadarasa/dancetempo)) + optional **`dancetempo-clawhub`** hook. Details: **`references/openclaw-dancetempo.md`**.
 
 ---
 

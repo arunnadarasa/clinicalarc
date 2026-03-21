@@ -4,6 +4,8 @@ Use in **GitHub Copilot** instructions, **Claude** project knowledge, or **Codex
 
 **Published skill:** [clawhub.ai/arunnadarasa/dancetempo](https://clawhub.ai/arunnadarasa/dancetempo)
 
+**OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — pairs with this project’s skill; see `references/openclaw-dancetempo.md`.
+
 ---
 
 ## One-liner (system-style)
