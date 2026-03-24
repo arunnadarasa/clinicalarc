@@ -4,7 +4,7 @@
 
 **Clinical Tempo** is the **reference implementation**: a single hub, dedicated full-screen flows, and a Node/Express API that encodes the protocol in production-style code. Fork it to ship your own product; treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract.
 
-**GitHub:** canonical repo for this line of development is **[arunnadarasa/clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** — use **`git push`** / **`git pull`** against that remote only. A sibling mirror may exist at **[arunnadarasa/dancetempo](https://github.com/arunnadarasa/dancetempo)** (not configured as `origin` in maintainers’ clones). Hackathon build notes: [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md).
+**This repository is [arunnadarasa/clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** — the **canonical** remote for contributors (`git clone`, `git pull`, `git push`). An optional sibling mirror may exist at **[arunnadarasa/dancetempo](https://github.com/arunnadarasa/dancetempo)**; do not assume it tracks every commit. **NHS / hackathon notes:** [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md). **Data safety:** use **dummy or synthetic** patient data in demos only — never real patient-identifiable data.
 
 ### Interaction modes (humans & agents)—one protocol, not four
 
@@ -12,12 +12,12 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 
 | Shorthand | Typical meaning here | How it maps in this repo |
 |-----------|----------------------|----------------------------|
-| **Human → human** | Dancer, fan, or organizer pays another person or org (entry fees, passes, splits). | Battle, fan pass, clip sale scaffolds; wallet-mediated `charge` / payout flows. |
+| **Human → human** | One person or org pays another (fees, passes, reimbursements, entry). | Wallet-mediated `charge` / payout flows; legacy hub routes also include battle / fan / clip **demos** in another domain. |
 | **Human → agent** | A person approves payment; an **orchestrator** (UI wizard, MCP tool, script) calls your HTTP APIs. | Same routes as the hub; the **human still signs** with the browser wallet unless you delegate. |
 | **Agent → human** | Automated action delivers something to a person (email, alert, receipt, pass). | Ops bot + AgentMail, notifications; fulfillment after payment—not a second payment “protocol.” |
 | **Agent → agent** | Service-to-service: backends, cron, or **machine payments** between APIs. | `402` + `mppx` on the server, **API keys** where allowed (e.g. AgentMail after MPP), webhooks, `POST /api/*` from trusted workers. |
 
-**Roles (mental model):** **Payer** (human wallet vs server treasury vs delegated agent), **beneficiary** (human vs org vs system), **channel** (browser vs server). Ambient agents (e.g. coding assistants) consume **skills** like [`CLAWHUB.md`](./CLAWHUB.md), the published **[ClawHub skill](https://clawhub.ai/arunnadarasa/dancetempo)**, and repo **[`.cursor/skills/clawhub/`](./.cursor/skills/clawhub/README.md)**; runtime agents should call the **same** Express contracts with explicit trust boundaries.
+**Roles (mental model):** **Payer** (human wallet vs server treasury vs delegated agent), **beneficiary** (human vs org vs system), **channel** (browser vs server). Ambient agents (e.g. coding assistants) consume **skills** like [`CLAWHUB.md`](./CLAWHUB.md), the **[ClawHub](https://clawhub.ai/)**-published skill (search **clinicaltempo** or **dancetempo** on the site — same bundled **`SKILL.md`**), and repo **[`.cursor/skills/clawhub/`](./.cursor/skills/clawhub/README.md)**; runtime agents should call the **same** Express contracts with explicit trust boundaries.
 
 ---
 
@@ -138,6 +138,8 @@ Full step-by-step and endpoint list: **[`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_
 ## Quick start
 
 ```bash
+git clone https://github.com/arunnadarasa/clinicaltempo.git
+cd clinicaltempo
 npm install
 cp .env.example .env
 # Edit .env: API keys, MPP_RECIPIENT, Tempo flags, third-party URLs as needed.
@@ -188,7 +190,7 @@ See `.env.example` for the full list and placeholders.
 | [`public/llm-full.txt`](./public/llm-full.txt) | Single-file bundle (README + use cases + ClawHub + protocol + purl/wallet/EVVM/MPPScan docs). **Regenerate:** `npm run build:llm` |
 | [`CLAWHUB.md`](./CLAWHUB.md) | Tribal debugging — what worked / failed |
 | [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) | Hints for GitHub Copilot |
-| **[ClawHub skill (published)](https://clawhub.ai/arunnadarasa/dancetempo)** | Same content as **`.cursor/skills/clawhub/`** — [ClawHub](https://clawhub.ai/) listing; full manifest in **[`.cursor/skills/clawhub/README.md`](./.cursor/skills/clawhub/README.md)** |
+| **ClawHub skill** | Bundled as **`.cursor/skills/clawhub/`** — install from [ClawHub](https://clawhub.ai/) (search **clinicaltempo**); manifest: **[`.cursor/skills/clawhub/README.md`](./.cursor/skills/clawhub/README.md)** |
 | **OpenClaw Anyway plugin (optional)** | `openclaw plugins install @anyway-sh/anyway-openclaw` — extra runtime tools; pair with the skill · **`.cursor/skills/clawhub/references/openclaw-dancetempo.md`** |
 | EVVM upstream | [`https://www.evvm.info/llms-full.txt`](https://www.evvm.info/llms-full.txt) (not vendored; attach when doing deep EVVM work) |
 | **MPPScan discovery** | **`GET /openapi.json`** on the API (OpenAPI 3.1 + `x-payment-info` for live MPP routes). Validate: **`npm run discovery`** (server on **8787**). Guide: [`docs/MPPSCAN_DISCOVERY.md`](./docs/MPPSCAN_DISCOVERY.md) · [mppscan.com/discovery](https://www.mppscan.com/discovery) |
@@ -209,6 +211,7 @@ See `.env.example` for the full list and placeholders.
 ├── HEALTHTECH_USE_CASES.md
 ├── HEALTH_TECH_PROTOCOL_AZ.md  # A–Z protocol copy for landing pages (e.g. Lovable)
 ├── CLAWHUB.md        # Learning notes, failures, debugging playbooks
+├── OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md  # Hackathon / OpenClaw participant notes
 ├── LOVABLE_HANDOFF.md
 └── vite.config.ts    # dev proxy: /api → http://localhost:8787
 ```
@@ -225,7 +228,7 @@ See `.env.example` for the full list and placeholders.
 
 ## Contributing / fork
 
-1. Fork or clone this repo  
+1. Fork or clone **`https://github.com/arunnadarasa/clinicaltempo.git`**  
 2. Configure `.env` for the use cases you need  
 3. Extend `server/index.js` or add a new `src/*App.tsx` + route in `src/main.tsx` and **`src/hubRoutes.ts`** (hub directory)  
 4. After editing docs that feed **`llm-full.txt`**, run **`npm run build:llm`** before committing  
