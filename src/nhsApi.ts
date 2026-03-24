@@ -17,13 +17,31 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
-function errorFromPayload(payload: unknown): string {
+function errorFromResponse(res: Response, payload: unknown): string {
+  const status = res.status
   if (payload && typeof payload === 'object') {
     const o = payload as Record<string, unknown>
     if (typeof o.error === 'string' && o.error) return o.error
     if (typeof o.details === 'string' && o.details) return o.details
+    if (typeof o.message === 'string' && o.message) return o.message
   }
-  return 'Request failed.'
+  if (typeof payload === 'string' && payload.trim()) {
+    const lower = payload.slice(0, 80).toLowerCase()
+    if (lower.includes('<!doctype') || lower.includes('<html')) {
+      if (status === 502 || status === 503 || status === 504) {
+        return 'API server not reachable. Run `npm run server` (port 8787) or `npm run dev:full` alongside the Vite dev server.'
+      }
+      return `Server returned HTML (HTTP ${status}). Check that the API is running on port 8787.`
+    }
+    return payload.replace(/\s+/g, ' ').slice(0, 240)
+  }
+  if (status === 402) {
+    return 'Payment required (402). Complete the wallet payment prompt, or set payment mode to direct fetch and disable the NHS payment gate on the server (NHS_ENABLE_PAYMENT_GATE=false).'
+  }
+  if (status === 502 || status === 503 || status === 504) {
+    return 'API server not reachable. Run `npm run server` (port 8787) or `npm run dev:full`.'
+  }
+  return `Request failed (HTTP ${status}).`
 }
 
 type ApiOpts = {
@@ -96,12 +114,18 @@ export async function apiPost<T>(
     headers: getAuthHeaders(role, wallet),
     body: JSON.stringify({ ...(body as Record<string, unknown>), network: opts.network }),
   }
-  const res =
-    opts.paymentMode === 'mpp'
-      ? await nhsMppFetch(path, reqInit, { wallet, network: opts.network })
-      : await fetch(path, reqInit)
+  let res: Response
+  try {
+    res =
+      opts.paymentMode === 'mpp'
+        ? await nhsMppFetch(path, reqInit, { wallet, network: opts.network })
+        : await fetch(path, reqInit)
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Network error.'
+    return { ok: false, error: msg, status: 0 }
+  }
   const payload = await parseJsonSafe(res)
-  if (!res.ok) return { ok: false, error: errorFromPayload(payload), status: res.status }
+  if (!res.ok) return { ok: false, error: errorFromResponse(res, payload), status: res.status }
   const txHash = txFromResponse(payload, res)
   if (txHash) {
     addNhsTxHistory({
@@ -137,9 +161,15 @@ export async function apiGet<T>(
   _opts: ApiOpts,
 ): Promise<ApiResponse<T>> {
   void _opts
-  const res = await fetch(path, { headers: getAuthHeaders(role, wallet) })
+  let res: Response
+  try {
+    res = await fetch(path, { headers: getAuthHeaders(role, wallet) })
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Network error.'
+    return { ok: false, error: msg, status: 0 }
+  }
   const payload = await parseJsonSafe(res)
-  if (!res.ok) return { ok: false, error: errorFromPayload(payload), status: res.status }
+  if (!res.ok) return { ok: false, error: errorFromResponse(res, payload), status: res.status }
   return { ok: true, data: payload as T, txHash: null, explorerUrl: null }
 }
 
