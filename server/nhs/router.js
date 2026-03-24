@@ -8,6 +8,15 @@ function nowIso() {
   return new Date().toISOString()
 }
 
+/** Echo MPP receipt reference in JSON when the gate returned one (headers alone can be dropped by proxies). */
+function withReceipt(body, paymentCtx) {
+  const ref = paymentCtx?.paymentReceiptRef
+  if (ref != null && String(ref).length > 0) {
+    return { ...body, receiptRef: ref }
+  }
+  return body
+}
+
 export function createNhsRouter(deps) {
   const router = express.Router()
   const gate = (config, handler) => withTempoGate(deps, config, handler)
@@ -54,7 +63,7 @@ export function createNhsRouter(deps) {
         payload: { priority },
         paymentReceiptRef: paymentCtx.paymentReceiptRef,
       })
-      return res.status(201).json({ id, patientId: patient.patientId, status: 'submitted', priority })
+      return res.status(201).json(withReceipt({ id, patientId: patient.patientId, status: 'submitted', priority }, paymentCtx))
     }),
   )
 
@@ -78,7 +87,7 @@ export function createNhsRouter(deps) {
     amount: '0.02',
     description: 'NHS care plan write',
     externalIdPrefix: 'nhs_care_plan',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const forbidden = requireRoles(actor, ['gp', 'nhc_provider'])
@@ -106,8 +115,9 @@ export function createNhsRouter(deps) {
       entityType: 'care_plan',
       entityId: id,
       payload: { patientId, goal },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.status(201).json({ id, patientId, goal, actions, status: 'active' })
+    return res.status(201).json(withReceipt({ id, patientId, goal, actions, status: 'active' }, paymentCtx))
   }))
 
   router.get('/care-plans/:patientId', (req, res) => {
@@ -131,7 +141,7 @@ export function createNhsRouter(deps) {
     amount: '0.01',
     description: 'NHS care plan update',
     externalIdPrefix: 'nhs_care_plan_update',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const forbidden = requireRoles(actor, ['gp', 'nhc_provider'])
@@ -155,8 +165,9 @@ export function createNhsRouter(deps) {
       entityType: 'care_plan_update',
       entityId: id,
       payload: { planId: req.params.planId },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.status(201).json({ id, planId: req.params.planId, note: note.trim() })
+    return res.status(201).json(withReceipt({ id, planId: req.params.planId, note: note.trim() }, paymentCtx))
   }))
 
   router.post('/social-prescribing/referrals', gate({
@@ -164,7 +175,7 @@ export function createNhsRouter(deps) {
     amount: '0.02',
     description: 'NHS social prescribing referral',
     externalIdPrefix: 'nhs_social_referral',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const forbidden = requireRoles(actor, ['gp', 'nhc_provider'])
@@ -192,8 +203,9 @@ export function createNhsRouter(deps) {
       entityType: 'social_referral',
       entityId: id,
       payload: { patientId, reason },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.status(201).json({ id, patientId, status: 'referred' })
+    return res.status(201).json(withReceipt({ id, patientId, status: 'referred' }, paymentCtx))
   }))
 
   router.get('/social-prescribing/referrals/:id', (req, res) => {
@@ -216,7 +228,7 @@ export function createNhsRouter(deps) {
     amount: '0.01',
     description: 'NHS link worker plan write',
     externalIdPrefix: 'nhs_link_worker_plan',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const forbidden = requireRoles(actor, ['nhc_provider', 'gp'])
@@ -240,8 +252,9 @@ export function createNhsRouter(deps) {
         entityType: 'social_link_plan',
         entityId: existing.id,
         payload: { referralId },
+        paymentReceiptRef: paymentCtx.paymentReceiptRef,
       })
-      return res.json({ id: existing.id, referralId, whatMatters, interventions })
+      return res.json(withReceipt({ id: existing.id, referralId, whatMatters, interventions }, paymentCtx))
     }
 
     const id = `slp_${crypto.randomUUID()}`
@@ -262,8 +275,9 @@ export function createNhsRouter(deps) {
       entityType: 'social_link_plan',
       entityId: id,
       payload: { referralId },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.status(201).json({ id, referralId, whatMatters, interventions })
+    return res.status(201).json(withReceipt({ id, referralId, whatMatters, interventions }, paymentCtx))
   }))
 
   router.post('/neighbourhood-teams/coordinate', gate({
@@ -271,7 +285,7 @@ export function createNhsRouter(deps) {
     amount: '0.01',
     description: 'NHS neighbourhood coordination write',
     externalIdPrefix: 'nhs_neighbourhood_coord',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const forbidden = requireRoles(actor, ['gp', 'nhc_provider'])
@@ -296,8 +310,9 @@ export function createNhsRouter(deps) {
       entityType: 'neighbourhood_event',
       entityId: id,
       payload: { patientId, eventType },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.status(201).json({ id, patientId, eventType, detail })
+    return res.status(201).json(withReceipt({ id, patientId, eventType, detail }, paymentCtx))
   }))
 
   router.post('/monitoring/sessions', gate({
@@ -305,7 +320,7 @@ export function createNhsRouter(deps) {
     amount: '0.02',
     description: 'NHS monitoring session create',
     externalIdPrefix: 'nhs_monitoring_session',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const forbidden = requireRoles(actor, ['gp', 'nhc_provider'])
@@ -334,8 +349,9 @@ export function createNhsRouter(deps) {
       entityType: 'monitoring_session',
       entityId: id,
       payload: { patientId, metric },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.status(201).json({ id, patientId, metric, status: 'active' })
+    return res.status(201).json(withReceipt({ id, patientId, metric, status: 'active' }, paymentCtx))
   }))
 
   router.post('/monitoring/readings', gate({
@@ -343,7 +359,7 @@ export function createNhsRouter(deps) {
     amount: '0.01',
     description: 'NHS monitoring reading write',
     externalIdPrefix: 'nhs_monitoring_reading',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const { sessionId, value, source } = req.body ?? {}
@@ -399,8 +415,9 @@ export function createNhsRouter(deps) {
       entityType: 'monitoring_reading',
       entityId: readingId,
       payload: { sessionId, value: readingValue, alert: alert?.id || null },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.status(201).json({ id: readingId, sessionId, value: readingValue, alert })
+    return res.status(201).json(withReceipt({ id: readingId, sessionId, value: readingValue, alert }, paymentCtx))
   }))
 
   router.post('/monitoring/alerts/:alertId/resolve', gate({
@@ -408,14 +425,14 @@ export function createNhsRouter(deps) {
     amount: '0.01',
     description: 'NHS monitoring alert resolve',
     externalIdPrefix: 'nhs_monitoring_alert_resolve',
-  }, (req, res) => {
+  }, (req, res, paymentCtx) => {
     const actor = getActor(req)
     if (actor.error) return res.status(400).json({ error: actor.error })
     const forbidden = requireRoles(actor, ['gp', 'nhc_provider'])
     if (forbidden) return res.status(403).json({ error: forbidden })
     const alert = get('SELECT id, status FROM monitoring_alerts WHERE id = ?', [req.params.alertId])
     if (!alert) return res.status(404).json({ error: 'Alert not found.' })
-    if (alert.status === 'resolved') return res.json({ id: alert.id, status: 'resolved' })
+    if (alert.status === 'resolved') return res.json(withReceipt({ id: alert.id, status: 'resolved' }, paymentCtx))
     const now = nowIso()
     run('UPDATE monitoring_alerts SET status = ?, resolved_at = ?, resolved_by_wallet = ? WHERE id = ?', [
       'resolved',
@@ -430,8 +447,9 @@ export function createNhsRouter(deps) {
       entityType: 'monitoring_alert',
       entityId: alert.id,
       payload: { note: req.body?.note || null },
+      paymentReceiptRef: paymentCtx.paymentReceiptRef,
     })
-    return res.json({ id: alert.id, status: 'resolved', resolvedAt: now })
+    return res.json(withReceipt({ id: alert.id, status: 'resolved', resolvedAt: now }, paymentCtx))
   }))
 
   router.get('/patients/:patientId/timeline', (req, res) => {
