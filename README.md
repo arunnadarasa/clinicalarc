@@ -4,7 +4,7 @@
 
 **Clinical Tempo** is the **reference implementation**: a single hub, dedicated full-screen flows, and a Node/Express API that encodes the protocol in production-style code. Fork it to ship your own product; treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract.
 
-**GitHub:** this tree is published as **[arunnadarasa/clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** (NHS / hackathon–friendly entry) and **[arunnadarasa/dancetempo](https://github.com/arunnadarasa/dancetempo)** (full HealthTech Protocol + legacy hub demos). Clone either; content is kept in sync from the same working copy. Hackathon build notes: [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md).
+**GitHub:** canonical repo for this line of development is **[arunnadarasa/clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** — use **`git push`** / **`git pull`** against that remote only. A sibling mirror may exist at **[arunnadarasa/dancetempo](https://github.com/arunnadarasa/dancetempo)** (not configured as `origin` in maintainers’ clones). Hackathon build notes: [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md).
 
 ### Interaction modes (humans & agents)—one protocol, not four
 
