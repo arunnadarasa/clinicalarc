@@ -9,8 +9,8 @@ Order matters for LLM context — matches the script’s `FILES` array:
 | --- | --- |
 | 1 | `README.md` |
 | 2 | `CLAWHUB.md` |
-| 3 | `DANCETECH_USE_CASES.md` |
-| 4 | `DANCE_TECH_PROTOCOL_AZ.md` |
+| 3 | `HEALTHTECH_USE_CASES.md` |
+| 4 | `HEALTH_TECH_PROTOCOL_AZ.md` |
 | 5 | `docs/PURL_DANCETEMPO.md` |
 | 6 | `docs/TEMPO_WALLET_TEST.md` |
 | 7 | `docs/EVVM_TEMPO.md` |

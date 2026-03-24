@@ -1,4 +1,4 @@
-# EVVM on Tempo testnet (DanceTempo)
+# EVVM on Tempo testnet (Clinical Tempo)
 
 [EVVM](https://www.evvm.info/) is an “Ethereum Virtual Virtual Machine” — deploy a full EVVM **stack** (Evvm, Staking, Estimator, NameService, Treasury, P2PSwap) onto a **host chain**. This repo documents **Tempo testnet only** (chain ID **42431**, Moderato).
 
@@ -12,11 +12,11 @@ In a **Foundry/Hardhat** project (or after `forge install EVVM-org/Testnet-Contr
 npm install @evvm/testnet-contracts
 ```
 
-DanceTempo does **not** pin this package in `package.json` (transitive deps are large). Use imports such as `import "@evvm/testnet-contracts/interfaces/ICore.sol";` — see [How to make an EVVM service](https://www.evvm.info/docs/HowToMakeAEVVMService).
+Clinical Tempo does **not** pin this package in `package.json` (transitive deps are large). Use imports such as `import "@evvm/testnet-contracts/interfaces/ICore.sol";` — see [How to make an EVVM service](https://www.evvm.info/docs/HowToMakeAEVVMService).
 
 ### B) Full CLI + contracts repo (deploy)
 
-From the DanceTempo repo root:
+From the Clinical Tempo repo root:
 
 ```bash
 npm run evvm:vendor
@@ -69,7 +69,7 @@ cd vendor/evvm-testnet-contracts
 
 Follow the interactive wizard. For **verification**, pick an option that matches Tempo (e.g. **Custom** / **Sourcify** / **Skip** depending on CLI version). Tempo publishes verifier patterns at **[contracts.tempo.xyz](https://contracts.tempo.xyz/docs)** (supported chains include **42431**).
 
-## Registry: skip for now (DanceTempo stance)
+## Registry: skip for now (Clinical Tempo stance)
 
 After deploy, the CLI may ask to **register** the instance on the **EVVM Registry** (Ethereum Sepolia). That step is **optional**.
 
@@ -87,4 +87,4 @@ Full EVVM documentation bundle: **[https://www.evvm.info/llms-full.txt](https://
 
 ## In-app
 
-Dedicated page: **`/evvm`** on the DanceTempo hub.
+Dedicated page: **`/evvm`** on the Clinical Tempo hub.

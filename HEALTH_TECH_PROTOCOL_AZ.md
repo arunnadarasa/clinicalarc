@@ -1,11 +1,11 @@
-# DanceTech Protocol — A to Z
+# HealthTech Protocol — A to Z
 
 **Use this document** to build a landing page (e.g. in Lovable), social copy, or investor one-pagers. It explains the protocol end-to-end and points to the open-source reference app on GitHub.
 
 | | |
 |---|---|
-| **Protocol** | DanceTech Protocol — pattern stack for dance-industry money & ops on **Tempo** + **MPP/x402** |
-| **Reference app** | **DanceTempo** — [`github.com/arunnadarasa/dancetempo`](https://github.com/arunnadarasa/dancetempo) |
+| **Protocol** | HealthTech Protocol — pattern stack for **neighbourhood health** and care-ops money flows on **Tempo** + **MPP/x402** |
+| **Reference app** | **Clinical Tempo** — [`github.com/arunnadarasa/dancetempo`](https://github.com/arunnadarasa/dancetempo) |
 | **Settlement** | [Tempo](https://tempo.xyz) (L1 tuned for payments) |
 | **Machine payments** | [Machine Payments Protocol (MPP)](https://mpp.dev) · [Service catalog](https://mpp.dev/services) |
 
@@ -13,17 +13,17 @@
 
 ## Elevator pitch
 
-**DanceTech Protocol** is an open **pattern stack** for the dance industry: the same ideas power battle entry fees, coaching minutes, beat licensing, judge scores, cypher pots, clip revenue splits, reputation attestations, studio AI metering, tournament ops automation, fan memberships—and the paid APIs (email, travel, music, intel) that surround real events.
+**HealthTech Protocol** is an open **pattern stack** for **health and care delivery**: wallet-verified requests, payment-gated service writes, care coordination, monitoring, and agent-friendly APIs—plus **legacy** demo flows (battle entry, coaching, beats, dance-extras) that prove the same **charge / session / 402** patterns. Paid third-party APIs (email, travel, music, intel) plug in the same way.
 
 Money and API access are **settled on Tempo** and **authorized through MPP and HTTP 402 (x402)** so flows stay **verifiable**, **composable**, and **agent-ready**: humans, scripts, and services can participate under explicit trust boundaries.
 
-**DanceTempo** is the **reference implementation**: one hub, dedicated demos, and a production-style Node/Express API you can fork.
+**Clinical Tempo** is the **reference implementation**: one hub, dedicated demos, and a production-style Node/Express API you can fork.
 
 ---
 
 ## A — Architecture (four layers)
 
-1. **Experience** — Hub and full-screen apps (battle, coaching, beats, dance-extras, kicks, travel, …).  
+1. **Experience** — Clinical Tempo NHS apps (`/nhs/*`) and legacy full-screen demos (battle, coaching, beats, dance-extras, kicks, travel, …).  
 2. **API** — Express routes that encode intents, receipts, and integration behavior.  
 3. **Payments** — `mppx` on client and server; Tempo chain actions via `viem`.  
 4. **Integrations** — Paid third parties (AgentMail, Suno, OpenWeather, KicksDB, …) via MPP catalog hosts or env-configured proxies.
@@ -43,13 +43,13 @@ Two recurring **payment intents** in the stack:
 - **`charge`** — One-shot payment (entry, license, attestation, pass).  
 - **`session`** — Metered or repeated ticks (coaching minutes, micropot-style accumulation).
 
-Both map to MPP semantics and show up across hub copy and `DANCETECH_USE_CASES.md`.
+Both map to MPP semantics and show up across hub copy and `HEALTHTECH_USE_CASES.md`.
 
 ---
 
-## D — DanceTempo (reference implementation)
+## D — Clinical Tempo (reference implementation)
 
-**DanceTempo** encodes DanceTech Protocol in a real codebase:
+**Clinical Tempo** encodes HealthTech Protocol in a real codebase:
 
 - **Frontend:** React, TypeScript, Vite.  
 - **Backend:** Express 5, payment verification, `402` passthrough, proxies.  
@@ -59,13 +59,13 @@ Both map to MPP semantics and show up across hub copy and `DANCETECH_USE_CASES.m
 
 ## E — Ecosystem (mpp.dev)
 
-The **[MPP service catalog](https://mpp.dev/services)** lists hosted integrations (base URLs, paths, pricing). DanceTempo wires many of the same vendors through **`server/index.js`** and documents env vars in **`.env.example`**.
+The **[MPP service catalog](https://mpp.dev/services)** lists hosted integrations (base URLs, paths, pricing). Clinical Tempo wires many of the same vendors through **`server/index.js`** and documents env vars in **`.env.example`**.
 
 ---
 
 ## F — Forks & extensibility
 
-The protocol is **meant to be forked**: add a route, add a `src/*App.tsx`, mirror the same **pay → receipt → side effect** pattern. Behavioral contracts live in **`DANCETECH_USE_CASES.md`**.
+The protocol is **meant to be forked**: add a route, add a `src/*App.tsx`, mirror the same **pay → receipt → side effect** pattern. Behavioral contracts live in **`HEALTHTECH_USE_CASES.md`**.
 
 ---
 
@@ -79,7 +79,7 @@ The protocol is **meant to be forked**: add a route, add a `src/*App.tsx`, mirro
 
 ## H — Humans & agents (one protocol)
 
-DanceTech Protocol is **one** stack. “Human→human,” “human→agent,” “agent→human,” and “agent→agent” are **shorthand** for who **authorizes spend** and who **benefits**—not four separate specs.
+HealthTech Protocol is **one** stack. “Human→human,” “human→agent,” “agent→human,” and “agent→agent” are **shorthand** for who **authorizes spend** and who **benefits**—not four separate specs.
 
 | Shorthand | Meaning |
 |-----------|--------|
@@ -116,7 +116,7 @@ Many flows support **simulate** (mock API, no chain spend) and **live** (Tempo M
 
 ## M — MPP (Machine Payments Protocol)
 
-MPP standardizes **how** machines and wallets pay for HTTP resources: challenges, retries, receipts. DanceTempo uses **`mppx`** client/server and forwards **402** responses so clients can complete payment.
+MPP standardizes **how** machines and wallets pay for HTTP resources: challenges, retries, receipts. Clinical Tempo uses **`mppx`** client/server and forwards **402** responses so clients can complete payment.
 
 ---
 
@@ -137,15 +137,15 @@ License: **MIT** (see `LICENSE` in the repo). Use commercially; attribute; contr
 
 ## P — Product surfaces (routes)
 
-Examples users can open in DanceTempo:
+Examples users can open in Clinical Tempo:
 
 | Path | Idea |
 |------|------|
-| `/` | Hub — all use cases |
-| `/battle` | Battle entry + payout |
-| `/coaching` | Coaching minutes |
-| `/beats` | Beat licensing |
-| `/dance-extras` | Seven core DanceTech scaffolds + live MPP |
+| `/nhs`, `/` | **Clinical Tempo** — NHS neighbourhood care hub + workflows |
+| `/battle` | Battle entry + payout (legacy demo) |
+| `/coaching` | Coaching minutes (legacy demo) |
+| `/beats` | Beat licensing (legacy demo) |
+| `/dance-extras` | Seven core **event-style** scaffolds + live MPP |
 | `/kicks`, `/travel`, `/music`, `/email`, … | Vertical demos |
 
 Full table: **`README.md`** in the repo.
@@ -180,7 +180,7 @@ Tempo provides the **chain context** for settlement; pair with **explorers** (e.
 
 ## U — Use cases (ten+)
 
-Battle entry, judge scores, cypher micropot, coaching minutes, beat licensing, clip rights router, reputation attestations, studio AI billing, ops bot + email, fan battle pass—plus integrations above. Details: **`DANCETECH_USE_CASES.md`**.
+**NHS:** GP access, care plans, social prescribing, neighbourhood teams, monitoring, alerts (`/api/nhs/*`). **Legacy demos:** battle entry, judge scores, cypher micropot, coaching minutes, beat licensing, clip rights router, reputation attestations, studio AI billing, ops bot + email, fan battle pass—plus integrations above. Details: **`HEALTHTECH_USE_CASES.md`**.
 
 ---
 
@@ -205,7 +205,7 @@ Third-party APIs may return **402** + **WWW-Authenticate**. The backend **preser
 ## Y — You (who this is for)
 
 - **Event orgs & platforms** — standardized payment patterns for competitions and community products.  
-- **Builders** — fork DanceTempo, swap branding, connect your keys.  
+- **Builders** — fork Clinical Tempo, swap branding, connect your keys.  
 - **Agents & automation** — same HTTP contracts; explicit trust for who signs and who pays.
 
 ---
@@ -218,9 +218,9 @@ The protocol is **patterns + reference code**, not a single vendor gate. Swap in
 
 ## Suggested Lovable CTA block
 
-**Headline:** *DanceTech Protocol — verifiable payments for the dance economy.*
+**Headline:** *HealthTech Protocol — verifiable payments for neighbourhood health.*
 
-**Sub:** *Built on Tempo & MPP. Ship faster with the open DanceTempo reference app.*
+**Sub:** *Built on Tempo & MPP. Ship faster with the open Clinical Tempo reference app.*
 
 **Primary button:** [View on GitHub](https://github.com/arunnadarasa/dancetempo)
 
@@ -233,10 +233,10 @@ The protocol is **patterns + reference code**, not a single vendor gate. Swap in
 | File | Purpose |
 |------|---------|
 | `README.md` | Overview, routes, quick start |
-| `DANCETECH_USE_CASES.md` | Flow-by-flow API mapping |
+| `HEALTHTECH_USE_CASES.md` | Flow-by-flow API mapping |
 | `CLAWHUB.md` | Operational learnings |
 | `.env.example` | Configuration surface |
 
 ---
 
-*This file is maintained for landing-page and handoff use. Protocol naming: **DanceTech Protocol**; implementation: **DanceTempo** · [`github.com/arunnadarasa/dancetempo`](https://github.com/arunnadarasa/dancetempo).*
+*This file is maintained for landing-page and handoff use. Protocol naming: **HealthTech Protocol**; implementation / app: **Clinical Tempo** · [`github.com/arunnadarasa/dancetempo`](https://github.com/arunnadarasa/dancetempo).*

@@ -27,8 +27,13 @@ export function DocCodeBlock({ code, label = 'bash' }: Props) {
     <div className="doc-code-block">
       <div className="doc-code-block__bar">
         <span className="doc-code-block__label">{label}</span>
-        <button type="button" className="doc-code-block__copy" onClick={copy}>
-          {copied ? 'Copied ✓' : 'Copy'}
+        <button
+          type="button"
+          className="doc-code-block__copy"
+          aria-label={copied ? 'Copied' : 'Copy code to clipboard'}
+          onClick={copy}
+        >
+          {copied ? '✓' : 'Copy'}
         </button>
       </div>
       <pre className="doc-code-block__pre">

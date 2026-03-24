@@ -1,4 +1,4 @@
-# DanceTempo — troubleshooting (agents)
+# Clinical Tempo — troubleshooting (agents)
 
 Cross-check with **`CLAWHUB.md`** for project-specific history.
 

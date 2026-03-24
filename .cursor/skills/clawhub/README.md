@@ -1,6 +1,6 @@
-# `clawhub` — DanceTempo context skill (ClawHub / Cursor)
+# `clawhub` — Clinical Tempo context skill (ClawHub / Cursor)
 
-This folder is the **authoritative** copy of the **ClawHub + DanceTempo** agent skill. It is versioned inside the [DanceTempo](https://github.com/arunnadarasa/dancetempo) repository under `.cursor/skills/clawhub/`.
+This folder is the **authoritative** copy of the **ClawHub + Clinical Tempo** agent skill. It is versioned inside the [Clinical Tempo](https://github.com/arunnadarasa/dancetempo) repository under `.cursor/skills/clawhub/`.
 
 **Published listing:** [clawhub.ai/arunnadarasa/dancetempo](https://clawhub.ai/arunnadarasa/dancetempo) — upload a fresh zip here when you change the skill.
 

@@ -1,6 +1,5 @@
 import { Mppx as MppxClient, tempo as tempoClient } from 'mppx/client'
 import { createWalletClient } from 'viem'
-import { tempo as tempoMainnet, tempoModerato } from 'viem/chains'
 import { tempoActions } from 'viem/tempo'
 import {
   TEMPO_MPP_SESSION_MAX_DEPOSIT,
@@ -8,24 +7,13 @@ import {
   type BrowserEthereumProvider,
 } from './tempoMpp'
 import type { NhsNetwork } from './nhsSession'
-
-const tempoTestnetChain = tempoModerato.extend({
-  nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
-  feeToken: '0x20c0000000000000000000000000000000000001',
-  blockTime: 30_000,
-})
-
-const tempoMainnetChain = tempoMainnet.extend({
-  nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
-  feeToken: '0x20c000000000000000000000b9537d11c60e8b50',
-  blockTime: 30_000,
-})
+import { tempoMainnetChain, tempoTestnetChain } from './tempoChains'
 
 function toHexChainId(id: number) {
   return `0x${id.toString(16)}`
 }
 
-async function ensureWalletOnNetwork(ethereum: BrowserEthereumProvider, network: NhsNetwork) {
+export async function ensureWalletOnNetwork(ethereum: BrowserEthereumProvider, network: NhsNetwork) {
   const chain = network === 'mainnet' ? tempoMainnetChain : tempoTestnetChain
   const chainId = toHexChainId(chain.id)
   try {

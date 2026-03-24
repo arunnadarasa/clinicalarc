@@ -42,7 +42,7 @@ purl --confirm -X POST --json "$BODY" \\
   "${LOCAL_API}/api/dance-extras/live/judge-score/${path}"`
 }
 
-/** `tempo request` against local DanceTempo API for copy-paste. */
+/** `tempo request` against local Clinical Tempo API for copy-paste. */
 export function buildTempoRequestLocal(network: TempoHubNetwork): string {
   const path = network === 'testnet' ? 'testnet' : 'mainnet'
   const body = bodyString(network)

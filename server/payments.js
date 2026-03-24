@@ -356,7 +356,7 @@ export function createVirtualDebitCard({ walletAddress, amountDisplay, currency,
     expiry: `${month}/${year}`,
     cvv: randomDigits(3),
     status: 'ready',
-    label: typeof label === 'string' && label.trim() ? label : 'DanceTech virtual debit card',
+    label: typeof label === 'string' && label.trim() ? label : 'HealthTech virtual debit card',
     createdAt,
   }
 

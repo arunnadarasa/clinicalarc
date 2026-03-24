@@ -1,6 +1,6 @@
 ---
 name: dancetempo-clawhub
-description: "Injects DanceTempo / ClawHub context reminder during agent bootstrap (llm-full.txt, CLAWHUB.md, API smoke)."
+description: "Injects Clinical Tempo / ClawHub context reminder during agent bootstrap (llm-full.txt, CLAWHUB.md, API smoke)."
 metadata:
   openclaw:
     emoji: "🎵"
@@ -8,7 +8,7 @@ metadata:
       - agent:bootstrap
 ---
 
-# DanceTempo · ClawHub context hook
+# Clinical Tempo · ClawHub context hook
 
 Injects a short **virtual bootstrap file** so agents remember where full repo context and tribal debugging live.
 

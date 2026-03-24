@@ -13,16 +13,18 @@ const root = join(__dirname, '..')
 const FILES = [
   ['README.md', 'README.md'],
   ['CLAWHUB.md', 'CLAWHUB.md'],
-  ['DANCETECH_USE_CASES.md', 'DANCETECH_USE_CASES.md'],
-  ['DANCE_TECH_PROTOCOL_AZ.md', 'DANCE_TECH_PROTOCOL_AZ.md'],
+  ['HEALTHTECH_USE_CASES.md', 'HEALTHTECH_USE_CASES.md'],
+  ['HEALTH_TECH_PROTOCOL_AZ.md', 'HEALTH_TECH_PROTOCOL_AZ.md'],
   ['docs/PURL_DANCETEMPO.md', 'docs/PURL_DANCETEMPO.md'],
+  ['docs/PURL_NHS.md', 'docs/PURL_NHS.md'],
+  ['docs/OWS_NHS.md', 'docs/OWS_NHS.md'],
   ['docs/TEMPO_WALLET_TEST.md', 'docs/TEMPO_WALLET_TEST.md'],
   ['docs/EVVM_TEMPO.md', 'docs/EVVM_TEMPO.md'],
   ['docs/MPPSCAN_DISCOVERY.md', 'docs/MPPSCAN_DISCOVERY.md'],
   ['docs/ECOSYSTEM_SYNERGY.md', 'docs/ECOSYSTEM_SYNERGY.md'],
 ]
 
-const header = `# DanceTempo / DanceTech Protocol — LLM context bundle
+const header = `# Clinical Tempo / HealthTech Protocol — LLM context bundle
 
 **Purpose:** Single file to paste into an LLM system prompt, upload to a coding agent, or feed RAG — **full orientation** to this repository.
 

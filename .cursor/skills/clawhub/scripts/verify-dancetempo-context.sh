@@ -4,7 +4,7 @@ set -euo pipefail
 # Script: .cursor/skills/clawhub/scripts/ — repo root is four levels up (scripts→clawhub→skills→.cursor→repo)
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 LLM="$ROOT/public/llm-full.txt"
-echo "DanceTempo context check (repo: $ROOT)"
+echo "Clinical Tempo context check (repo: $ROOT)"
 if [[ ! -f "$LLM" ]]; then
   echo "MISSING: $LLM — run: npm run build:llm"
   exit 1

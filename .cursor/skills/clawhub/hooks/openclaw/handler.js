@@ -1,10 +1,10 @@
 /**
- * DanceTempo / ClawHub — OpenClaw bootstrap hook
+ * Clinical Tempo / ClawHub — OpenClaw bootstrap hook
  * Injects a reminder to load llm-full.txt + CLAWHUB.md before deep work.
  */
 
 const REMINDER_CONTENT = `
-## DanceTempo context (ClawHub skill)
+## Clinical Tempo context (ClawHub skill)
 
 **Published skill:** https://clawhub.ai/arunnadarasa/dancetempo
 

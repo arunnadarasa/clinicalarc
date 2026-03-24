@@ -1,6 +1,6 @@
-# Verifying Tempo Wallet CLI + DanceTempo (local)
+# Verifying Tempo Wallet CLI + Clinical Tempo (local)
 
-Last verified with **Tempo CLI v1.4.3** and DanceTempo `server/index.js` on `http://127.0.0.1:8787`.
+Last verified with **Tempo CLI v1.4.3** and Clinical Tempo `server/index.js` on `http://127.0.0.1:8787`.
 
 ## Official Tempo agent skill (upstream)
 
@@ -12,7 +12,7 @@ Tempo publishes **[tempo.xyz/SKILL.md](https://tempo.xyz/SKILL.md)** for coding 
 curl -fsSL https://tempo.xyz/SKILL.md
 ```
 
-In-app explainer: **`/tempo-wallet`** on DanceTempo.
+In-app explainer: **`/tempo-wallet`** on Clinical Tempo.
 
 ## 1) API returns `402` (no wallet)
 
@@ -67,4 +67,4 @@ You should see payment preview (amount, asset, recipient) similar to **`purl --d
 | `tempo request` without session | Clear error: need key for `tempo-moderato` ✓ |
 | `tempo request` after login | User completes dry-run / pay (not automated in CI) |
 
-This proves **DanceTempo’s MPP endpoint is compatible with the official Tempo Wallet’s network selection**; the remaining step is **human passkey login**, not a protocol mismatch.
+This proves **Clinical Tempo’s MPP endpoint is compatible with the official Tempo Wallet’s network selection**; the remaining step is **human passkey login**, not a protocol mismatch.

@@ -1,4 +1,4 @@
-# DanceTempo — concrete examples
+# Clinical Tempo — concrete examples
 
 ## Cursor / IDE context
 

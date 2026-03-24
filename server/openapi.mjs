@@ -30,7 +30,7 @@ export function buildOpenApiDocument(req) {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'DanceTempo NHS API',
+      title: 'Clinical Tempo NHS API',
       version: '1.0.0',
       description:
         'NHS neighbourhood health + social prescribing reference backend with wallet identity, RBAC, and Tempo MPP payment gates.',

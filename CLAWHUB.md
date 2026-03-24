@@ -1,10 +1,10 @@
-# ClawHub Learning Notes (DanceTempo / DanceTech Protocol)
+# ClawHub Learning Notes (Clinical Tempo / HealthTech Protocol)
 
 ## LLM context bundle (`llm-full.txt`)
 
-For **full-repo orientation** in one paste (ChatGPT, Claude, Cursor, OpenClaw): use **`public/llm-full.txt`**, built from README + this file + `DANCETECH_USE_CASES.md` + `DANCE_TECH_PROTOCOL_AZ.md` + purl/tempo wallet + **`docs/EVVM_TEMPO.md`** + **`docs/MPPSCAN_DISCOVERY.md`**.
+For **full-repo orientation** in one paste (ChatGPT, Claude, Cursor, OpenClaw): use **`public/llm-full.txt`**, built from README + this file + `HEALTHTECH_USE_CASES.md` + `HEALTH_TECH_PROTOCOL_AZ.md` + purl/tempo wallet + **`docs/EVVM_TEMPO.md`** + **`docs/MPPSCAN_DISCOVERY.md`**.
 
-**Published skill (ClawHub):** [clawhub.ai/arunnadarasa/dancetempo](https://clawhub.ai/arunnadarasa/dancetempo) — install the DanceTempo skill for IDE/OpenClaw; source of truth remains **`.cursor/skills/clawhub/`** in git. **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — documented in **`references/openclaw-dancetempo.md`**. **Ecosystem framing:** **`docs/ECOSYSTEM_SYNERGY.md`** (mpp-nanogpt-modal, nanoGPT/nanochat/autoresearch, ClawHub + plugins).
+**Published skill (ClawHub):** [clawhub.ai/arunnadarasa/dancetempo](https://clawhub.ai/arunnadarasa/dancetempo) — install the Clinical Tempo skill for IDE/OpenClaw; source of truth remains **`.cursor/skills/clawhub/`** in git. **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — documented in **`references/openclaw-dancetempo.md`**. **Ecosystem framing:** **`docs/ECOSYSTEM_SYNERGY.md`** (mpp-nanogpt-modal, nanoGPT/nanochat/autoresearch, ClawHub + plugins).
 
 - **Regenerate:** `npm run build:llm` (runs automatically before `npm run build`).
 - **In the browser:** open **`/llm-full.txt`** or use the hub **“Download LLM context bundle”** button on `/`.
@@ -14,9 +14,9 @@ Keep **this file (`CLAWHUB.md`)** for debugging checklists and failures; pair it
 
 ---
 
-This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any future agent) to the DanceTempo repository:
+This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any future agent) to the Clinical Tempo repository:
 
-- what the repo is (**DanceTech Protocol** reference stack on Tempo + MPP),
+- what the repo is (**HealthTech Protocol** reference stack on Tempo + MPP),
 - what succeeded,
 - what failed and why,
 - and the repeatable best practices that prevent re-learning the hard parts.
@@ -25,9 +25,9 @@ This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any f
 
 ## What this repo is
 
-**DanceTech Protocol** (this repo’s framing) is the set of **interoperable payment + ops patterns** for the dance industry—battle entry, coaching, licensing, judging, sponsorship, reputation, AI metering, ops automation, fan membership—implemented with **Tempo** settlement and **MPP / x402** machine payments. DanceTempo is the **reference superapp** that encodes those patterns in code.
+**HealthTech Protocol** (this repo’s framing) is the set of **interoperable payment + ops patterns** for **neighbourhood health and care coordination**—wallet identity, payment-gated service requests, care plans, referrals, monitoring, AgentMail/TIP-20/purl integrations—implemented with **Tempo** settlement and **MPP / x402** machine payments. **Legacy** event/dance demos (`/dance-extras`) use the same rails. Clinical Tempo is the **reference superapp** that encodes those patterns in code.
 
-DanceTempo is built around:
+Clinical Tempo is built around:
 
 - **Tempo** (on-chain payments and receipts)
 - **MPP** via `mppx` (client/server-side handling of `402 Payment Required` challenges)
@@ -37,14 +37,14 @@ DanceTempo is built around:
 Core docs to reuse:
 
 - `README.md` (high-level “superapp” framing + route list)
-- `DANCETECH_USE_CASES.md` (the flow-by-flow contract and API mappings)
+- `HEALTHTECH_USE_CASES.md` (the flow-by-flow contract and API mappings)
 - `server/index.js` (the real implementation patterns and integration edge handling)
 
 ---
 
 ## Successes (what worked)
 
-1. **Stripe `purl` + DanceTempo `402` (MPP on Tempo testnet)**  
+1. **Stripe `purl` + Clinical Tempo `402` (MPP on Tempo testnet)**  
    - With a **Tempo** keystore (`purl wallet add --type tempo`), `purl --dry-run -X POST --json '…' http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet` correctly detects **402**, protocol **mpp**, network **eip155:42431**, **0.01 pathUSD**.  
    - `purl inspect` uses **GET**; POST-only routes return 404 — use **dry-run + POST** for dance-extras live. See **`docs/PURL_DANCETEMPO.md`**.
 
@@ -66,7 +66,7 @@ Core docs to reuse:
    - This preserves “wallet-paid UX” while avoiding fragile inbox scope behavior in passthrough mode.
 
 5. **`/dance-extras` live MPP + shared server handler**
-   - `POST /api/dance-extras/live/:flowKey/:network` runs `mppx.tempo.charge` then `executeDanceExtraFlow` so the seven core DanceTech scaffolds share one payment path.
+   - `POST /api/dance-extras/live/:flowKey/:network` runs `mppx.tempo.charge` then `executeDanceExtraFlow` so the seven core HealthTech scaffolds share one payment path.
    - `GET /api/dance-extras/live` returns `flowKeys` — use it to verify the running Node process actually has the route (see failure §5).
 
 6. **AgentMail bot flow: always send `inbox_id`**
@@ -91,6 +91,12 @@ Core docs to reuse:
      - parse **`Authorization: Payment …`** with **`Credential.deserialize`** and use **`payload.hash`** when `payload.type === 'hash'`, or
      - if the inbound request already carries **`payment-receipt`**, **`Receipt.deserialize(header).reference`**.
    - Implementation lives in **`server/nhs/payment.js`** (`resolvePaymentReceiptRef`). NHS **GP access** persists that value as **`gp_access_requests.receipt_ref`** and echoes **`receiptRef`** in JSON via **`withReceipt()`** in **`server/nhs/router.js`**. The client prefers **`payload.receiptRef`** in **`src/nhsApi.ts`** (`txFromResponse`) so local **Transactions** history can show **On-chain** rows even when response headers are thin.
+
+10. **NHS `/nhs/tip20`: mint after factory create (`viem/tempo`)**  
+   - Factory **`createSync`** sets **`admin`** to the connected wallet; **mint** requires **`ISSUER_ROLE`**, which is **not** granted automatically — check with **`Actions.token.hasRole`** (`role: 'issuer'`) and, if missing, **`grantRole`** on the token contract before **`Actions.token.mintSync`**.  
+   - Prefer **`writeContractSync`** for a **single** `grantRole` call. **`Actions.token.grantRolesSync`** uses **`sendTransaction`** with batched `calls`, which on Tempo can produce envelope type **`0x76`**; browser wallets + viem reject that path (`Invalid transaction envelope type: "0x76". Must be one of: 0x0, 0x1, 0x2, 0x4`).  
+   - Misleading reverts (e.g. “gas limit too high”) can appear when mint is unauthorized — fix roles first, not gas.  
+   - Implementation: **`src/tempoTip20Launch.ts`** (`mintTip20OnChain`), UI **`src/NhsTip20App.tsx`**.
 
 ---
 
@@ -213,13 +219,25 @@ Core docs to reuse:
 **Fix**
 - Use **`resolvePaymentReceiptRef`** (see Success §9 and **`server/nhs/payment.js`**). Persist **`receipt_ref`** on **`gp_access_requests`** and return **`receiptRef`** in JSON. Ensure **`NHS_ENABLE_PAYMENT_GATE`** is not `false` if you expect on-chain receipts.
 
+### 10) TIP-20 mint: “gas limit too high”, `Unauthorized`, or `Invalid transaction envelope type: "0x76"`
+
+**Symptom**
+- Mint fails after **`Actions.token.createSync`**, or the wallet shows **`Invalid transaction envelope type: "0x76"`** when granting issuer.
+
+**Cause**
+- **`mint`** requires **`ISSUER_ROLE`**. Factory **`admin` ≠ issuer** unless roles were granted.
+- **`grantRolesSync`** batches via **`sendTransaction`** and can emit Tempo **type `0x76`** envelopes that **viem + injected wallets** do not accept (only `0x0`, `0x1`, `0x2`, `0x4`).
+
+**Fix**
+- Grant issuer with **`writeContractSync`** on **`grantRole`** (single call), then **`Actions.token.mintSync`**. See Success §10 and **`src/tempoTip20Launch.ts`**.
+
 ---
 
 ## Best practices (repeatable habits)
 
 ### Documentation
 
-1. Treat `DANCETECH_USE_CASES.md` as the contract source of truth.
+1. Treat `HEALTHTECH_USE_CASES.md` as the contract source of truth.
 2. Keep `README.md` as the “product layer” summary:
    - superapp definition,
    - stack,
@@ -262,11 +280,12 @@ Core docs to reuse:
 ## “Where to look” map
 
 1. Superapp overview + route table: `README.md`
-2. Use-case API mappings and flow steps: `DANCETECH_USE_CASES.md`
+2. Use-case API mappings and flow steps: `HEALTHTECH_USE_CASES.md`
 3. Implementation patterns and provider edge cases:
    - `server/index.js` (integration handlers, `402` passthrough, AgentMail send/inbox create)
 4. Dev proxy: `vite.config.ts` (proxy `/api` -> `http://localhost:8787`)
 5. Dance-extras live MPP: `POST /api/dance-extras/live/:flowKey/:network`, verify with `GET /api/dance-extras/live`
 6. Demo AgentMail inbox constant: `src/agentmailDemo.ts`
 7. NHS payment gate + receipt reference: `server/nhs/payment.js`, `server/nhs/router.js`, `src/nhsApi.ts`; SQLite schema in `server/nhs/db.js` (`gp_access_requests.receipt_ref`)
+8. TIP-20 launch + mint (issuer role, avoid `grantRolesSync` in browser): `src/tempoTip20Launch.ts`, `src/NhsTip20App.tsx`
 

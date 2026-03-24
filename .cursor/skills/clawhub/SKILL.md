@@ -1,7 +1,7 @@
 ---
 name: clawhub
 description: >-
-  DanceTempo / DanceTech Protocol — full repo context via public/llm-full.txt (or /llm-full.txt),
+  Clinical Tempo / HealthTech Protocol — full repo context via public/llm-full.txt (or /llm-full.txt),
   tribal debugging via CLAWHUB.md, Tempo + MPP/x402 patterns, dance-extras live routes, EVVM on
   Tempo testnet. Use when: (1) Onboarding an agent or pasting system context, (2) Debugging 402/MPP,
   stale API, or port 8787 issues, (3) Editing docs that feed llm-full.txt, (4) Working on hub routes,
@@ -13,9 +13,9 @@ description: >-
 metadata: {}
 ---
 
-# DanceTempo · ClawHub context skill
+# Clinical Tempo · ClawHub context skill
 
-**DanceTempo** is the reference **DanceTech Protocol** superapp: React hub + dedicated routes, Node/Express API, **Tempo** settlement, **MPP / x402** machine payments. This skill tells agents **where context lives** and **how to avoid known traps** (see `CLAWHUB.md`).
+**Clinical Tempo** is the reference **HealthTech Protocol** superapp: React hub + dedicated routes, Node/Express API, **Tempo** settlement, **MPP / x402** machine payments. This skill tells agents **where context lives** and **how to avoid known traps** (see `CLAWHUB.md`).
 
 ---
 
@@ -33,6 +33,7 @@ metadata: {}
 | **MPPScan / OpenAPI** | **`GET /openapi.json`**; **`npm run discovery`** · **`docs/MPPSCAN_DISCOVERY.md`** |
 | **OpenClaw + extra capabilities** | Optional plugin: **`openclaw plugins install @anyway-sh/anyway-openclaw`** — then restart gateway if needed; see **`references/openclaw-dancetempo.md`** |
 | **Promotion** of a fix for future agents | Short entry under **Successes** or **Failures** in **`CLAWHUB.md`** (no secrets). |
+| **TIP-20 mint** (`/nhs/tip20`) — issuer role + envelope `0x76` | **`CLAWHUB.md`** Success §10 / Failure §10; code **`src/tempoTip20Launch.ts`**. Mint needs **`ISSUER_ROLE`**; use **`writeContractSync(grantRole)`**, not **`grantRolesSync`** (batched tx type **0x76** breaks viem + browser wallets). |
 
 ---
 
@@ -40,7 +41,7 @@ metadata: {}
 
 Use this skill automatically when:
 
-1. The user @-mentions **`llm-full.txt`**, **`CLAWHUB`**, **DanceTempo**, **MPP**, **dance-extras**, or **Tempo testnet/mainnet**.
+1. The user @-mentions **`llm-full.txt`**, **`CLAWHUB`**, **Clinical Tempo**, **MPP**, **dance-extras**, or **Tempo testnet/mainnet**.
 2. The task touches **`server/index.js`**, **`server/payments.js`**, or **`src/danceExtras*.ts`**.
 3. Docs are edited that appear in **`scripts/build-llm-full.mjs`** (bundle sources).
 4. The user uploads **ClawHub** / **OpenClaw** / **Copilot** context questions.
@@ -75,7 +76,7 @@ cp -r .cursor/skills/clawhub ~/.openclaw/skills/dancetempo-clawhub
 
 ### OpenClaw: optional **Anyway** plugin
 
-This skill is **context-only**; **`@anyway-sh/anyway-openclaw`** extends the **OpenClaw** runtime with additional capabilities (separate from DanceTempo). Install when you want both:
+This skill is **context-only**; **`@anyway-sh/anyway-openclaw`** extends the **OpenClaw** runtime with additional capabilities (separate from Clinical Tempo). Install when you want both:
 
 ```bash
 openclaw plugins install @anyway-sh/anyway-openclaw
@@ -94,7 +95,7 @@ dancetempo/
 ├── public/llm-full.txt          # Generated — do not hand-edit; run npm run build:llm
 ├── CLAWHUB.md                   # Tribal knowledge: successes, failures, checklists
 ├── README.md                    # Routes, stack, quick start
-├── DANCETECH_USE_CASES.md       # Flow-by-flow API contract
+├── HEALTHTECH_USE_CASES.md       # Flow-by-flow API contract
 ├── server/index.js              # Express routes, integrations, MPP proxies
 ├── server/openapi.mjs           # OpenAPI 3.1 for GET /openapi.json (MPPScan)
 ├── server/payments.js           # Chain IDs, charge helpers
@@ -120,7 +121,7 @@ Exact list: **`assets/LLM-BUNDLE-SOURCES.md`** (mirrors `build-llm-full.mjs`).
 
 | Artifact | Role |
 | --- | --- |
-| **`public/llm-full.txt`** (singular) | DanceTempo-generated; committed; **use first**. |
+| **`public/llm-full.txt`** (singular) | Clinical Tempo-generated; committed; **use first**. |
 | **`https://www.evvm.info/llms-full.txt`** (plural) | Upstream EVVM protocol dump — **attach for EVVM-only depth**; do not duplicate into `public/` unless you intend to maintain a fork. |
 
 ---
@@ -153,7 +154,7 @@ Concrete snippets: **`references/examples.md`**.
 
 GitHub Copilot does not load this folder automatically. Options:
 
-1. Commit **`/.github/copilot-instructions.md`** (already in DanceTempo repo).
+1. Commit **`/.github/copilot-instructions.md`** (already in Clinical Tempo repo).
 2. Paste from **`references/copilot-and-agents.md`** into chat or org instructions.
 
 **Quick prompts:**
@@ -169,7 +170,7 @@ GitHub Copilot does not load this folder automatically. Options:
 
 | Content | Where |
 | --- | --- |
-| **Stable facts** (routes, env *names*, ports) | **`README.md`**, **`DANCETECH_USE_CASES.md`**, or relevant **`docs/*.md`** — then **`npm run build:llm`**. |
+| **Stable facts** (routes, env *names*, ports) | **`README.md`**, **`HEALTHTECH_USE_CASES.md`**, or relevant **`docs/*.md`** — then **`npm run build:llm`**. |
 | **Incident / debugging narrative** | **`CLAWHUB.md`** Successes / Failures. |
 | **EVVM upstream protocol** | Link **`https://www.evvm.info/llms-full.txt`**; keep **`docs/EVVM_TEMPO.md`** for Tempo-specific steps. |
 
@@ -240,4 +241,4 @@ Full notes: **`references/openclaw-dancetempo.md`**.
 - **Published skill:** [clawhub.ai/arunnadarasa/dancetempo](https://clawhub.ai/arunnadarasa/dancetempo)
 - **Ecosystem synergy (mpp-nanogpt-modal, nanochat, OpenClaw):** **`docs/ECOSYSTEM_SYNERGY.md`**
 - Upstream inspiration: [self-improving-agent](https://clawhub.ai/pskoett/self-improving-agent) (structure: references, assets, scripts, **hooks**).
-- DanceTempo repo: **`README.md`**, **`CLAWHUB.md`**.
+- Clinical Tempo repo: **`README.md`**, **`CLAWHUB.md`**.

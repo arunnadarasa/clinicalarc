@@ -1,6 +1,6 @@
 /**
- * The seven DanceTech flows that live on the hub (and `/dance-extras`) alongside the three
- * dedicated pages: Battle, Coaching, Beats — see README and DANCETECH_USE_CASES.md.
+ * The seven HealthTech flows that live on the hub (and `/dance-extras`) alongside the three
+ * dedicated pages: Battle, Coaching, Beats — see README and HEALTHTECH_USE_CASES.md.
  */
 export type CoreExtraFlowKey =
   | 'judge-score'

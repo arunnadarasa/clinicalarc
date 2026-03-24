@@ -1,6 +1,6 @@
-# OpenClaw + DanceTempo
+# OpenClaw + Clinical Tempo
 
-This reference aligns **OpenClaw** workspace usage with the **DanceTempo** repo and documents the **optional bootstrap hook** (parity with [self-improving-agent](https://clawhub.ai/pskoett/self-improving-agent)).
+This reference aligns **OpenClaw** workspace usage with the **Clinical Tempo** repo and documents the **optional bootstrap hook** (parity with [self-improving-agent](https://clawhub.ai/pskoett/self-improving-agent)).
 
 ## Optional: bootstrap hook
 
@@ -27,7 +27,7 @@ No secrets, no network calls.
 
 ## Optional: **Anyway** OpenClaw plugin (`@anyway-sh/anyway-openclaw`)
 
-The DanceTempo skill does **not** bundle third-party plugins. For OpenClaw users who want **Anyway** capabilities alongside this repo’s skill:
+The Clinical Tempo skill does **not** bundle third-party plugins. For OpenClaw users who want **Anyway** capabilities alongside this repo’s skill:
 
 ```bash
 openclaw plugins install @anyway-sh/anyway-openclaw
@@ -36,7 +36,7 @@ openclaw plugins list
 openclaw gateway restart
 ```
 
-- **DanceTempo skill** → *what to read* (`llm-full.txt`, `CLAWHUB.md`, API smoke tests).
+- **Clinical Tempo skill** → *what to read* (`llm-full.txt`, `CLAWHUB.md`, API smoke tests).
 - **Anyway plugin** → *extra tools/integrations* inside OpenClaw (upstream package; trust path per your org).
 
 Install order does not matter; both can coexist.
@@ -47,9 +47,9 @@ Install order does not matter; both can coexist.
 
 If you use `~/.openclaw/workspace/`:
 
-| Workspace file | DanceTempo equivalent |
+| Workspace file | Clinical Tempo equivalent |
 | --- | --- |
-| **`AGENTS.md`** (workspace) | Repo **`AGENTS.md`** if present; else **`README.md`** “Routes” + **`DANCETECH_USE_CASES.md`** |
+| **`AGENTS.md`** (workspace) | Repo **`AGENTS.md`** if present; else **`README.md`** “Routes” + **`HEALTHTECH_USE_CASES.md`** |
 | **`TOOLS.md`** | Integration notes in **`CLAWHUB.md`** + **`server/index.js`** headers |
 | **`MEMORY.md`** | Not used in-repo; use **`CLAWHUB.md`** for durable tribal notes |
 
@@ -58,7 +58,7 @@ If you use `~/.openclaw/workspace/`:
 Add to workspace **`AGENTS.md`** or session bootstrap if you **do not** use the hook:
 
 ```markdown
-## DanceTempo
+## Clinical Tempo
 - Full context: `public/llm-full.txt` (regenerate: `npm run build:llm`)
 - Debugging: `CLAWHUB.md`
 - API smoke: `GET http://localhost:8787/api/dance-extras/live`

@@ -1,4 +1,4 @@
-# OpenClaw hooks (DanceTempo skill)
+# OpenClaw hooks (Clinical Tempo skill)
 
 This folder mirrors the layout used by [self-improving-agent](https://clawhub.ai/pskoett/self-improving-agent).
 

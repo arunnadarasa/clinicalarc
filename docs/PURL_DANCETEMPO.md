@@ -1,14 +1,14 @@
-# Testing [Stripe `purl`](https://github.com/stripe/purl) with DanceTempo
+# Testing [Stripe `purl`](https://github.com/stripe/purl) with Clinical Tempo
 
 **See also:** in-app **`/purl`** page — copy-paste `curl` + `purl` wire for **testnet and mainnet** (`judge-score` live routes). In-app showcase for the official [**Tempo Wallet CLI**](https://github.com/tempoxyz/wallet) at **`/tempo-wallet`** — passkey login and `tempo request` for the same MPP patterns.
 
 ---
 
-This documents a **local smoke test**: `purl` can **parse** the `402 Payment Required` response from DanceTempo’s live MPP routes and identify **MPP on Tempo testnet** (`eip155:42431`).
+This documents a **local smoke test**: `purl` can **parse** the `402 Payment Required` response from Clinical Tempo’s live MPP routes and identify **MPP on Tempo testnet** (`eip155:42431`).
 
 ## Prerequisites
 
-- **DanceTempo API** running on `http://127.0.0.1:8787` (`npm run server` from repo root).
+- **Clinical Tempo API** running on `http://127.0.0.1:8787` (`npm run server` from repo root).
 - **`purl` CLI** ≥ 0.2.0 (`cargo install --path cli` from [stripe/purl](https://github.com/stripe/purl), or Homebrew `stripe/purl/purl` when the install completes).
 - **`~/.purl/config.toml`** with a **Tempo** wallet (`purl wallet add --type tempo …`). Use a **dedicated test wallet**; do not reuse mainnet keys.
 
@@ -16,7 +16,7 @@ Example (dev-only private key — **never use on mainnet**):
 
 ```bash
 mkdir -p ~/.purl
-purl wallet add --type tempo --name dancetempo-dev \
+purl wallet add --type tempo --name clinical-tempo-dev \
   -k <YOUR_TESTNET_PRIVATE_KEY_HEX> \
   -p "<keystore-password>" \
   --set-active true
@@ -55,7 +55,7 @@ Exit code may be **non-zero** even on success (`Error: Dry run completed`) — t
 
 ## 3) `purl inspect`
 
-`purl inspect <URL>` issues a **GET** by default. DanceTempo’s live route is **POST-only**, so **GET returns `404`**, and `purl` reports “No payment required.” Use **`--dry-run` with `-X POST --json`** for this API instead of `inspect`, unless you add a GET probe route.
+`purl inspect <URL>` issues a **GET** by default. Clinical Tempo’s live route is **POST-only**, so **GET returns `404`**, and `purl` reports “No payment required.” Use **`--dry-run` with `-X POST --json`** for this API instead of `inspect`, unless you add a GET probe route.
 
 ## 4) Real payment (optional)
 
@@ -70,13 +70,13 @@ Use **`--confirm`** if you want an extra prompt.
 
 ## Summary
 
-| Tool | Result with DanceTempo live route |
+| Tool | Result with Clinical Tempo live route |
 |------|-----------------------------------|
 | `curl` | `402` + JSON challenge body |
 | `purl --dry-run` + POST JSON | Recognizes **MPP**, **Tempo** (`eip155:42431`), **pathUSD** amount |
 | `purl inspect` (GET) | **404** on POST-only route — not applicable without a GET handler |
 
-**Conclusion:** `purl` is **compatible at the payment-requirement layer** with DanceTempo’s MPP/402 responses on Tempo testnet. For automation, prefer **`purl --dry-run`** or a funded **`purl`** wallet on **testnet** before any mainnet use.
+**Conclusion:** `purl` is **compatible at the payment-requirement layer** with Clinical Tempo’s MPP/402 responses on Tempo testnet. For automation, prefer **`purl --dry-run`** or a funded **`purl`** wallet on **testnet** before any mainnet use.
 
 ---
 

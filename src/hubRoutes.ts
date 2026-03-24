@@ -22,4 +22,18 @@ export const HUB_ROUTE_GROUPS: HubRouteGroup[] = [
     ],
     footnote: 'Wallet identity is used for role-based actions and Tempo payment-gated service requests.',
   },
+  {
+    label: 'Wallet & CLI',
+    routes: [
+      { href: '/nhs/purl', title: 'purl', hint: 'Stripe purl + Tempo MPP examples' },
+      { href: '/nhs/ows', title: 'OWS', hint: 'Open Wallet Standard installer' },
+    ],
+  },
+  {
+    label: 'Integrations',
+    routes: [
+      { href: '/nhs/agentmail', title: 'AgentMail', hint: 'MPP email send + inbox create' },
+      { href: '/nhs/tip20', title: 'TIP-20', hint: 'On-chain Tempo TIP-20 factory (testnet + mainnet)' },
+    ],
+  },
 ]

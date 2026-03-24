@@ -1,8 +1,8 @@
 # Lovable Frontend Handoff
 
-**Full protocol narrative (A–Z) for marketing / landing pages:** see [`DANCE_TECH_PROTOCOL_AZ.md`](./DANCE_TECH_PROTOCOL_AZ.md) — copy blocks, CTAs, and GitHub links for Lovable or similar builders.
+**Full protocol narrative (A–Z) for marketing / landing pages:** see [`HEALTH_TECH_PROTOCOL_AZ.md`](./HEALTH_TECH_PROTOCOL_AZ.md) — copy blocks, CTAs, and GitHub links for Lovable or similar builders.
 
-This project includes a working demo frontend for the Krump DanceTech Phase 1 flows:
+This project includes a working demo frontend for **legacy** Krump-style Phase 1 flows (same HealthTech Protocol payment patterns):
 
 - Battle Entry + Auto Payout
 - Coaching Minutes Marketplace
@@ -39,7 +39,7 @@ npm run dev:full
 Use this prompt in Lovable to recreate and extend the demo:
 
 ```text
-Create a responsive product demo UI called "Krump DanceTech Demo".
+Create a responsive product demo UI called "Clinical Tempo — HealthTech demo".
 Include 3 selectable flows: "Battle Entry + Auto Payout", "Coaching Minutes Marketplace", and "Beat API Licensing".
 For each flow, show:
 1) title and subtitle,

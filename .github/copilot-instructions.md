@@ -1,10 +1,10 @@
-# DanceTempo (DanceTech Protocol)
+# Clinical Tempo (HealthTech Protocol)
 
 - **Full context in one file:** `public/llm-full.txt` — regenerate with `npm run build:llm` after doc edits; dev/prod also serve `/llm-full.txt`.
 - **Tribal debugging:** `CLAWHUB.md` (what worked / failed, MPP, port 8787, purl, AgentMail).
 - **Live MPP list:** run the API and open `GET /api/dance-extras/live` (or read `src/hubRoutes.ts` for UI routes).
 - **MPPScan discovery:** `GET /openapi.json` on the API; validate with `npm run discovery` (server on 8787). See `docs/MPPSCAN_DISCOVERY.md`.
-- **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — complements the DanceTempo ClawHub skill; see `.cursor/skills/clawhub/references/openclaw-dancetempo.md`.
+- **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — complements the Clinical Tempo ClawHub skill; see `.cursor/skills/clawhub/references/openclaw-dancetempo.md`.
 - **Secrets:** never paste real keys; use names from `.env.example` only.
 
 Optional end-of-task reminder:

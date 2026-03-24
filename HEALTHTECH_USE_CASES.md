@@ -1,10 +1,10 @@
-# DanceTech Finance Use Cases (Tempo + MPP)
+# HealthTech Use Cases (Tempo + MPP)
 
-This document defines the full DanceTech use case set for the current prototype, with practical flow steps, API mappings, and testing notes.
+This document is the **behavioral contract** for payment-gated flows in this repo: **Clinical Tempo** NHS APIs (`/api/nhs/*`), integrations (AgentMail, purl, etc.), and **legacy** event/dance scaffolds (`/dance-extras`, battle/coaching) that demonstrate the same **HealthTech Protocol** patterns on Tempo + MPP.
 
 ## Interaction modes (humans & agents)
 
-**DanceTech Protocol** stays **one** contract: payments and API access are governed by **Tempo** + **MPP/x402**. Colloquial pairings (human↔human, human↔agent, agent↔human, agent↔agent) describe **who authorizes** and **who benefits**, not four different protocol specs.
+**HealthTech Protocol** stays **one** contract: payments and API access are governed by **Tempo** + **MPP/x402**. Colloquial pairings (human↔human, human↔agent, agent↔human, agent↔agent) describe **who authorizes** and **who benefits**, not four different protocol specs.
 
 - **Human ↔ human** — Wallet-funded commerce between people/orgs (battles, passes, royalties). Primary flows in §1–§10 below.
 - **Human → agent (orchestrated)** — A human approves spend; an agent or script **calls the same `POST /api/...` routes** (e.g. from MCP, CI, or an assistant). The signing wallet is usually still the user’s unless you implement delegation or server-side treasury.
@@ -192,7 +192,7 @@ Intent type: `charge`
 ### Laso relevance
 
 - Laso Finance bridges USDC agent balances into prepaid card rails for real-world merchant spend.
-- This is a practical payment bridge for DanceTech operations and payout-linked spending flows.
+- This is a practical payment bridge for HealthTech operations and payout-linked spending flows.
 - Integration references: [Locus docs](https://docs.paywithlocus.com/), [Locus llms-full](https://docs.paywithlocus.com/llms-full.txt)
 
 ---

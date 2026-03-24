@@ -63,7 +63,6 @@ const reputationAttestations = []
 const studioUsageEvents = []
 const botActions = []
 const fanPasses = new Map()
-const tip20Launches = []
 const coachingLiveRecoveryByTx = new Map()
 const beatsLiveRecoveryByTx = new Map()
 // Laso card x402 wrapper returns bearer tokens (id_token/refresh_token) with the card order.
@@ -71,11 +70,6 @@ const beatsLiveRecoveryByTx = new Map()
 const lasoCardAuthById = new Map()
 // When Laso rejects (e.g., geo restriction like "US only"), we fall back to the local mock card.
 const lasoCardDemoReasonById = new Map()
-
-const randomHexAddress = () => {
-  const hex = Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
-  return `0x${hex}`
-}
 
 const publicClientByNetwork = {
   testnet: createPublicClient({
@@ -166,7 +160,7 @@ function normalizeTempoNetworkFromBody(body) {
 /** Per-flow Tempo MPP charge — imported from openapi.mjs (single source for /openapi.json). */
 
 /**
- * Shared scaffold logic for the seven hub “extra” DanceTech flows (also used by live MPP route).
+ * Shared scaffold logic for the seven hub “extra” HealthTech flows (also used by live MPP route).
  * @returns {{ ok: true, status: number, result: object } | { ok: false, status: number, error: string }}
  */
 function executeDanceExtraFlow(flowKey, body) {
@@ -1430,7 +1424,7 @@ app.get('/api/dance-extras/live', (_req, res) => {
 })
 
 /**
- * Wallet-paid Tempo MPP (x402) for the seven DanceTech “extra” flows — charges then runs the same scaffold as mock routes.
+ * Wallet-paid Tempo MPP (x402) for the seven HealthTech “extra” flows — charges then runs the same scaffold as mock routes.
  * Body: same JSON as the corresponding `/api/...` route; `network` in the URL overrides body for Tempo chain selection.
  */
 app.post('/api/dance-extras/live/:flowKey/:networkParam', async (req, res) => {
@@ -1444,7 +1438,7 @@ app.post('/api/dance-extras/live/:flowKey/:networkParam', async (req, res) => {
   try {
     const handler = mppx.tempo.charge({
       amount,
-      description: `DanceTech ${flowKey}`,
+      description: `HealthTech ${flowKey}`,
       externalId: `dance_extra_${flowKey}_${Date.now()}`,
     })
     const mppResponse = await handler(toFetchRequest(req))
@@ -1465,64 +1459,6 @@ app.post('/api/dance-extras/live/:flowKey/:networkParam', async (req, res) => {
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
-})
-
-app.post('/api/token/tip20/launch', (req, res) => {
-  const {
-    name,
-    symbol,
-    decimals,
-    totalSupply,
-    ownerAddress,
-    network,
-  } = req.body ?? {}
-
-  if (typeof name !== 'string' || typeof symbol !== 'string' || typeof ownerAddress !== 'string') {
-    return res.status(400).json({
-      error: 'Invalid payload. Expected name, symbol, and ownerAddress as strings.',
-    })
-  }
-
-  const parsedDecimals = Number(decimals ?? 18)
-  const parsedSupply = Number(totalSupply ?? 1000000)
-  if (!Number.isFinite(parsedDecimals) || parsedDecimals < 0 || parsedDecimals > 18) {
-    return res.status(400).json({ error: 'Invalid decimals. Expected number between 0 and 18.' })
-  }
-  if (!Number.isFinite(parsedSupply) || parsedSupply <= 0) {
-    return res.status(400).json({ error: 'Invalid totalSupply. Expected positive number.' })
-  }
-
-  const launch = {
-    launchId: `tip20_${Date.now()}`,
-    network: network === 'mainnet' ? 'mainnet' : 'testnet',
-    name: name.trim(),
-    symbol: symbol.trim().toUpperCase(),
-    decimals: parsedDecimals,
-    totalSupply: parsedSupply,
-    ownerAddress: ownerAddress.trim(),
-    factoryAddress: '0x20fc000000000000000000000000000000000000',
-    tokenAddress: randomHexAddress(),
-    status: 'created',
-    createdAt: new Date().toISOString(),
-  }
-
-  const receipt = Receipt.from({
-    method: 'tempo',
-    reference: `tip20_launch_${launch.symbol}_${launch.launchId}`,
-    status: 'success',
-    timestamp: launch.createdAt,
-    externalId: launch.launchId,
-  })
-
-  const result = { ...launch, receipt }
-  tip20Launches.unshift(result)
-  if (tip20Launches.length > 100) tip20Launches.pop()
-
-  return res.status(201).json(result)
-})
-
-app.get('/api/token/tip20/launches', (_req, res) => {
-  return res.json({ items: tip20Launches })
 })
 
 app.post('/api/travel/stable/flights-search', async (req, res) => {
@@ -3351,7 +3287,7 @@ app.post('/api/ai/explain-flow', async (req, res) => {
 
   try {
     const prompt = [
-      'You are explaining a DanceTech payment flow to non-technical users.',
+      'You are explaining a HealthTech payment flow to non-technical users.',
       'Return 3 short bullets:',
       '1) Why this flow matters',
       '2) How payment works with MPP + Tempo',

@@ -83,6 +83,51 @@ export default function NhsHubApp() {
               <li>Remote monitoring with proactive alerting</li>
             </ul>
           </article>
+          <article className="card">
+            <h2>AgentMail &amp; TIP-20</h2>
+            <p>
+              Wallet-paid email via the API and on-chain TIP-20 creation (viem factory) — surfaced here for the NHS shell.
+            </p>
+            <div className="actions">
+              <a className="secondary button-like" href="/nhs/agentmail">
+                AgentMail
+              </a>
+              <a className="secondary button-like" href="/nhs/tip20">
+                TIP-20
+              </a>
+            </div>
+          </article>
+          <article className="card">
+            <h2>Stripe purl (agents &amp; CLI)</h2>
+            <p>
+              Try the official <a href="https://www.purl.dev/">purl.dev</a> <strong>free</strong> and <strong>paid</strong>{' '}
+              test endpoints — same mental model as HTTP + <code>402</code> before you wire Tempo MPP NHS APIs.
+            </p>
+            <p className="note">
+              Paid demo uses Stripe’s hosted test (0.01 USDC). Tempo NHS routes are documented separately in{' '}
+              <code>docs/PURL_DANCETEMPO.md</code>.
+            </p>
+            <div className="actions">
+              <a className="secondary button-like" href="/nhs/purl">
+                Open purl use case
+              </a>
+            </div>
+          </article>
+          <article className="card">
+            <h2>Open Wallet Standard (OWS)</h2>
+            <p>
+              Install the official <code>ows</code> CLI from{' '}
+              <a href="https://docs.openwallet.sh/install.sh" target="_blank" rel="noreferrer">
+                docs.openwallet.sh/install.sh
+              </a>{' '}
+              — prebuilt binary or build from source, optional Python/Node bindings, and agent skills for supported IDEs.
+            </p>
+            <div className="actions">
+              <a className="secondary button-like" href="/nhs/ows">
+                Open OWS use case
+              </a>
+            </div>
+          </article>
         </section>
       )}
     </NhsShell>

@@ -1,6 +1,6 @@
 # MPPScan discovery (`/openapi.json`)
 
-DanceTempo exposes **OpenAPI 3.1** at **`GET /openapi.json`** for **[MPPScan](https://www.mppscan.com/)** / AgentCash-style discovery.
+Clinical Tempo exposes **OpenAPI 3.1** at **`GET /openapi.json`** for **[MPPScan](https://www.mppscan.com/)** / AgentCash-style discovery.
 
 - **Spec:** [Discovery Spec | MPPScan](https://www.mppscan.com/discovery)
 - **Implementation:** `server/openapi.mjs` (builds the document) + `GET /openapi.json` in `server/index.js`
