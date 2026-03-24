@@ -1,8 +1,10 @@
 # HealthTech Protocol · Clinical Tempo
 
-**HealthTech Protocol** is an open **pattern stack** for **neighbourhood health and care coordination**: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Tempo](https://tempo.xyz)** and **authorized via MPP / x402** so patients, clinicians, care teams, and agents can pay for APIs and services with predictable receipts. The codebase still includes **legacy event-style demos** (`/dance-extras`, battle/coaching scaffolds) that exercise the same rails in another domain.
+**Clinical Tempo** is the **core app** in this repository: an **NHS-aligned neighbourhood health** experience—**wallet-linked identity**, **GP access requests**, **care plans**, **social prescribing** (referrals and link-worker plans), **neighbourhood team coordination**, **remote monitoring** with proactive alerts, **transaction history**, and **Tempo / MPP** payment gates on selected service writes—plus **Stripe purl**, **Open Wallet Standard (OWS)**, **AgentMail**, and **TIP-20** flows. The **NHS hub** is at **`/`** and **`/nhs`**; feature screens live under **`/nhs/*`**.
 
-**Clinical Tempo** is the **reference implementation**: a single hub, dedicated full-screen flows, and a Node/Express API that encodes the protocol in production-style code. Fork it to ship your own product; treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract.
+**HealthTech Protocol** is the open **pattern stack** that powers it: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Tempo](https://tempo.xyz)** and **authorized via MPP / x402** so patients, clinicians, care teams, and agents can pay for APIs and services with predictable receipts. The repo also includes **reference demos** (legacy event-style flows such as **`/dance-extras`**, battle, coaching, beats) that exercise the same rails in another domain.
+
+This is a **reference implementation**: React (Vite) front ends, a Node/Express API, and production-style persistence for NHS flows. **Treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract** for routes, endpoints, and testing.
 
 **This repository is [arunnadarasa/clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** — use it for **`git clone`**, **`git pull`**, and **`git push`**. **NHS / hackathon notes:** [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md). **Data safety:** use **dummy or synthetic** patient data in demos only — never real patient-identifiable data.
 
@@ -12,8 +14,8 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 
 | Shorthand | Typical meaning here | How it maps in this repo |
 |-----------|----------------------|----------------------------|
-| **Human → human** | One person or org pays another (fees, passes, reimbursements, entry). | Wallet-mediated `charge` / payout flows; legacy hub routes also include battle / fan / clip **demos** in another domain. |
-| **Human → agent** | A person approves payment; an **orchestrator** (UI wizard, MCP tool, script) calls your HTTP APIs. | Same routes as the hub; the **human still signs** with the browser wallet unless you delegate. |
+| **Human → human** | One person or org pays another (fees, passes, reimbursements, entry). | Wallet-mediated flows in **Clinical Tempo** (care and access requests); legacy routes also include battle / fan / clip **demos** in another domain. |
+| **Human → agent** | A person approves payment; an **orchestrator** (UI wizard, MCP tool, script) calls your HTTP APIs. | **`/nhs/*`** and shared hub routes; the **human still signs** with the browser wallet unless you delegate. |
 | **Agent → human** | Automated action delivers something to a person (email, alert, receipt, pass). | Ops bot + AgentMail, notifications; fulfillment after payment—not a second payment “protocol.” |
 | **Agent → agent** | Service-to-service: backends, cron, or **machine payments** between APIs. | `402` + `mppx` on the server, **API keys** where allowed (e.g. AgentMail after MPP), webhooks, `POST /api/*` from trusted workers. |
 
@@ -21,15 +23,15 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 
 ---
 
-## What “super app” means here
+## What this repo layers
 
 | Layer | Role |
 |--------|------|
-| **Clinical Tempo (`/nhs/*`)** | **NHS-aligned** UI: wallet identity, GP access, care plans, social prescribing, monitoring, transactions, purl, OWS, AgentMail, TIP-20. |
-| **Legacy hub demos** | **`/dance-extras`** and related routes — **10+** reference flows (battle, coaching, beats, judges, integrations) with API previews and live MPP. |
-| **Dedicated frontends** | Full-screen flows for **live Tempo testnet/mainnet** and complex UX (wallet, network, receipts, recovery). |
-| **Backend (`server/`)** | Express API: MPP intents, live payment verification, proxies to paid APIs (KicksDB, AgentMail, travel, weather, etc.). |
+| **Clinical Tempo (`/` · `/nhs/*`)** | **Core product:** NHS-aligned hub and flows—wallet identity, GP access, care plans, social prescribing, neighbourhood teams, monitoring, transactions, purl, OWS, AgentMail, TIP-20. |
+| **Backend (`server/`)** | Express API: **`/api/nhs/*`** care coordination, audit, and Tempo-gated service requests; MPP intents; live payment verification; proxies to paid third-party APIs. |
 | **Integrations** | Optional rails: AgentMail, StablePhone, StableSocial, StableTravel, Laso cards, Suno, Parallel, OpenWeather, OpenAI MPP (`/openai`), Google Maps, Aviationstack, KicksDB, TIP‑20 factory, OpenAI explainer. |
+| **Reference demos** | **`/dance-extras`**, battle, coaching, beats, judges—**10+** flows that showcase the same protocol in a different domain (API previews + live MPP). |
+| **Dedicated frontends** | Full-screen flows for **live Tempo testnet/mainnet** and complex UX (wallet, network, receipts, recovery). |
 
 ---
 
@@ -40,7 +42,7 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 - **Backend:** Node.js, Express 5  
 - **Docs in repo:** [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) — flows, endpoints, testing notes  
 - **Landing / Lovable handoff:** [`HEALTH_TECH_PROTOCOL_AZ.md`](./HEALTH_TECH_PROTOCOL_AZ.md) — A–Z narrative + GitHub links for marketing sites  
-- **Stripe `purl` CLI:** route **`/purl`** — copy-paste `curl` + `purl` for **testnet + mainnet**; long-form [`docs/PURL_CLINICAL_TEMPO.md`](./docs/PURL_CLINICAL_TEMPO.md)  
+- **Stripe `purl` CLI:** routes **`/purl`** and **`/nhs/purl`** — copy-paste `curl` + `purl` for **testnet + mainnet**; long-form [`docs/PURL_CLINICAL_TEMPO.md`](./docs/PURL_CLINICAL_TEMPO.md) · NHS-focused [`docs/PURL_NHS.md`](./docs/PURL_NHS.md)  
 - **EVVM:** optional **`npm run evvm:vendor`** (full upstream clone + `./evvm install`); Solidity library: **`npm install @evvm/testnet-contracts`** when you need imports; route **`/evvm`** — deploy on **Tempo testnet only**; long-form [`docs/EVVM_TEMPO.md`](./docs/EVVM_TEMPO.md) (skip global registry until EVVM lists Tempo)  
 - **Tempo Wallet CLI (official):** route **`/tempo-wallet`** — in-app showcase + copy-paste for [`tempoxyz/wallet`](https://github.com/tempoxyz/wallet); verification log [`docs/TEMPO_WALLET_TEST.md`](./docs/TEMPO_WALLET_TEST.md)  
 - **Agent / tribal knowledge:** [`CLAWHUB.md`](./CLAWHUB.md) — successes, failures, debugging checklists  
@@ -56,7 +58,7 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 | `npm run server` | Express API (default **port 8787**) |
 | `npm run dev:full` | Both (recommended for live MPP flows) |
 
-If the UI shows **`Cannot POST /api/...`** (HTML 404), the backend on **8787** is missing that route (often an **old** `node server/index.js` still running). **Restart** `npm run server`. Quick check: open **`GET http://localhost:8787/api/dance-extras/live`** — you should see JSON with `flowKeys`.
+If the UI shows **`Cannot POST /api/...`** (HTML 404), the backend on **8787** is missing that route (often an **old** `node server/index.js` still running). **Restart** `npm run server`. Quick checks: **`GET http://localhost:8787/openapi.json`** (OpenAPI) or **`GET http://localhost:8787/api/dance-extras/live`** (legacy demo JSON with `flowKeys`).
 
 ---
 
@@ -75,7 +77,7 @@ The **[Machine Payments Protocol service catalog](https://mpp.dev/services)** li
 
 | Catalog idea | In Clinical Tempo |
 |--------------|----------------|
-| Wallet pays via **402 → `mppx`** on **Tempo mainnet** | Same pattern on `/music` (Suno), `/travel`, `/kicks`, `/card`, etc. |
+| Wallet pays via **402 → `mppx`** on **Tempo mainnet** | Same pattern on `/music` (Suno), `/travel`, `/kicks`, `/card`, etc.; NHS **payment-gated** routes under **`/api/nhs/*`** follow the same server MPP verification pattern where applicable. |
 | **AgentMail** has two entry points | **`AGENTMAIL_BASE_URL`** (`https://api.agentmail.to`) for Bearer/API-key flows; **`AGENTMAIL_MPP_BASE_URL`** (`https://mpp.api.agentmail.to`) for wallet-paid MPP passthrough — both are named in `.env.example` and match [AgentMail on MPP](https://mpp.dev/services#agentmail). |
 | **Suno** at `suno.mpp.paywithlocus.com` | **`SUNO_BASE_URL`** + `/suno/generate-music` — no vendor “Suno API key” in the UI; payment is MPP headers from the wallet. |
 | **Parallel** at `parallelmpp.dev` | **`PARALLEL_BASE_URL`** — `/parallel` proxies search / extract / task (+ task poll). |
@@ -84,15 +86,34 @@ The **[Machine Payments Protocol service catalog](https://mpp.dev/services)** li
 
 ---
 
-## Routes (dedicated apps)
+## Routes
+
+### Clinical Tempo (core NHS app)
 
 | Path | Purpose |
 |------|---------|
-| `/` | Main hub — all use cases + global transaction history |
+| `/` · `/nhs` | **NHS hub** — wallet identity, patient bootstrap, directory to all **`/nhs/*`** flows |
+| `/nhs/gp-access` | Same-day **GP access** request workflow |
+| `/nhs/care-plans` | **Care plans** — create and update personalised plans |
+| `/nhs/social-prescribing` | **Social prescribing** — referral + link-worker plan |
+| `/nhs/neighbourhood-teams` | **Neighbourhood (MDT) coordination** |
+| `/nhs/monitoring` | **Remote monitoring** — readings + proactive alerts |
+| `/nhs/transactions` | **Transaction history** (Tempo) |
+| `/nhs/purl` | **Stripe [purl](https://www.purl.dev/)** — free / paid CLI demos against Tempo MPP |
+| `/nhs/ows` | **Open Wallet Standard** — install **`ows`** ([installer](https://docs.openwallet.sh/install.sh)); see **`docs/OWS_NHS.md`** |
+| `/nhs/agentmail` | **AgentMail** — MPP send + inbox patterns |
+| `/nhs/tip20` | **TIP-20** — on-chain factory (testnet + mainnet) |
+
+**API:** **`/api/nhs/*`** — identity bootstrap, GP access, care plans, social prescribing, neighbourhood coordination, monitoring, alerts, patient timeline, audit. **Discovery:** **`GET /openapi.json`**.
+
+### Reference demos & integration showcases
+
+| Path | Purpose |
+|------|---------|
 | `/battle` | Battle entry + auto payout (live testnet/mainnet) |
 | `/coaching` | Coaching minutes marketplace (live payments) |
 | `/beats` | Beat API licensing (live payments) |
-| `/dance-extras` | Seven core HealthTech flows (judge, cypher, clips, reputation, studio AI, bot, fan pass); **simulate** mock APIs or **Live Tempo MPP** via `POST /api/dance-extras/live/:flowKey/:network` |
+| `/dance-extras` | HealthTech-pattern demos (judge, cypher, clips, reputation, studio AI, bot, fan pass); **simulate** mock APIs or **Live Tempo MPP** via `POST /api/dance-extras/live/:flowKey/:network` |
 | `/card` | Virtual debit card (Laso / MPP + demo fallback) |
 | `/travel` | StableTravel, Aviationstack, Google Maps |
 | `/email` | AgentMail ops (wallet-paid relay + send) |
@@ -103,22 +124,25 @@ The **[Machine Payments Protocol service catalog](https://mpp.dev/services)** li
 | `/weather` | OpenWeather current conditions (MPP) |
 | `/openai` | OpenAI chat completions (MPP gateway) |
 | `/kicks` | KicksDB (live MPP + simulate) |
-| `/tip20` | TIP‑20 token launch & post-launch ops |
+| `/tip20` | TIP‑20 token launch & post-launch ops (non-NHS entry) |
 | `/tempo-wallet` | Showcase: [Tempo Wallet CLI](https://github.com/tempoxyz/wallet) (MPP + `tempo request`; pairs with `/dance-extras` live routes) |
 | `/purl` | Showcase: [Stripe purl](https://github.com/stripe/purl) — `curl` + `purl --dry-run` / live pay for **testnet + mainnet** live MPP URLs |
 | `/evvm` | [EVVM](https://www.evvm.info/) — `evvm:vendor` + deploy on **Tempo testnet (42431)**; optional `npm i @evvm/testnet-contracts` for Solidity; registry step deferred |
-
-### Clinical Tempo (NHS UI)
-
-When this repo is run as the **neighbourhood health** front end, dedicated routes live under **`/nhs/*`** (hub, GP access, care plans, transactions, etc.). For **Stripe [purl](https://www.purl.dev/)** — official **free** (`/test/free`) and **paid** (`/test/paid`, 0.01 USDC) CLI demos — open **`/nhs/purl`** or read **`docs/PURL_NHS.md`**. For **Open Wallet Standard** — install **`ows`** via **[docs.openwallet.sh/install.sh](https://docs.openwallet.sh/install.sh)** — see **`/nhs/ows`** and **`docs/OWS_NHS.md`**. For **Tempo** `purl` against local MPP APIs, keep using **`docs/PURL_CLINICAL_TEMPO.md`**. OpenClaw hackathon learnings (workflows, pitfalls): [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md).
 
 ---
 
 ## Core HealthTech capabilities
 
-**Clinical Tempo (NHS)** — wired in **`/api/nhs/*`** and the **`/nhs/*`** React apps: identity bootstrap, GP access requests, care plans, social prescribing, neighbourhood teams, monitoring, proactive alerts, transaction history, and Tempo payment gates on writes.
+**Clinical Tempo (NHS)** — implemented in **`/api/nhs/*`** and the **`/nhs/*`** apps:
 
-**Legacy event-style demos** (`/dance-extras`, battle/coaching/beats — same protocol, different domain) — still documented end-to-end:
+- **Identity** — wallet-linked bootstrap and role-aware actions (`patient`, `gp`, `nhc_provider` where configured).  
+- **Access & care** — GP access requests; care plan CRUD and updates; social prescribing referrals and link-worker plans.  
+- **Neighbourhood** — team coordination events.  
+- **Monitoring** — sessions, readings, proactive alerts, and resolution paths.  
+- **Payments & audit** — Tempo payment gates on gated service requests; **audit** and **patient timeline** surfaces for traceability.  
+- **Wallet ecosystem** — purl, OWS, AgentMail, TIP-20 from the NHS section of the app.
+
+**Reference demos** (`/dance-extras`, battle, coaching, beats — same protocol, different domain) remain documented end-to-end for the paid-API patterns they illustrate:
 
 1. **Battle entry + auto payout** — intents, results, payout execution  
 2. **Judge score submission** — paid write API pattern  
@@ -157,7 +181,7 @@ Or one command:
 npm run dev:full
 ```
 
-Open **http://localhost:5173** for the hub, or a path above (e.g. **http://localhost:5173/battle**).
+Open **http://localhost:5173/** (NHS hub) or **http://localhost:5173/nhs/gp-access** and other **`/nhs/*`** paths. Reference demos: e.g. **http://localhost:5173/dance-extras**.
 
 **Production build:**
 
