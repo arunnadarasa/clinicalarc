@@ -28,8 +28,9 @@ If the CLI syntax differs, use the **Publish** page instructions on the site.
 ### From this repository (authoritative)
 
 ```bash
-git clone https://github.com/arunnadarasa/dancetempo.git
-cp -r dancetempo/.cursor/skills/clawhub ~/.openclaw/skills/dancetempo-clawhub
+git clone https://github.com/arunnadarasa/clinicaltempo.git
+cp -r clinicaltempo/.cursor/skills/clawhub ~/.openclaw/skills/dancetempo-clawhub
+# Alternate remote with identical tree: https://github.com/arunnadarasa/dancetempo.git
 ```
 
 Skill entry file: **`SKILL.md`** inside that folder.

@@ -1,6 +1,6 @@
 # `clawhub` — Clinical Tempo · [ClawHub](https://clawhub.ai/) skill
 
-Authoritative copy: **`.cursor/skills/clawhub/`** in [Clinical Tempo / dancetempo](https://github.com/arunnadarasa/dancetempo).
+Authoritative copy: **`.cursor/skills/clawhub/`** in the Clinical Tempo monorepo — clone **[clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** (NHS-focused default) or **[dancetempo](https://github.com/arunnadarasa/dancetempo)** (full HealthTech + legacy hub); skill path is identical.
 
 **Published listing:** [clawhub.ai/arunnadarasa/dancetempo](https://clawhub.ai/arunnadarasa/dancetempo)
 
@@ -49,8 +49,9 @@ npx clawhub@latest install arunnadarasa/dancetempo
 ### From git
 
 ```bash
-git clone https://github.com/arunnadarasa/dancetempo.git
-cp -r dancetempo/.cursor/skills/clawhub ~/.openclaw/skills/dancetempo-clawhub
+git clone https://github.com/arunnadarasa/clinicaltempo.git
+cp -r clinicaltempo/.cursor/skills/clawhub ~/.openclaw/skills/dancetempo-clawhub
+# or: https://github.com/arunnadarasa/dancetempo.git (same skill folder)
 ```
 
 ### OpenClaw hook (optional)
