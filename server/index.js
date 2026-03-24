@@ -23,6 +23,7 @@ import {
   verifyBattleEntryPayment,
 } from './payments.js'
 import { buildOpenApiDocument, DANCE_EXTRA_LIVE_AMOUNTS } from './openapi.mjs'
+import { createNhsRouter } from './nhs/router.js'
 
 const app = express()
 const port = Number(process.env.PORT || 8787)
@@ -402,6 +403,15 @@ app.get('/openapi.json', (req, res) => {
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'ai-proxy' })
 })
+
+app.use(
+  '/api/nhs',
+  createNhsRouter({
+    liveMppByNetwork,
+    toFetchRequest,
+    sendFetchResponse,
+  }),
+)
 
 // Tempo faucet proxy (testnet only).
 // Avoids browser CORS issues by letting the Vite/Express server call the faucet API.

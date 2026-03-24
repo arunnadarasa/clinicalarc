@@ -6,49 +6,20 @@ export type HubRouteGroup = { label: string; routes: HubRoute[]; footnote?: stri
 
 export const HUB_ROUTE_GROUPS: HubRouteGroup[] = [
   {
-    label: 'Core DanceTech',
+    label: 'NHS front door',
     routes: [
-      { href: '/battle', title: 'Battle', hint: 'Entry + auto payout (full page)' },
-      { href: '/coaching', title: 'Coaching', hint: 'Minutes marketplace' },
-      { href: '/beats', title: 'Beats', hint: 'API licensing' },
-      { href: '/dance-extras', title: '7 flows', hint: 'Simulate vs live MPP' },
+      { href: '/nhs', title: 'NHS Hub', hint: 'Wallet identity + patient bootstrap' },
+      { href: '/nhs/gp-access', title: 'GP Access', hint: 'Same-day access request workflow' },
     ],
   },
   {
-    label: 'CLI & wire',
+    label: 'Neighbourhood care',
     routes: [
-      { href: '/tempo-wallet', title: 'Tempo Wallet', hint: 'Official CLI + tempo request' },
-      { href: '/purl', title: 'Stripe purl', hint: 'curl-style MPP dry-run' },
-      { href: '/evvm', title: 'EVVM', hint: 'Deploy on Tempo testnet' },
+      { href: '/nhs/care-plans', title: 'Care plans', hint: 'Personalised care plan lifecycle' },
+      { href: '/nhs/social-prescribing', title: 'Social prescribing', hint: 'Referral + link worker plan' },
+      { href: '/nhs/neighbourhood-teams', title: 'Neighbourhood teams', hint: 'MDT coordination events' },
+      { href: '/nhs/monitoring', title: 'Monitoring', hint: 'Remote readings + proactive alerts' },
     ],
-    footnote:
-      'Mainnet live MPP: plan for at least ~50 USDC on Tempo mainnet (gas/path fees + paid calls; exact minimum varies by route). Use testnet first.',
-  },
-  {
-    label: 'Commerce & ops',
-    routes: [
-      { href: '/card', title: 'Card', hint: 'Virtual debit (Laso / MPP)' },
-      { href: '/travel', title: 'Travel', hint: 'StableTravel, aviation, maps' },
-      { href: '/kicks', title: 'Kicks', hint: 'KicksDB intel' },
-      { href: '/tip20', title: 'TIP‑20', hint: 'Token launch & ops' },
-      { href: '/email', title: 'Email', hint: 'AgentMail' },
-      { href: '/ops', title: 'Ops', hint: 'AgentMail + StablePhone' },
-    ],
-  },
-  {
-    label: 'AI & data (MPP)',
-    routes: [
-      { href: '/social', title: 'Social', hint: 'StableSocial' },
-      { href: '/music', title: 'Music', hint: 'Suno' },
-      { href: '/parallel', title: 'Parallel', hint: 'Search / extract / task' },
-      { href: '/weather', title: 'Weather', hint: 'OpenWeather' },
-      { href: '/openai', title: 'OpenAI', hint: 'Chat via MPP gateway' },
-      { href: '/anthropic', title: 'Anthropic', hint: 'Claude via MPP' },
-      { href: '/openrouter', title: 'OpenRouter', hint: 'Unified chat' },
-      { href: '/perplexity', title: 'Perplexity', hint: 'Sonar / search' },
-      { href: '/alchemy', title: 'Alchemy', hint: 'RPC + NFT API' },
-      { href: '/fal', title: 'fal.ai', hint: 'Image / video / audio' },
-      { href: '/replicate', title: 'Replicate', hint: 'Model runs' },
-    ],
+    footnote: 'Wallet identity is used for role-based actions and Tempo payment-gated service requests.',
   },
 ]

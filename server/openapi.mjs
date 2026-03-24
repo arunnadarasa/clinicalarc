@@ -1,12 +1,8 @@
 /**
  * OpenAPI 3.1 document for MPPScan / AgentCash discovery.
  * @see https://www.mppscan.com/discovery
- *
- * Validate locally:
- *   npx -y @agentcash/discovery@latest check "http://localhost:8787"
  */
 
-/** Mirrors `DANCE_EXTRA_LIVE_AMOUNTS` in index.js — keep in sync when prices change. */
 export const DANCE_EXTRA_LIVE_AMOUNTS = {
   'judge-score': '0.01',
   'cypher-micropot': '0.02',
@@ -19,188 +15,139 @@ export const DANCE_EXTRA_LIVE_AMOUNTS = {
 
 function amountRange() {
   const nums = Object.values(DANCE_EXTRA_LIVE_AMOUNTS).map(Number)
-  const min = Math.min(...nums)
-  const max = Math.max(...nums)
   return {
-    minPrice: min.toFixed(6),
-    maxPrice: max.toFixed(6),
+    minPrice: Math.min(...nums).toFixed(6),
+    maxPrice: Math.max(...nums).toFixed(6),
   }
 }
 
-/**
- * @param {import('express').Request | null} req — if null, servers URL is "/"
- */
 export function buildOpenApiDocument(req) {
   const { minPrice, maxPrice } = amountRange()
   const host = req?.get?.('host')
   const proto = req?.protocol || 'http'
-  const baseUrl =
-    host && typeof host === 'string' ? `${proto}://${host}` : '/'
+  const baseUrl = host && typeof host === 'string' ? `${proto}://${host}` : '/'
 
   return {
     openapi: '3.1.0',
     info: {
-      title: 'DanceTempo API',
+      title: 'DanceTempo NHS API',
       version: '1.0.0',
       description:
-        'DanceTech Protocol reference backend — Tempo settlement, MPP / x402 machine payments, DanceTech use-case routes.',
-      guidance:
-        'DanceTempo exposes wallet-paid routes via Tempo MPP. For discovery, call GET /api/dance-extras/live to list flowKeys, then POST /api/dance-extras/live/{flowKey}/{network} with JSON body matching that flow (see DANCETECH_USE_CASES.md). Unpaid requests receive 402 + WWW-Authenticate; complete payment headers and retry. Use testnet first (network=testnet).',
+        'NHS neighbourhood health + social prescribing reference backend with wallet identity, RBAC, and Tempo MPP payment gates.',
     },
     servers: [{ url: baseUrl, description: 'This API (same origin as /openapi.json)' }],
-    'x-discovery': {
-      ownershipProofs: [],
-    },
+    'x-discovery': { ownershipProofs: [] },
     paths: {
       '/api/health': {
-        get: {
-          operationId: 'health',
-          summary: 'Health check',
-          tags: ['Meta'],
-          responses: {
-            200: {
-              description: 'OK',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: { ok: { type: 'boolean' } },
-                    required: ['ok'],
-                  },
-                },
-              },
-            },
-          },
-        },
+        get: { operationId: 'health', summary: 'Health check', tags: ['Meta'], responses: { 200: { description: 'OK' } } },
       },
       '/api/dance-extras/live': {
         get: {
           operationId: 'danceExtrasLiveMeta',
-          summary: 'List live MPP dance-extra flow keys (no payment)',
-          tags: ['Dance extras'],
-          description:
-            'Returns flowKeys and networks for POST /api/dance-extras/live/{flowKey}/{network}. Use this to verify the server build (stale Node processes are a common failure mode).',
-          responses: {
-            200: {
-              description: 'Metadata JSON',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      ok: { type: 'boolean' },
-                      method: { type: 'string', enum: ['POST'] },
-                      path: { type: 'string' },
-                      flowKeys: {
-                        type: 'array',
-                        items: { type: 'string' },
-                      },
-                      networks: {
-                        type: 'array',
-                        items: { type: 'string', enum: ['testnet', 'mainnet'] },
-                      },
-                    },
-                    required: ['ok', 'flowKeys', 'networks'],
-                  },
-                },
-              },
-            },
-          },
+          summary: 'List legacy dance flow keys',
+          tags: ['Legacy'],
+          responses: { 200: { description: 'Metadata JSON' } },
         },
       },
       '/api/dance-extras/live/{flowKey}/{network}': {
         post: {
           operationId: 'danceExtrasLivePaid',
-          summary: 'Execute a DanceTech extra flow with Tempo MPP (402 if unpaid)',
-          tags: ['Dance extras'],
-          description:
-            'Charges pathUSD-style amount per flowKey (see server DANCE_EXTRA_LIVE_AMOUNTS). Body shape depends on flowKey — e.g. judge-score expects battleId, roundId, judgeId, dancerId, score. URL network overrides body.network for chain selection.',
+          summary: 'Execute legacy dance flow with Tempo MPP',
+          tags: ['Legacy'],
           parameters: [
-            {
-              name: 'flowKey',
-              in: 'path',
-              required: true,
-              schema: {
-                type: 'string',
-                enum: Object.keys(DANCE_EXTRA_LIVE_AMOUNTS),
-              },
-              description: 'One of the seven live MPP scaffold flows',
-            },
-            {
-              name: 'network',
-              in: 'path',
-              required: true,
-              schema: {
-                type: 'string',
-                enum: ['testnet', 'mainnet'],
-              },
-              description: 'Tempo network segment (Moderato vs mainnet)',
-            },
+            { name: 'flowKey', in: 'path', required: true, schema: { type: 'string', enum: Object.keys(DANCE_EXTRA_LIVE_AMOUNTS) } },
+            { name: 'network', in: 'path', required: true, schema: { type: 'string', enum: ['testnet', 'mainnet'] } },
           ],
-          'x-payment-info': {
-            pricingMode: 'range',
-            minPrice,
-            maxPrice,
-            protocols: ['mpp', 'x402'],
-          },
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  description:
-                    'Flow-specific payload; see DANCETECH_USE_CASES.md. Example for judge-score: battleId, roundId, judgeId, dancerId, score (number).',
-                  properties: {
-                    network: {
-                      type: 'string',
-                      enum: ['testnet', 'mainnet'],
-                      description: 'Optional; URL segment takes precedence',
-                    },
-                    battleId: { type: 'string' },
-                    roundId: { type: 'string' },
-                    judgeId: { type: 'string' },
-                    dancerId: { type: 'string' },
-                    score: { type: 'number' },
-                  },
-                  additionalProperties: true,
-                },
-              },
-            },
-          },
-          responses: {
-            200: {
-              description: 'Flow result with optional MPP receipt headers on success',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      mpp: { type: 'boolean' },
-                      livePayment: { type: 'boolean' },
-                    },
-                    additionalProperties: true,
-                  },
-                },
-              },
-            },
-            400: {
-              description: 'Bad request or payment handler error',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: { error: { type: 'string' } },
-                    required: ['error'],
-                  },
-                },
-              },
-            },
-            402: {
-              description: 'Payment Required — complete MPP challenge (WWW-Authenticate)',
-            },
-          },
+          'x-payment-info': { pricingMode: 'range', minPrice, maxPrice, protocols: ['mpp', 'x402'] },
+          responses: { 200: { description: 'OK' }, 402: { description: 'Payment Required' } },
         },
+      },
+      '/api/nhs/identity/bootstrap': {
+        post: { operationId: 'nhsIdentityBootstrap', summary: 'Bootstrap wallet identity', tags: ['NHS'], responses: { 201: { description: 'Created' } } },
+      },
+      '/api/nhs/gp-access/requests': {
+        post: {
+          operationId: 'nhsGpAccessRequestCreate',
+          summary: 'Create same-day GP/front-door access request',
+          tags: ['NHS GP access'],
+          'x-payment-info': { pricingMode: 'fixed', minPrice: '0.020000', maxPrice: '0.020000', protocols: ['mpp', 'x402'] },
+          responses: { 201: { description: 'Created' }, 402: { description: 'Payment Required when gate active' } },
+        },
+      },
+      '/api/nhs/gp-access/requests/{id}': {
+        get: {
+          operationId: 'nhsGpAccessRequestGet',
+          summary: 'Get GP access request by ID',
+          tags: ['NHS GP access'],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Request details' }, 404: { description: 'Not found' } },
+        },
+      },
+      '/api/nhs/care-plans': {
+        post: { operationId: 'nhsCarePlanCreate', summary: 'Create a care plan', tags: ['NHS Care plans'], responses: { 201: { description: 'Created' } } },
+      },
+      '/api/nhs/care-plans/{patientId}': {
+        get: {
+          operationId: 'nhsCarePlanListByPatient',
+          summary: 'List care plans by patient',
+          tags: ['NHS Care plans'],
+          parameters: [{ name: 'patientId', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'List' } },
+        },
+      },
+      '/api/nhs/care-plans/{planId}/updates': {
+        post: {
+          operationId: 'nhsCarePlanUpdate',
+          summary: 'Add care plan update',
+          tags: ['NHS Care plans'],
+          parameters: [{ name: 'planId', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 201: { description: 'Created' } },
+        },
+      },
+      '/api/nhs/social-prescribing/referrals': {
+        post: { operationId: 'nhsSocialReferralCreate', summary: 'Create social prescribing referral', tags: ['NHS Social prescribing'], responses: { 201: { description: 'Created' } } },
+      },
+      '/api/nhs/social-prescribing/referrals/{id}': {
+        get: {
+          operationId: 'nhsSocialReferralGet',
+          summary: 'Get social prescribing referral',
+          tags: ['NHS Social prescribing'],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Referral' } },
+        },
+      },
+      '/api/nhs/social-prescribing/link-worker-plan': {
+        post: { operationId: 'nhsSocialLinkPlanUpsert', summary: 'Create/update link worker support plan', tags: ['NHS Social prescribing'], responses: { 201: { description: 'Created/updated' } } },
+      },
+      '/api/nhs/neighbourhood-teams/coordinate': {
+        post: { operationId: 'nhsNeighbourhoodCoordinate', summary: 'Write neighbourhood coordination event', tags: ['NHS Neighbourhood teams'], responses: { 201: { description: 'Created' } } },
+      },
+      '/api/nhs/monitoring/sessions': {
+        post: { operationId: 'nhsMonitoringSessionCreate', summary: 'Create monitoring session', tags: ['NHS Monitoring'], responses: { 201: { description: 'Created' } } },
+      },
+      '/api/nhs/monitoring/readings': {
+        post: { operationId: 'nhsMonitoringReadingCreate', summary: 'Record reading and trigger alerts', tags: ['NHS Monitoring'], responses: { 201: { description: 'Created' } } },
+      },
+      '/api/nhs/monitoring/alerts/{alertId}/resolve': {
+        post: {
+          operationId: 'nhsMonitoringAlertResolve',
+          summary: 'Resolve proactive alert',
+          tags: ['NHS Monitoring'],
+          parameters: [{ name: 'alertId', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Resolved' } },
+        },
+      },
+      '/api/nhs/patients/{patientId}/timeline': {
+        get: {
+          operationId: 'nhsPatientTimeline',
+          summary: 'Patient timeline',
+          tags: ['NHS'],
+          parameters: [{ name: 'patientId', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Timeline' } },
+        },
+      },
+      '/api/nhs/audit': {
+        get: { operationId: 'nhsAuditList', summary: 'Audit list', tags: ['NHS Audit'], responses: { 200: { description: 'Audit list' } } },
       },
     },
   }
