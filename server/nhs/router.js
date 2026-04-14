@@ -20,7 +20,7 @@ function withReceipt(body, paymentCtx) {
 export function createNhsRouter(deps) {
   const router = express.Router()
   const gate = (config, handler) => withArcGatewayGate(deps, config, handler)
-  const paymentGateEnabled = process.env.NHS_ENABLE_PAYMENT_GATE !== 'false'
+  const paymentGateEnabled = process.env.NHS_ENABLE_PAYMENT_GATE === 'true'
 
   router.post('/identity/bootstrap', (req, res) => {
     const actor = getActor(req)
