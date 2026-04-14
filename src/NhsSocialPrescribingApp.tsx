@@ -37,7 +37,7 @@ export default function NhsSocialPrescribingApp() {
                     session.role,
                     session.wallet,
                     { patientId, reason, linkWorkerWallet },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Referral failed: ${res.error}`)
@@ -70,7 +70,7 @@ export default function NhsSocialPrescribingApp() {
                       whatMatters,
                       interventions: interventions.split('\n').map((v) => v.trim()).filter(Boolean),
                     },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Plan update failed: ${res.error}`)
@@ -88,7 +88,7 @@ export default function NhsSocialPrescribingApp() {
                     `/api/nhs/social-prescribing/referrals/${encodeURIComponent(referralId)}`,
                     session.role,
                     session.wallet,
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Fetch failed: ${res.error}`)

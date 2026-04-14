@@ -36,7 +36,7 @@ export default function NhsCarePlansApp() {
                     session.role,
                     session.wallet,
                     { patientId, goal, actions },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Create failed: ${res.error}`)
@@ -66,7 +66,7 @@ export default function NhsCarePlansApp() {
                     session.role,
                     session.wallet,
                     { note: updateNote },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Update failed: ${res.error}`)
@@ -84,7 +84,7 @@ export default function NhsCarePlansApp() {
                     `/api/nhs/care-plans/${encodeURIComponent(patientId)}`,
                     session.role,
                     session.wallet,
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`List failed: ${res.error}`)

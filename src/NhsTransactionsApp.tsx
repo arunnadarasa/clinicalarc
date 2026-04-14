@@ -7,10 +7,10 @@ import {
   listNhsTxHistory,
   type NhsTxItem,
 } from './nhsTxHistory'
-import type { NhsNetwork, NhsPaymentMode, NhsRole } from './nhsSession'
+import type { NhsNetwork, NhsRole } from './nhsSession'
 import { getStoredWallet } from './nhsSession'
 
-type Session = { role: NhsRole; wallet: string; network: NhsNetwork; paymentMode: NhsPaymentMode }
+type Session = { role: NhsRole; wallet: string; network: NhsNetwork }
 
 /** Clickable href for the transaction reference: Arc /tx/ page (on-chain) or in-app deep link (audit). */
 function transactionReferenceLink(row: NhsTxItem): { href: string; external: boolean } | null {
@@ -36,7 +36,6 @@ function TransactionsTable({ session }: { session: Session }) {
 
   const tab = session.network
   const filtered = useMemo(() => rows.filter((row) => row.network === tab), [rows, tab])
-  const hasAuditRows = useMemo(() => filtered.some((r) => !r.txHash.startsWith('0x')), [filtered])
 
   return (
     <section className="grid">
@@ -60,11 +59,6 @@ function TransactionsTable({ session }: { session: Session }) {
             Clear all
           </button>
         </div>
-        {hasAuditRows && session.paymentMode === 'direct' ? (
-          <p className="note">
-            Tip: set payment mode to <strong>x402 wallet pay</strong> in the header so gated requests can complete payment and store a tx hash.
-          </p>
-        ) : null}
         {filtered.length === 0 ? (
           <p className="note">
             No {tab} transactions recorded yet. Successful NHS writes (with on-chain receipt or local audit) appear here.

@@ -29,7 +29,7 @@ export default function NhsNeighbourhoodTeamsApp() {
                     session.role,
                     session.wallet,
                     { patientId, eventType, detail },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Create failed: ${res.error}`)

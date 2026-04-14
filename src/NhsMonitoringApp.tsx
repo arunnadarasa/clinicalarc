@@ -38,7 +38,7 @@ export default function NhsMonitoringApp() {
                     session.role,
                     session.wallet,
                     { patientId, metric, thresholdMin: Number(thresholdMin), thresholdMax: Number(thresholdMax) },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Session failed: ${res.error}`)
@@ -59,7 +59,7 @@ export default function NhsMonitoringApp() {
                     session.role,
                     session.wallet,
                     { sessionId, value: Number(value), source: 'home_device' },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Reading failed: ${res.error}`)
@@ -90,7 +90,7 @@ export default function NhsMonitoringApp() {
                     session.role,
                     session.wallet,
                     { note: 'Follow-up completed' },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Resolve failed: ${res.error}`)
@@ -108,7 +108,7 @@ export default function NhsMonitoringApp() {
                     `/api/nhs/patients/${encodeURIComponent(patientId)}/timeline`,
                     session.role,
                     session.wallet,
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Timeline failed: ${res.error}`)

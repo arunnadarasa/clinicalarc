@@ -8,3 +8,11 @@
 NHS and demo routes that require payment use **`createGatewayMiddleware`** on the server and **`wrapFetchWithPayment`** / batch schemes in the browser (`src/arcX402Fetch.ts`, `src/nhsArcPaidFetch.ts`).
 
 Seller address and related settings follow **`X402_SELLER_ADDRESS`** and `.env.example`.
+
+## Gateway balance (batched x402)
+
+Circle’s [Arc nanopayments sample](https://github.com/circlefin/arc-nanopayments) deposits USDC into the **Gateway Wallet** before `gateway.pay` / x402 settlement. Clinical Arc mirrors that: before a paid NHS or dance-extras request, **`ensureGatewayDepositForX402`** (`src/arcGatewayDeposit.ts`) checks [Gateway testnet balances](https://gateway-api-testnet.circle.com) and, if below the minimum, runs **ERC‑20 approve + `deposit`** on `0x0077777d…` (same contracts as `@circle-fin/x402-batching`).
+
+Optional Vite env: **`VITE_GATEWAY_MIN_AVAILABLE_USDC`** (default `0.5`), **`VITE_GATEWAY_TOPUP_USDC`** (default `1`), **`VITE_GATEWAY_SKIP_AUTO_DEPOSIT=true`** to disable the auto top-up (debug only).
+
+Background: [Gateway + x402 for machine-scale micropayments](https://www.circle.com/blog/enabling-machine-to-machine-micropayments-with-gateway-and-usdc); [Circle Wallets + x402 autonomous payments](https://www.circle.com/blog/autonomous-payments-using-circle-wallets-usdc-and-x402) (different facilitator example, same HTTP 402 idea).

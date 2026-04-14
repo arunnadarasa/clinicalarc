@@ -2,6 +2,7 @@
  * Arc Testnet + Circle Gateway x402 for `POST /api/dance-extras/live/...` (browser wallet).
  */
 import { createArcX402PaymentFetch } from './arcX402Fetch'
+import { ensureGatewayDepositForX402 } from './arcGatewayDeposit'
 import type { BrowserEthereumProvider } from './evmWallet'
 import { arcTestnetChain } from './arcChains'
 
@@ -113,6 +114,7 @@ export async function liveX402Fetch(
   const eth = window.ethereum as BrowserEthereumProvider | undefined
   if (!eth) throw new Error('Wallet not found.')
   await ensureSelectedWalletNetwork(eth as EthWindow, opts.network)
+  await ensureGatewayDepositForX402(eth, walletAddress)
   const fetchWithPay = createArcX402PaymentFetch(eth, walletAddress)
   return fetchWithPay(url, init)
 }

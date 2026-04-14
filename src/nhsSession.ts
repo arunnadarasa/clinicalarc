@@ -1,12 +1,10 @@
 export type NhsRole = 'patient' | 'gp' | 'nhc_provider'
 export type NhsNetwork = 'testnet' | 'mainnet'
-export type NhsPaymentMode = 'direct' | 'x402'
 
 const ROLE_KEY = 'nhs_role'
 const WALLET_KEY = 'nhs_wallet'
 const PATIENT_ID_KEY = 'nhs_patient_id'
 const NETWORK_KEY = 'nhs_network'
-const PAYMENT_MODE_KEY = 'nhs_payment_mode'
 
 export function getStoredRole(): NhsRole {
   const raw = localStorage.getItem(ROLE_KEY)
@@ -40,17 +38,6 @@ export function getStoredNetwork(): NhsNetwork {
 
 export function setStoredNetwork(network: NhsNetwork) {
   localStorage.setItem(NETWORK_KEY, network)
-}
-
-export function getStoredPaymentMode(): NhsPaymentMode {
-  const raw = localStorage.getItem(PAYMENT_MODE_KEY)
-  if (raw === 'direct') return 'direct'
-  if (raw === 'mpp') return 'x402'
-  return 'x402'
-}
-
-export function setStoredPaymentMode(mode: NhsPaymentMode) {
-  localStorage.setItem(PAYMENT_MODE_KEY, mode)
 }
 
 export function getAuthHeaders(role: NhsRole, wallet: string): HeadersInit {

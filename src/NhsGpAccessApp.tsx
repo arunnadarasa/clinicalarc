@@ -43,7 +43,7 @@ export default function NhsGpAccessApp() {
                   const res = await apiPost<GpCreateResponse>('/api/nhs/gp-access/requests', session.role, session.wallet, {
                     requestText,
                     priority,
-                  }, { network: session.network, paymentMode: session.paymentMode })
+                  }, { network: session.network })
                   if (!res.ok) {
                     setStatus(`Create failed: ${res.error}`)
                     return
@@ -75,7 +75,7 @@ export default function NhsGpAccessApp() {
                     `/api/nhs/gp-access/requests/${encodeURIComponent(requestId)}`,
                     session.role,
                     session.wallet,
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Lookup failed: ${res.error}`)

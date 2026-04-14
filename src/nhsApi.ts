@@ -1,5 +1,5 @@
 import { nhsX402Fetch } from './nhsArcPaidFetch'
-import { getAuthHeaders, type NhsNetwork, type NhsPaymentMode, type NhsRole } from './nhsSession'
+import { getAuthHeaders, type NhsNetwork, type NhsRole } from './nhsSession'
 import { addNhsTxHistory } from './nhsTxHistory'
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: string; status: number }
@@ -17,13 +17,18 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
+function appendDetail(base: string, reason: unknown): string {
+  if (typeof reason === 'string' && reason.trim()) return `${base} (${reason.trim()})`
+  return base
+}
+
 function errorFromResponse(res: Response, payload: unknown): string {
   const status = res.status
   if (payload && typeof payload === 'object') {
     const o = payload as Record<string, unknown>
-    if (typeof o.error === 'string' && o.error) return o.error
+    if (typeof o.error === 'string' && o.error) return appendDetail(o.error, o.reason)
     if (typeof o.details === 'string' && o.details) return o.details
-    if (typeof o.message === 'string' && o.message) return o.message
+    if (typeof o.message === 'string' && o.message) return appendDetail(o.message, o.reason)
   }
   if (typeof payload === 'string' && payload.trim()) {
     const lower = payload.slice(0, 80).toLowerCase()
@@ -36,7 +41,7 @@ function errorFromResponse(res: Response, payload: unknown): string {
     return payload.replace(/\s+/g, ' ').slice(0, 240)
   }
   if (status === 402) {
-    return 'Payment required (402). Complete the wallet payment prompt, or set payment mode to direct fetch and disable the NHS payment gate on the server (NHS_ENABLE_PAYMENT_GATE=false).'
+    return 'Payment required (402). Approve the wallet prompts for Gateway deposit (if shown) and x402 payment, or set NHS_ENABLE_PAYMENT_GATE=false on the server to disable the gate for local dev.'
   }
   if (status === 502 || status === 503 || status === 504) {
     return 'API server not reachable. Run `npm run server` (port 8787) or `npm run dev:full`.'
@@ -46,12 +51,17 @@ function errorFromResponse(res: Response, payload: unknown): string {
 
 type ApiOpts = {
   network: NhsNetwork
-  paymentMode: NhsPaymentMode
 }
 
+/**
+ * Full EVM tx hash: `0x` + 64 hex, or bare 64 hex (some facilitators omit the prefix).
+ * Does not match 40-hex addresses.
+ */
 function extractTxHash(value: string): string | null {
-  const match = value.match(/0x[a-fA-F0-9]{16,64}/)
-  return match ? match[0] : null
+  const prefixed = value.match(/0x[a-fA-F0-9]{64}/i)
+  if (prefixed) return prefixed[0]
+  const bare = value.match(/\b[a-fA-F0-9]{64}\b/i)
+  return bare ? `0x${bare[0]}` : null
 }
 
 function toExplorerUrl(_network: NhsNetwork, txHash: string): string {
@@ -87,8 +97,8 @@ function txFromResponse(payload: unknown, res: Response): string | null {
   })()
   const merged = [paymentReceipt, payment, payloadString].filter(Boolean).join(' ')
 
-  const direct = extractTxHash(merged)
-  if (direct) return direct
+  const fromMerged = extractTxHash(merged)
+  if (fromMerged) return fromMerged
 
   // Fallback: parse serialized receipt payloads and look for a reference field.
   for (const candidate of [paymentReceipt, payment]) {
@@ -121,10 +131,7 @@ export async function apiPost<T>(
   }
   let res: Response
   try {
-    res =
-      opts.paymentMode === 'x402'
-        ? await nhsX402Fetch(path, reqInit, { wallet, network: opts.network })
-        : await fetch(path, reqInit)
+    res = await nhsX402Fetch(path, reqInit, { wallet, network: opts.network })
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Network error.'
     return { ok: false, error: msg, status: 0 }

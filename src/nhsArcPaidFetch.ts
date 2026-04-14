@@ -1,4 +1,5 @@
 import { arcTestnetChain } from './arcChains'
+import { ensureGatewayDepositForX402 } from './arcGatewayDeposit'
 import { createArcX402PaymentFetch } from './arcX402Fetch'
 import type { BrowserEthereumProvider } from './evmWallet'
 import type { NhsNetwork } from './nhsSession'
@@ -47,6 +48,7 @@ export async function nhsX402Fetch(
   if (!provider) throw new Error('Wallet provider not found for x402 payment mode.')
   if (!opts.wallet) throw new Error('Connect wallet to use x402 mode.')
   await ensureWalletOnNetwork(provider, opts.network)
+  await ensureGatewayDepositForX402(provider, opts.wallet as `0x${string}`)
   const fetchWithPay = createArcX402PaymentFetch(provider, opts.wallet as `0x${string}`)
   return fetchWithPay(url, init)
 }

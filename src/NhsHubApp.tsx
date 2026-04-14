@@ -53,7 +53,7 @@ export default function NhsHubApp() {
                       dob,
                       nhsNumber,
                     },
-                    { network: session.network, paymentMode: session.paymentMode },
+                    { network: session.network },
                   )
                   if (!res.ok) {
                     setStatus(`Bootstrap failed: ${res.error}`)

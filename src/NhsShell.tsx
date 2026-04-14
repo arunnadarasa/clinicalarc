@@ -1,15 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import {
   getStoredNetwork,
-  getStoredPaymentMode,
   getStoredRole,
   getStoredWallet,
   setStoredNetwork,
-  setStoredPaymentMode,
   setStoredRole,
   setStoredWallet,
   type NhsNetwork,
-  type NhsPaymentMode,
   type NhsRole,
 } from './nhsSession'
 
@@ -36,7 +33,7 @@ function whereYouAre(pathname: string): string {
 type Props = {
   title: string
   subtitle: string
-  children: (session: { role: NhsRole; wallet: string; network: NhsNetwork; paymentMode: NhsPaymentMode }) => ReactNode
+  children: (session: { role: NhsRole; wallet: string; network: NhsNetwork }) => ReactNode
 }
 
 function isRole(value: string): value is NhsRole {
@@ -47,11 +44,10 @@ export default function NhsShell({ title, subtitle, children }: Props) {
   const [role, setRole] = useState<NhsRole>(getStoredRole())
   const [wallet, setWallet] = useState<string>(getStoredWallet())
   const [network, setNetwork] = useState<NhsNetwork>(getStoredNetwork())
-  const [paymentMode, setPaymentMode] = useState<NhsPaymentMode>(getStoredPaymentMode())
   const [err, setErr] = useState('')
   const [faucetStatus, setFaucetStatus] = useState('')
 
-  const session = useMemo(() => ({ role, wallet, network, paymentMode }), [role, wallet, network, paymentMode])
+  const session = useMemo(() => ({ role, wallet, network }), [role, wallet, network])
   const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
 
   const connectWallet = async () => {
@@ -125,17 +121,12 @@ export default function NhsShell({ title, subtitle, children }: Props) {
             >
               <option value="testnet">Arc testnet</option>
             </select>
-            <select
-              value={paymentMode}
-              onChange={(event) => {
-                const next = event.target.value === 'x402' ? 'x402' : 'direct'
-                setPaymentMode(next)
-                setStoredPaymentMode(next)
-              }}
+            <span
+              className="hero-toolbar__badge"
+              title="NHS writes use Circle Gateway x402 (402 + Gateway deposit + wallet sign)."
             >
-              <option value="direct">direct fetch</option>
-              <option value="x402">x402 wallet pay</option>
-            </select>
+              x402
+            </span>
             <button onClick={connectWallet}>{wallet ? `Wallet ${wallet.slice(0, 10)}...` : 'Connect Wallet'}</button>
             <button
               className="secondary"
