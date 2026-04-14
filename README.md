@@ -1,25 +1,12 @@
 # HealthTech Protocol · Clinical Arc
 
-**Clinical Arc** is the **core app** in this repository: an **NHS-aligned neighbourhood health** experience—wallet-linked identity, GP access requests, care plans, social prescribing, neighbourhood team coordination, remote monitoring with proactive alerts, transaction history, and **Arc Testnet + Circle Gateway x402** payment gates on selected service writes—plus **Open Wallet Standard (OWS)**, **AgentMail**, and optional **TIP-20** (via `viem/tempo`) demos. The **NHS hub** is at **`/`** and **`/nhs`**; feature screens live under **`/nhs/*`**.
+**Clinical Arc** is the **core app** in this repository: an **NHS-aligned neighbourhood health** experience—wallet-linked identity, GP access requests, care plans, social prescribing, neighbourhood team coordination, remote monitoring with proactive alerts, transaction history, and **Arc Testnet + Circle Gateway x402** payment gates on selected service writes. The **NHS hub** is at **`/`** and **`/nhs`**; feature screens live under **`/nhs/*`**.
 
-**HealthTech Protocol** is the open **pattern stack**: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Arc](https://docs.arc.network/arc/references/connect-to-arc)** with **USDC nanopayments** via [Circle Gateway](https://developers.circle.com/gateway/nanopayments) and the **x402** HTTP payment protocol ([overview](https://developers.circle.com/gateway/nanopayments/concepts/x402)). Reference demos (e.g. **`/dance-extras`**, battle, coaching) exercise the same rails in another domain.
+**HealthTech Protocol** is the open **pattern stack** for this NHS app: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Arc](https://docs.arc.network/arc/references/connect-to-arc)** with **USDC nanopayments** via [Circle Gateway](https://developers.circle.com/gateway/nanopayments) and the **x402** HTTP payment protocol ([overview](https://developers.circle.com/gateway/nanopayments/concepts/x402)).
 
 This is a **reference implementation**: React (Vite) front ends, a Node/Express API, and production-style persistence for NHS flows. **Treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract** for routes, endpoints, and testing notes.
 
 **Primary remote:** **[arunnadarasa/clinicalarc](https://github.com/arunnadarasa/clinicalarc)**. **NHS / hackathon notes:** [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md). **Data safety:** use **dummy or synthetic** patient data in demos only — never real patient-identifiable data.
-
-### Interaction modes (humans & agents)
-
-HealthTech Protocol is **one** stack (Arc Testnet + Circle Gateway x402). What changes is **who authorizes spend** and **who receives value**.
-
-| Shorthand | Typical meaning here | How it maps in this repo |
-|-----------|----------------------|----------------------------|
-| **Human → human** | One person or org pays another. | Wallet-mediated flows in **Clinical Arc** (care and access requests); legacy demos in other routes. |
-| **Human → agent** | A person approves payment; an orchestrator calls your HTTP APIs. | **`/nhs/*`** and shared hub routes; the **human still signs** with the browser wallet unless you delegate. |
-| **Agent → human** | Automated action delivers something to a person. | Ops bot + AgentMail, notifications. |
-| **Agent → agent** | Service-to-service backends or workers. | `402` + gateway settlement, API keys where allowed, `POST /api/*` from trusted workers. |
-
-**Roles:** **Payer** (human wallet vs server treasury vs delegated agent), **beneficiary**, **channel** (browser vs server). Ambient agents can use [`CLAWHUB.md`](./CLAWHUB.md) and repo **[`.cursor/skills/clawhub/`](./.cursor/skills/clawhub/README.md)**.
 
 ---
 
@@ -27,11 +14,8 @@ HealthTech Protocol is **one** stack (Arc Testnet + Circle Gateway x402). What c
 
 | Layer | Role |
 |--------|------|
-| **Clinical Arc (`/` · `/nhs/*`)** | **Core product:** NHS-aligned hub and flows—wallet identity, GP access, care plans, social prescribing, neighbourhood teams, monitoring, transactions, HTTP pay notes, OWS, AgentMail, TIP-20. |
-| **Backend (`server/`)** | Express API: **`/api/nhs/*`** care coordination, audit, and x402-gated service requests; live payment verification; proxies to paid third-party APIs. |
-| **Integrations** | Optional rails: AgentMail, StablePhone, StableSocial, StableTravel, Laso cards, Suno, Parallel, OpenWeather, OpenAI gateway, Google Maps, Aviationstack, KicksDB, TIP‑20 factory, OpenAI explainer. |
-| **Reference demos** | **`/dance-extras`**, battle, coaching, beats — flows that showcase paid HTTP patterns in another domain. |
-| **Dedicated frontends** | Full-screen flows for wallet, network, receipts, recovery. |
+| **Clinical Arc (`/` · `/nhs/*`)** | **Core product:** NHS-aligned hub and flows—wallet identity, GP access, care plans, social prescribing, neighbourhood teams, monitoring, transactions. |
+| **Backend (`server/`)** | Express API: **`/api/nhs/*`** care coordination, audit, and x402-gated service requests for NHS workflows. |
 
 ---
 
@@ -53,7 +37,7 @@ HealthTech Protocol is **one** stack (Arc Testnet + Circle Gateway x402). What c
 | `npm run server` | Express API (default **port 8787**) |
 | `npm run dev:full` | Both (recommended for live x402 flows) |
 
-If the UI shows **`Cannot POST /api/...`**, restart the backend on **8787**. Quick checks: **`GET http://localhost:8787/openapi.json`** or **`GET http://localhost:8787/api/dance-extras/live`**.
+If the UI shows **`Cannot POST /api/...`**, restart the backend on **8787**. Quick check: **`GET http://localhost:8787/openapi.json`**.
 
 ---
 
@@ -79,22 +63,8 @@ If the UI shows **`Cannot POST /api/...`**, restart the backend on **8787**. Qui
 | `/nhs/neighbourhood-teams` | Neighbourhood coordination |
 | `/nhs/monitoring` | Remote monitoring |
 | `/nhs/transactions` | Transaction history |
-| `/nhs/http-pay` | **HTTP + Arc** curl / CLI notes (legacy **`/nhs/purl`** redirects to the same screen) |
-| `/nhs/ows` | Open Wallet Standard |
-| `/nhs/agentmail` | AgentMail |
-| `/nhs/tip20` | TIP-20 token factory demo |
 
 **API:** **`/api/nhs/*`** — **`GET /openapi.json`** for discovery.
-
-### Reference demos
-
-| Path | Purpose |
-|------|---------|
-| `/dance-extras` | Pattern demos; live **`POST /api/dance-extras/live/:flowKey/:network`** |
-| `/battle`, `/coaching`, `/beats` | Legacy paid demos |
-| `/card`, `/travel`, `/kicks`, `/music`, `/parallel`, `/weather`, `/openai` | Integration showcases |
-
----
 
 ## Quick start
 
@@ -121,7 +91,7 @@ Open **http://localhost:5173/** (NHS hub) or **http://localhost:5173/nhs/gp-acce
 
 Copy **`.env.example`** → **`.env`**. Never commit **`.env`**.
 
-Typical groups: **OpenAI**, **Arc / x402** (`X402_SELLER_ADDRESS`, `ARC_TESTNET`, …), **AgentMail**, **integration base URLs** — see `.env.example`.
+Typical groups: **Arc / x402** and NHS runtime flags — see `.env.example`.
 
 ---
 
@@ -142,7 +112,7 @@ Typical groups: **OpenAI**, **Arc / x402** (`X402_SELLER_ADDRESS`, `ARC_TESTNET`
 ├── server/           # Express API (index.js, payments.js)
 ├── public/           # Static assets; llm-full.txt generated here
 ├── scripts/          # build-llm-full.mjs, …
-├── docs/             # ARC_X402_NOTES, OPENAPI_DISCOVERY, OWS_NHS, …
+├── docs/             # ARC_X402_NOTES, OPENAPI_DISCOVERY, …
 ├── .cursor/skills/clawhub/  # Cursor skill
 ├── HEALTHTECH_USE_CASES.md
 ├── CLAWHUB.md

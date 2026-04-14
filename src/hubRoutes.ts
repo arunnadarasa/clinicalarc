@@ -22,18 +22,4 @@ export const HUB_ROUTE_GROUPS: HubRouteGroup[] = [
     ],
     footnote: 'Wallet identity is used for role-based actions and x402 payment-gated service requests.',
   },
-  {
-    label: 'Wallet & CLI',
-    routes: [
-      { href: '/nhs/http-pay', title: 'HTTP pay', hint: 'curl + Arc Testnet x402 notes' },
-      { href: '/nhs/ows', title: 'OWS', hint: 'Open Wallet Standard installer' },
-    ],
-  },
-  {
-    label: 'Integrations',
-    routes: [
-      { href: '/nhs/agentmail', title: 'AgentMail', hint: 'Wallet-paid email send + inbox create' },
-      { href: '/nhs/tip20', title: 'TIP-20', hint: 'On-chain TIP-20 factory (testnet + mainnet)' },
-    ],
-  },
 ]

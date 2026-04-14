@@ -14,8 +14,7 @@ import {
 } from './nhsSession'
 
 function navLinkClass(href: string, pathname: string) {
-  const active =
-    pathname === href || (href === '/nhs/http-pay' && pathname === '/nhs/purl')
+  const active = pathname === href
   return `secondary button-like${active ? ' nav-link--active' : ''}`
 }
 
@@ -28,11 +27,6 @@ const PATH_CONTEXT: Record<string, string> = {
   '/nhs/neighbourhood-teams': 'Neighbourhood teams',
   '/nhs/monitoring': 'Monitoring',
   '/nhs/transactions': 'Transactions',
-  '/nhs/http-pay': 'HTTP pay',
-  '/nhs/purl': 'HTTP pay',
-  '/nhs/ows': 'OWS',
-  '/nhs/agentmail': 'AgentMail',
-  '/nhs/tip20': 'TIP-20',
 }
 
 function whereYouAre(pathname: string): string {
@@ -56,7 +50,6 @@ export default function NhsShell({ title, subtitle, children }: Props) {
   const [paymentMode, setPaymentMode] = useState<NhsPaymentMode>(getStoredPaymentMode())
   const [err, setErr] = useState('')
   const [faucetStatus, setFaucetStatus] = useState('')
-  const [faucetLoading, setFaucetLoading] = useState(false)
 
   const session = useMemo(() => ({ role, wallet, network, paymentMode }), [role, wallet, network, paymentMode])
   const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
@@ -82,7 +75,7 @@ export default function NhsShell({ title, subtitle, children }: Props) {
     }
   }
 
-  const requestTestnetFunds = async () => {
+  const requestTestnetFunds = () => {
     if (!wallet) {
       setFaucetStatus('Connect a wallet first.')
       return
@@ -91,25 +84,8 @@ export default function NhsShell({ title, subtitle, children }: Props) {
       setFaucetStatus('Faucet is testnet-only. Switch network to Arc testnet.')
       return
     }
-    setFaucetLoading(true)
-    setFaucetStatus('Requesting testnet funds...')
-    try {
-      const response = await fetch('/api/arc/faucet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: wallet }),
-      })
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null
-      if (!response.ok) {
-        setFaucetStatus(`Faucet failed: ${payload?.error || 'request failed'}`)
-        return
-      }
-      setFaucetStatus('Funds requested. Confirm balance in your wallet in a few moments.')
-    } catch (error) {
-      setFaucetStatus(error instanceof Error ? `Faucet failed: ${error.message}` : 'Faucet request failed.')
-    } finally {
-      setFaucetLoading(false)
-    }
+    window.open('https://faucet.circle.com/', '_blank', 'noopener,noreferrer')
+    setFaucetStatus('Opened Circle Faucet. Select Arc Testnet and paste your wallet address to request funds.')
   }
 
   return (
@@ -142,14 +118,12 @@ export default function NhsShell({ title, subtitle, children }: Props) {
             </select>
             <select
               value={network}
-              onChange={(event) => {
-                const next = event.target.value === 'mainnet' ? 'mainnet' : 'testnet'
-                setNetwork(next)
-                setStoredNetwork(next)
+              onChange={() => {
+                setNetwork('testnet')
+                setStoredNetwork('testnet')
               }}
             >
               <option value="testnet">Arc testnet</option>
-              <option value="mainnet">mainnet (label)</option>
             </select>
             <select
               value={paymentMode}
@@ -165,11 +139,11 @@ export default function NhsShell({ title, subtitle, children }: Props) {
             <button onClick={connectWallet}>{wallet ? `Wallet ${wallet.slice(0, 10)}...` : 'Connect Wallet'}</button>
             <button
               className="secondary"
-              disabled={!wallet || network !== 'testnet' || faucetLoading}
+              disabled={!wallet || network !== 'testnet'}
               onClick={requestTestnetFunds}
               title={network === 'testnet' ? 'Open Circle faucet for Arc testnet' : 'Switch to testnet for faucet'}
             >
-              {faucetLoading ? 'Requesting faucet...' : 'Get testnet funds'}
+              Get testnet funds
             </button>
             <a className="secondary button-like" href="/nhs">
               Hub
@@ -200,29 +174,8 @@ export default function NhsShell({ title, subtitle, children }: Props) {
                 </a>
               </div>
             </div>
-            <div className="hero-nav__group hero-nav__group--wallet">
-              <span className="hero-nav__label">Wallet &amp; CLI</span>
-              <div className="hero-nav__links">
-                <a className={navLinkClass('/nhs/http-pay', pathname)} href="/nhs/http-pay">
-                  HTTP pay
-                </a>
-                <a className={navLinkClass('/nhs/ows', pathname)} href="/nhs/ows">
-                  OWS
-                </a>
-              </div>
-            </div>
-            <div className="hero-nav__group hero-nav__group--integrations">
-              <span className="hero-nav__label">Integrations</span>
-              <div className="hero-nav__links">
-                <a className={navLinkClass('/nhs/agentmail', pathname)} href="/nhs/agentmail">
-                  AgentMail
-                </a>
-                <a className={navLinkClass('/nhs/tip20', pathname)} href="/nhs/tip20">
-                  TIP-20
-                </a>
-              </div>
-            </div>
           </nav>
+
 
           {err ? <p className="error hero-appbar__feedback">{err}</p> : null}
           {faucetStatus ? <p className="note hero-appbar__feedback">{faucetStatus}</p> : null}
