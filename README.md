@@ -265,4 +265,4 @@ This project is licensed under the MIT License. See [`LICENSE`](./LICENSE).
 
 ---
 
-**HealthTech Protocol** · **Clinical Tempo** — *Tempo + MPP for health: one reference stack.*
+**HealthTech Protocol** · **Clinical Arc** — *Arc Testnet + Circle Gateway x402 for health use cases.*
