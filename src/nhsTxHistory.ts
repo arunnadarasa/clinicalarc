@@ -1,7 +1,7 @@
 import type { NhsNetwork } from './nhsSession'
 
 export type NhsTxItem = {
-  /** MPP chain receipt (`0x…`) or synthetic `audit:…` id when no on-chain receipt was returned */
+  /** On-chain receipt (`0x…`) or synthetic `audit:…` id when no on-chain receipt was returned */
   txHash: string
   network: NhsNetwork
   endpoint: string
@@ -44,19 +44,14 @@ export function clearNhsTxHistory() {
   localStorage.removeItem(KEY)
 }
 
-export function explorerUrl(network: NhsNetwork, txHash: string): string | null {
+export function explorerUrl(_network: NhsNetwork, txHash: string): string | null {
   if (!txHash.startsWith('0x')) return null
-  return network === 'mainnet'
-    ? `https://explore.tempo.xyz/tx/${txHash}`
-    : `https://explore.testnet.tempo.xyz/tx/${txHash}`
+  return `https://testnet.arcscan.app/tx/${txHash}`
 }
 
-/** Wallet account page on Tempo explorer (useful when there is no `/tx/0x…` for audit-only rows). */
-export function explorerAddressUrl(network: NhsNetwork, walletAddress: string): string | null {
+/** Wallet account page on Arc explorer (useful when there is no `/tx/0x…` for audit-only rows). */
+export function explorerAddressUrl(_network: NhsNetwork, walletAddress: string): string | null {
   const w = walletAddress.trim().toLowerCase()
   if (!/^0x[a-f0-9]{8,}$/i.test(w)) return null
-  return network === 'mainnet'
-    ? `https://explore.tempo.xyz/address/${w}`
-    : `https://explore.testnet.tempo.xyz/address/${w}`
+  return `https://testnet.arcscan.app/address/${w}`
 }
-

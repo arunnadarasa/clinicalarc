@@ -5,8 +5,6 @@ import { AGENTMAIL_DEMO_INBOX_ID } from './agentmailDemo'
 import { apiPost } from './nhsApi'
 import type { NhsNetwork, NhsPaymentMode, NhsRole } from './nhsSession'
 
-const MPP_AGENTMAIL = 'https://mpp.dev/services#agentmail'
-
 function AgentMailPanel({
   role,
   wallet,
@@ -19,7 +17,7 @@ function AgentMailPanel({
   paymentMode: NhsPaymentMode
 }) {
   const [to, setTo] = useState('')
-  const [subject, setSubject] = useState('Clinical Tempo — AgentMail test')
+  const [subject, setSubject] = useState('Clinical Arc — AgentMail test')
   const [text, setText] = useState('Hello from the NHS hackathon shell.')
   const [inboxId, setInboxId] = useState(AGENTMAIL_DEMO_INBOX_ID)
   const [status, setStatus] = useState('')
@@ -62,7 +60,7 @@ function AgentMailPanel({
       return
     }
     setLoading(true)
-    setStatus('Creating inbox (may prompt for MPP)…')
+    setStatus('Creating inbox (may prompt for wallet payment)…')
     const res = await apiPost<Record<string, unknown>>(
       '/api/ops/agentmail/inbox/create',
       role,
@@ -84,42 +82,38 @@ function AgentMailPanel({
         <h2>Send email (wallet-paid path)</h2>
         {network === 'mainnet' ? (
           <div className="callout callout--caution">
-            <strong>Tempo mainnet</strong>
-            Sends use real USDC for MPP. For hackathon sandboxes, switch the header network to <strong>tempo testnet</strong>{' '}
-            and use <strong>Get testnet funds</strong>.
+            <strong>Mainnet label</strong>
+            Sends may use real funds. For sandboxes, switch the header network to <strong>Arc testnet</strong> and use{' '}
+            <strong>Get testnet funds</strong>.
           </div>
         ) : null}
-        {paymentMode === 'mpp' ? (
+        {paymentMode === 'x402' ? (
           <div className="callout callout--info">
             <strong>If MetaMask says “likely to fail” or fee is unavailable</strong>
             <ul>
               <li>
-                The MPP step needs enough <strong>Tempo USDC</strong> (TIP-20) for the channel — top up or use the faucet on{' '}
-                <strong>testnet</strong>.
+                The payment step needs enough <strong>USDC on Arc Testnet</strong> for the flow — use the Circle faucet
+                linked from the header.
               </li>
               <li>
-                Your wallet must be on the <strong>same network</strong> as the header (Moderato testnet vs Tempo mainnet).
+                Your wallet must match the <strong>Arc Testnet</strong> chain selected in the shell.
               </li>
               <li>
-                If the server has <code>AGENTMAIL_API_KEY</code>, the backend charges MPP locally first — same balance rules
-                apply.
+                If the server has <code>AGENTMAIL_API_KEY</code>, the backend may charge server-side first — same balance
+                rules can still apply for wallet-paid fallbacks.
               </li>
             </ul>
           </div>
         ) : (
           <p className="note">
-            <strong>Direct fetch</strong> mode skips browser MPP; the server may still need AgentMail keys or upstream may
-            return <code>402</code>. Prefer <strong>mpp wallet pay</strong> for the full wallet flow.
+            <strong>Direct fetch</strong> mode skips browser x402; the server may still need AgentMail keys or upstream may
+            return <code>402</code>. Prefer <strong>x402 wallet pay</strong> for the full wallet flow.
           </p>
         )}
         <p>
-          This app calls <code>POST /api/ops/agentmail/send</code> on the Clinical Tempo API. With{' '}
-          <code>AGENTMAIL_API_KEY</code> on the server, the backend charges Tempo MPP first, then sends via AgentMail’s
-          Bearer API. Without a key, the proxy forwards to{' '}
-          <a href={MPP_AGENTMAIL} target="_blank" rel="noreferrer">
-            AgentMail on MPP
-          </a>{' '}
-          and your wallet must satisfy the <code>402</code> challenge.
+          This app calls <code>POST /api/ops/agentmail/send</code> on the Clinical Arc API. With <code>AGENTMAIL_API_KEY</code>{' '}
+          on the server, the backend can send via AgentMail’s Bearer API. Without a key, the proxy may forward upstream and
+          your wallet must satisfy any <code>402</code> challenge.
         </p>
         <p className="note">
           Always pass <code>inbox_id</code> (demo default below). See <code>CLAWHUB.md</code> for inbox scope pitfalls.
@@ -140,7 +134,7 @@ function AgentMailPanel({
         <h2>Create inbox (optional)</h2>
         <p>
           <code>POST /api/ops/agentmail/inbox/create</code> proxies to AgentMail; may return <code>402</code> for a
-          wallet-paid inbox. Use MPP mode and confirm the payment in your wallet.
+          wallet-paid inbox. Use x402 mode and confirm the payment in your wallet.
         </p>
         <div className="actions">
           <button type="button" className="secondary" disabled={loading || !wallet} onClick={createInbox}>
@@ -156,7 +150,7 @@ export default function NhsAgentMailApp() {
   return (
     <NhsShell
       title="AgentMail — NHS hackathon integration"
-      subtitle="MPP-listed email for agents: send through this API with Tempo wallet pay, or configure server-side AgentMail keys."
+      subtitle="Email for agents: send through this API with wallet x402 on Arc, or configure server-side AgentMail keys."
     >
       {(session) => (
         <section className="grid">
@@ -164,15 +158,9 @@ export default function NhsAgentMailApp() {
             <h2>What is AgentMail?</h2>
             <p>
               <strong>AgentMail</strong> provides programmable inboxes and outbound mail for automation. This repo exposes
-              wallet-paid and API-key paths so hackathon demos can charge via Tempo MPP then deliver email reliably.
+              wallet-paid and API-key paths so demos can charge via x402 then deliver email reliably.
             </p>
             <ul className="log">
-              <li>
-                Catalog entry:{' '}
-                <a href={MPP_AGENTMAIL} target="_blank" rel="noreferrer">
-                  mpp.dev — AgentMail
-                </a>
-              </li>
               <li>
                 Docs:{' '}
                 <a href="https://docs.agentmail.to/llms-full.txt" target="_blank" rel="noreferrer">

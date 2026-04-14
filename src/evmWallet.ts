@@ -1,23 +1,18 @@
 import { custom, fallback, http, parseUnits, type Transport } from 'viem'
 
-/** TIP-20 stablecoins on Tempo use 6 decimals (mppx defaults). */
-export const TEMPO_TIP20_DECIMALS = 6
+/** Typical 6-decimal stable-style tokens in TIP-20 style flows. */
+export const TIP20_DECIMALS = 6
 
 /**
- * mppx `tempo.session` auto-management requires `deposit` or `maxDeposit` when the
- * server issues a `tempo.session` x402 challenge (common for OpenAI-on-Tempo and
- * other catalog routes). Without it, the client throws:
- * "No `action` in context and no `deposit` or `maxDeposit` configured."
- *
- * Override via Vite: `VITE_TEMPO_MPP_MAX_DEPOSIT=25` (human-readable token units, default 6 decimals).
- *
- * @see https://mpp.dev/sdk/typescript — Tempo session (auto mode)
+ * Some x402 session flows need an explicit deposit cap. Override via Vite: `VITE_X402_SESSION_MAX_DEPOSIT`.
  */
-export const TEMPO_MPP_SESSION_MAX_DEPOSIT =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TEMPO_MPP_MAX_DEPOSIT?.trim()) || '50'
+function sessionMaxDepositHuman(): string {
+  const env = typeof import.meta !== 'undefined' ? import.meta.env : undefined
+  const next = env?.VITE_X402_SESSION_MAX_DEPOSIT?.trim()
+  return next || '50'
+}
 
-/** Public RPC for read-only checks (balance) — avoids routing reads through the injected wallet. */
-export const TEMPO_MAINNET_RPC_HTTP = 'https://rpc.tempo.xyz'
+export const X402_SESSION_MAX_DEPOSIT = sessionMaxDepositHuman()
 
 const base64UrlDecode = (value: string) => {
   const s = value.replace(/-/g, '+').replace(/_/g, '/')
@@ -47,17 +42,16 @@ export function parseSuggestedDepositRawFromWwwAuthenticate(wwwAuthenticate: str
   }
 }
 
-/** `maxDeposit` as raw units (matches mppx `parseUnits(maxDeposit, 6)`). */
-export function tempoMppMaxDepositRaw(): bigint {
-  return parseUnits(TEMPO_MPP_SESSION_MAX_DEPOSIT, TEMPO_TIP20_DECIMALS)
+/** `maxDeposit` as raw units (6 decimals). */
+export function x402SessionMaxDepositRaw(): bigint {
+  return parseUnits(X402_SESSION_MAX_DEPOSIT, TIP20_DECIMALS)
 }
 
 /**
- * Deposit size the session opener will use — same rule as `mppx` Session auto mode:
- * `min(suggestedDeposit, maxDeposit)` when both exist, else whichever is set.
+ * Deposit size the session opener will use: `min(suggestedDeposit, maxDeposit)` when both exist.
  */
 export function sessionDepositRequiredRaw(suggestedDepositRaw: bigint | null): bigint {
-  const cap = tempoMppMaxDepositRaw()
+  const cap = x402SessionMaxDepositRaw()
   if (suggestedDepositRaw !== null) {
     return suggestedDepositRaw < cap ? suggestedDepositRaw : cap
   }
@@ -66,7 +60,7 @@ export function sessionDepositRequiredRaw(suggestedDepositRaw: bigint | null): b
 
 /** Human-readable USDC-style amount from 6-decimal raw units. */
 export function formatTip20Usdc(raw: bigint): string {
-  const n = Number(raw) / 10 ** TEMPO_TIP20_DECIMALS
+  const n = Number(raw) / 10 ** TIP20_DECIMALS
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })
 }
 
@@ -83,7 +77,6 @@ export function parseTip20InsufficientBalance(message: string): { available: big
   }
 }
 
-/** Normalize hex/bigint-ish fee fields for EIP-1559 tx objects. */
 function toBigIntish(v: unknown): bigint | null {
   if (v === undefined || v === null) return null
   if (typeof v === 'bigint') return v
@@ -98,12 +91,10 @@ function toBigIntish(v: unknown): bigint | null {
 }
 
 /**
- * MetaMask + some Tempo RPC paths build EIP-1559 txs with `maxPriorityFeePerGas: 0`.
- * A few nodes reject `eth_estimateGas` / send for that shape with a generic
- * "Internal JSON-RPC error". Nudge priority fee to 1 wei when it is zero but
- * `maxFeePerGas` is non-zero.
+ * Some wallets build EIP-1559 txs with `maxPriorityFeePerGas: 0`, which a few RPCs reject.
+ * Nudge priority fee to 1 wei when it is zero but `maxFeePerGas` is non-zero.
  */
-export function patchTempoEip1559GasFields(tx: Record<string, unknown>): Record<string, unknown> {
+export function patchEip1559GasFields(tx: Record<string, unknown>): Record<string, unknown> {
   const out = { ...tx }
   const mf = toBigIntish(out.maxFeePerGas)
   const mp = toBigIntish(out.maxPriorityFeePerGas)
@@ -121,18 +112,13 @@ function patchJsonRpcGasParams(args: { method: string; params?: unknown[] }): { 
     if (first && typeof first === 'object' && !Array.isArray(first)) {
       return {
         ...args,
-        params: [patchTempoEip1559GasFields(first as Record<string, unknown>), ...params.slice(1)],
+        params: [patchEip1559GasFields(first as Record<string, unknown>), ...params.slice(1)],
       }
     }
   }
   return args
 }
 
-/**
- * Wrap a viem `Transport` so all JSON-RPC requests pass through gas-param patching.
- * Applies to `fallback([http, custom(ethereum)])` so both public RPC and wallet see
- * the same EIP-1559 shape.
- */
 function wrapTransportWithGasPatch(transport: Transport): Transport {
   return (opts) => {
     const t = transport(opts)
@@ -147,18 +133,15 @@ function wrapTransportWithGasPatch(transport: Transport): Transport {
   }
 }
 
-/**
- * Append actionable hints when viem / the wallet reports gas estimation or JSON-RPC failures
- * (common with MetaMask + Tempo, or empty balance).
- */
-export function appendMppPaymentHints(message: string): string {
+/** @deprecated Unused; kept for compatibility if imported elsewhere. */
+export function appendPaymentHints(message: string): string {
   const tip20 = parseTip20InsufficientBalance(message)
   if (tip20) {
     const { available, required } = tip20
     return (
       `${message}\n\n` +
-      `This is a USDC (TIP-20) balance issue, not gas: you have ~${formatTip20Usdc(available)} USDC but the channel deposit needs ~${formatTip20Usdc(required)} USDC. ` +
-      `Add USDC on Tempo mainnet, reduce VITE_TEMPO_MPP_MAX_DEPOSIT if the catalog allows a smaller deposit, or set OPENAI_API_KEY on the server to skip wallet payment.`
+      `USDC-style balance issue: you have ~${formatTip20Usdc(available)} but the flow needs ~${formatTip20Usdc(required)}. ` +
+      `Fund the wallet on the selected chain, reduce VITE_X402_SESSION_MAX_DEPOSIT if allowed, or use a server API key where configured.`
     )
   }
 
@@ -171,7 +154,7 @@ export function appendMppPaymentHints(message: string): string {
   if (!looksGasy) return message
   return (
     `${message}\n\n` +
-    `Hints: fund USDC on Tempo mainnet for MPP; if MetaMask shows “Internal JSON-RPC” on gas estimate, try Tempo Wallet or another browser wallet; or set OPENAI_API_KEY on the server to skip wallet payment.`
+    `Hints: ensure the wallet is on the right network and funded; try another browser wallet if gas estimation fails; or configure a server-side API key to skip wallet payment where supported.`
   )
 }
 
@@ -179,11 +162,9 @@ export function appendMppPaymentHints(message: string): string {
 export type BrowserEthereumProvider = Parameters<typeof custom>[0]
 
 /**
- * MetaMask often returns `Internal JSON-RPC error` for `eth_estimateGas` on Tempo when the
- * injected provider proxies a flaky RPC. Route public-chain reads/gas simulation through the
- * official Tempo HTTP RPC first, then fall back to the wallet for signing & wallet-specific methods.
+ * Route public-chain reads through HTTP RPC first, then fall back to the injected wallet for signing.
  */
-export function tempoBrowserWalletTransport(
+export function browserWalletTransport(
   ethereum: BrowserEthereumProvider,
   /** Must match the wallet `chain` (mainnet vs testnet). */
   publicRpcHttpUrl: string,

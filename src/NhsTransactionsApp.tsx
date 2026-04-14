@@ -12,7 +12,7 @@ import { getStoredWallet } from './nhsSession'
 
 type Session = { role: NhsRole; wallet: string; network: NhsNetwork; paymentMode: NhsPaymentMode }
 
-/** Clickable href for the transaction reference: Tempo /tx/ page (on-chain) or in-app deep link (audit). */
+/** Clickable href for the transaction reference: Arc /tx/ page (on-chain) or in-app deep link (audit). */
 function transactionReferenceLink(row: NhsTxItem): { href: string; external: boolean } | null {
   const chain = explorerUrl(row.network, row.txHash)
   if (chain) return { href: chain, external: true }
@@ -43,7 +43,7 @@ function TransactionsTable({ session }: { session: Session }) {
       <article className="card">
         <h2>Transaction history</h2>
         <p className="note tx-note-tight">
-          Showing <strong>{tab}</strong> rows (matches header network). <strong>On-chain</strong> rows include a <code>/tx/…</code> link after a successful MPP payment. <strong>Audit</strong> rows only record the request; use <strong>Wallet on explorer</strong> to open your address and find the payment in the list — there is no per-row tx hash without MPP.
+          Showing <strong>{tab}</strong> rows (matches header network). <strong>On-chain</strong> rows include a <code>/tx/…</code> link after a successful x402 payment. <strong>Audit</strong> rows only record the request; use <strong>Wallet on explorer</strong> to open your address and find the payment in the list — there is no per-row tx hash without a wallet-paid flow.
         </p>
         <div className="actions">
           <button className="secondary" onClick={() => setRows(listNhsTxHistory())}>
@@ -62,12 +62,12 @@ function TransactionsTable({ session }: { session: Session }) {
         </div>
         {hasAuditRows && session.paymentMode === 'direct' ? (
           <p className="note">
-            Tip: set payment mode to <strong>mpp wallet pay</strong> in the header so gated requests can complete payment and store a tx hash.
+            Tip: set payment mode to <strong>x402 wallet pay</strong> in the header so gated requests can complete payment and store a tx hash.
           </p>
         ) : null}
         {filtered.length === 0 ? (
           <p className="note">
-            No {tab} transactions recorded yet. Successful NHS writes (with MPP on-chain receipt or local audit) appear here.
+            No {tab} transactions recorded yet. Successful NHS writes (with on-chain receipt or local audit) appear here.
           </p>
         ) : (
           <div className="tx-table-wrap">
@@ -119,7 +119,7 @@ function TransactionsTable({ session }: { session: Session }) {
                       </td>
                       <td className="tx-explorer-cell">
                         {link ? (
-                          <a href={link} target="_blank" rel="noreferrer" title="Tempo transaction detail">
+                          <a href={link} target="_blank" rel="noreferrer" title="Arc transaction detail">
                             View transaction
                           </a>
                         ) : (
@@ -129,7 +129,7 @@ function TransactionsTable({ session }: { session: Session }) {
                                 href={walletExplorer}
                                 target="_blank"
                                 rel="noreferrer"
-                                title="Your wallet on Tempo — find the payment in the transactions list (audit rows do not store a tx hash)."
+                                title="Your wallet on Arc explorer — find the payment in the transactions list (audit rows do not store a tx hash)."
                               >
                                 Wallet on explorer
                               </a>
@@ -162,7 +162,7 @@ export default function NhsTransactionsApp() {
   return (
     <NhsShell
       title="Transactions Audit"
-      subtitle="On-chain rows link the Tempo transaction page (/tx/0x…). Audit rows have no stored tx hash; use Wallet on explorer to open your address and locate the payment. Use MPP + payment gate for per-request /tx/ links."
+      subtitle="On-chain rows link the Arc transaction page (/tx/0x…). Audit rows have no stored tx hash; use Wallet on explorer to open your address and locate the payment. Use x402 + payment gate for per-request /tx/ links."
     >
       {(session) => <TransactionsTable session={session} />}
     </NhsShell>

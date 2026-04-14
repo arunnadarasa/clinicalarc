@@ -1,32 +1,32 @@
-# HealthTech Use Cases (Tempo + MPP)
+# HealthTech Use Cases (Arc + x402)
 
-This document is the **behavioral contract** for payment-gated flows in this repo: **Clinical Tempo** NHS APIs (`/api/nhs/*`), integrations (AgentMail, purl, etc.), and **legacy** event/dance scaffolds (`/dance-extras`, battle/coaching) that demonstrate the same **HealthTech Protocol** patterns on Tempo + MPP.
+This document is the **behavioral contract** for payment-gated flows in this repo: **Clinical Arc** NHS APIs (`/api/nhs/*`), integrations (AgentMail, HTTP pay notes, etc.), and **legacy** event/dance scaffolds (`/dance-extras`, battle/coaching) that demonstrate the same **HealthTech Protocol** patterns on Arc Testnet + x402.
 
 ## Interaction modes (humans & agents)
 
-**HealthTech Protocol** stays **one** contract: payments and API access are governed by **Tempo** + **MPP/x402**. Colloquial pairings (human↔human, human↔agent, agent↔human, agent↔agent) describe **who authorizes** and **who benefits**, not four different protocol specs.
+**HealthTech Protocol** stays **one** contract: payments and API access are governed by **Arc Testnet settlement** + **x402**. Colloquial pairings (human↔human, human↔agent, agent↔human, agent↔agent) describe **who authorizes** and **who benefits**, not four different protocol specs.
 
 - **Human ↔ human** — Wallet-funded commerce between people/orgs (battles, passes, royalties). Primary flows in §1–§10 below.
 - **Human → agent (orchestrated)** — A human approves spend; an agent or script **calls the same `POST /api/...` routes** (e.g. from MCP, CI, or an assistant). The signing wallet is usually still the user’s unless you implement delegation or server-side treasury.
 - **Agent → human** — Backend or paid job **delivers** to a person (email, SMS, pass state). Example: tournament ops bot + AgentMail after a `charge`.
-- **Agent → agent** — **Machine-to-machine**: server keys, HMAC, or **x402** between services; overlaps with “machine payments” in MPP. This repo often uses **wallet MPP to this backend**, then **Bearer/API-key** upstream (e.g. AgentMail) to avoid inbox scope issues.
+- **Agent → agent** — **Machine-to-machine**: server keys, HMAC, or **x402** between services; overlaps with “machine payments” in x402. This repo often uses **wallet x402 to this backend**, then **Bearer/API-key** upstream (e.g. AgentMail) to avoid inbox scope issues.
 
-When testing, default to **Tempo testnet** and treat **402** responses as “payment required”—whether the client is a browser or an automated caller that can complete the challenge per your security model.
+When testing, default to **Arc testnet** and treat **402** responses as “payment required”—whether the client is a browser or an automated caller that can complete the challenge per your security model.
 
 ## Scope
 
-- **MPP catalog:** Hosted integrations (Suno, AgentMail, KicksDB, weather, …) are listed at [mpp.dev/services](https://mpp.dev/services) with base URLs and prices; this repo’s proxies use the same hosts via env (see `README.md` and `.env.example`).
-- Network: Tempo `testnet` and `mainnet`
-- Payment rail: MPP style `charge` and `session` patterns
+- **Third-party gateways:** Integrations (Suno, AgentMail, KicksDB, weather, …) use configurable base URLs in `.env.example`; upstream hosts may return `402` for wallet-paid calls.
+- Network: `testnet` and `mainnet` (UI labels; Arc chain id **5042002** for nanopayments)
+- Payment rail: x402 style `charge` and `session` patterns
 - Locus bridge: Laso Finance endpoints can be used for card issuance and status polling
 - Status: Battle flow has a dedicated frontend; other use cases are implemented as backend scaffolds and/or demo interactions
 
 ## Environment and Networks
 
-- Tempo testnet
+- Arc testnet
   - Chain ID: `42431`
   - Default currency: `pathUSD`
-- Tempo mainnet
+- mainnet
   - Chain ID: `4217`
   - Default currency: `USDC`
 
@@ -136,13 +136,13 @@ Intent type: `charge`
 
 - Suno is relevant to Beat API Licensing because creators can generate new beat drafts, then route into paid licensing flows.
 - It supports rapid prototyping for event promos, battle intros, and creator packs tied to monetized beat distribution.
-- Tempo x MPP reference endpoint: [suno.mpp.paywithlocus.com](https://suno.mpp.paywithlocus.com)
+- Reference gateway host (Suno): [suno.mpp.paywithlocus.com](https://suno.mpp.paywithlocus.com)
 
 ---
 
 ## Parallel (web search / extract / task)
 
-Dedicated UI: **`/parallel`**. Uses **Tempo mainnet** + **`mppx`** for paid `POST`s; task status polling uses **`GET /api/parallel/task/:runId`** (proxied to upstream; typically no per-poll charge).
+Dedicated UI: **`/parallel`**. Uses **mainnet** + **`x402 client`** for paid `POST`s; task status polling uses **`GET /api/parallel/task/:runId`** (proxied to upstream; typically no per-poll charge).
 
 ### API mapping
 
@@ -155,9 +155,9 @@ Reference host: [parallelmpp.dev](https://parallelmpp.dev) · env: **`PARALLEL_B
 
 ---
 
-## OpenAI (chat via MPP gateway)
+## OpenAI (chat via x402 gateway)
 
-Dedicated UI: **`/openai`**. Proxies **`POST /v1/chat/completions`** to **`OPENAI_MPP_BASE_URL`** (default `https://openai.mpp.tempo.xyz`) with **Tempo mainnet** + **`mppx`**. Optional **`OPENAI_API_KEY`** adds `Authorization: Bearer` on the server.
+Dedicated UI: **`/openai`**. Proxies **`POST /v1/chat/completions`** to **`OPENAI_X402_GATEWAY_URL`** (default `https://openai.mpp.tempo.xyz`) with **mainnet** + **`x402 client`**. Optional **`OPENAI_API_KEY`** adds `Authorization: Bearer` on the server.
 
 The hub **AI explainer** still uses **`POST /api/ai/explain-flow`** and direct **`api.openai.com`** when **`OPENAI_API_KEY`** is set.
 
@@ -169,7 +169,7 @@ The hub **AI explainer** still uses **`POST /api/ai/explain-flow`** and direct *
 - `POST /api/openai/audio/transcriptions` → `POST /v1/audio/transcriptions` (multipart `file` + `model`)
 - `POST /api/ai/explain-flow` (hub) → OpenAI direct (key required)
 
-Catalog: [mpp.dev/services](https://mpp.dev/services) (OpenAI on Tempo)
+Configure **`OPENAI_X402_GATEWAY_URL`** for the OpenAI-compatible gateway you use.
 
 ---
 
@@ -180,7 +180,7 @@ Intent type: `charge`
 ### User flow steps
 
 1. Operator submits funded card request with wallet and amount.
-2. Backend routes issuance through Locus/Laso MPP endpoint.
+2. Backend routes issuance through Locus/Laso x402 endpoint.
 3. API returns card creation response or payment challenge details.
 4. Operator polls card status endpoint until card is ready.
 
@@ -285,20 +285,20 @@ Intent type: `charge`
 
 - StablePhone is relevant for tournament operations because AI voice calls can handle urgent call-time reminders and live coordination tasks.
 - It complements bot actions by adding direct phone outreach with transcript/status polling for auditability.
-- Paid call initiation is x402/MPP and status polling is SIWX-authenticated wallet access.
+- Paid call initiation is x402/x402 and status polling is SIWX-authenticated wallet access.
 - Integration reference: [StablePhone](https://stablephone.dev)
 
 ### StableSocial relevance
 
 - StableSocial is relevant for ops and growth because teams can collect social profile intelligence for dancers, events, and fan campaigns.
 - It complements tournament operations by enabling lightweight social monitoring workflows with token-based polling.
-- Trigger calls are paid (x402/MPP) and `/api/jobs` polling requires SIWX from the same wallet that paid.
+- Trigger calls are paid (x402/x402) and `/api/jobs` polling requires SIWX from the same wallet that paid.
 - Integration reference: [StableSocial](https://stablesocial.dev)
 
 ### StableTravel relevance
 
 - StableTravel is relevant for tournament operations where organizers coordinate travel for dancers, judges, and crew.
-- It fits as a paid machine-to-machine API call pattern aligned with Tempo + MPP style rails.
+- It fits as a paid machine-to-machine API call pattern aligned with x402-style rails.
 - Integration reference: [StableTravel API](https://stabletravel.dev/llms.txt)
 
 ### Aviationstack relevance
@@ -312,15 +312,15 @@ Intent type: `charge`
 - Google Maps is relevant for tournament operations because crews need accurate venue coordinates, route planning, and dispatch precision.
 - It complements flight and hotel flows by turning raw addresses into reliable geospatial data for logistics tooling.
 - Integration reference: [Google Maps Platform](https://developers.google.com/maps)
-- Tempo x MPP reference endpoint: [googlemaps.mpp.tempo.xyz](https://googlemaps.mpp.tempo.xyz)
+- Reference gateway host (maps): [googlemaps.mpp.tempo.xyz](https://googlemaps.mpp.tempo.xyz)
 
 ### OpenWeather relevance
 
 - OpenWeather is relevant to tournament operations because weather conditions impact travel windows, call times, and safety.
 - It complements travel routing by adding real-time environmental context for venue and transport decisions.
-- Dedicated wallet-paid UI: **`/weather`** → `POST /api/travel/openweather/current` → MPP **`POST /openweather/current-weather`** JSON body `{ lat, lon, units? }` (not legacy GET `/data/2.5/weather`; see [mpp.dev](https://mpp.dev/api/services) OpenWeather).
+- Dedicated wallet-paid UI: **`/weather`** → `POST /api/travel/openweather/current` → x402 **`POST /openweather/current-weather`** JSON body `{ lat, lon, units? }` (not legacy GET `/data/2.5/weather`).
 - Integration reference: [OpenWeather](https://openweathermap.org)
-- Tempo x MPP reference endpoint: [weather.mpp.paywithlocus.com](https://weather.mpp.paywithlocus.com)
+- Reference gateway host (OpenWeather): [weather.mpp.paywithlocus.com](https://weather.mpp.paywithlocus.com)
 
 ---
 
@@ -345,7 +345,7 @@ Intent type: `charge`
 - KicksDB is relevant to fan membership because battle passes can include sneaker/merch perks driven by real market signals.
 - It helps ops and growth teams price drops, target inventory, and tailor tier benefits using product and pricing data.
 - Integration reference: [KicksDB docs](https://docs.kicks.dev/llms-full.txt)
-- Tempo x MPP reference endpoint: [kicksdb.mpp.tempo.xyz](https://kicksdb.mpp.tempo.xyz)
+- Reference gateway host (KicksDB): [kicksdb.mpp.tempo.xyz](https://kicksdb.mpp.tempo.xyz)
 
 ---
 

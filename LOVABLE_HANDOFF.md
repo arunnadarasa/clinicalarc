@@ -21,7 +21,7 @@ npm run dev:full
 
 - Flow switching between the 3 MVP use cases
 - Step-by-step simulation for user education
-- MPP intent mapping (`charge` and `session`)
+- x402 intent mapping (`charge` and `session`)
 - Live telemetry panel (status, receipt, session usage)
 - Webhook/event visibility
 - API endpoint preview for backend integration
@@ -68,6 +68,6 @@ Add a fourth section called "AI Explainer (Server Proxy)" with:
 Replace mocked step progression with real API calls to:
 
 - create intents (`/register-intent`, `/sessions/start`, `/license-intent`)
-- process MPP webhook events (`/webhooks/mpp`)
+- process x402 webhook events (`/webhooks/x402`)
 - read receipts and grants
 - call secure AI proxy (`POST /api/ai/explain-flow`) instead of OpenAI from frontend

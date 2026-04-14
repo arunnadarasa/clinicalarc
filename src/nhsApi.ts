@@ -1,4 +1,4 @@
-import { nhsMppFetch } from './nhsMpp'
+import { nhsX402Fetch } from './nhsArcPaidFetch'
 import { getAuthHeaders, type NhsNetwork, type NhsPaymentMode, type NhsRole } from './nhsSession'
 import { addNhsTxHistory } from './nhsTxHistory'
 
@@ -122,8 +122,8 @@ export async function apiPost<T>(
   let res: Response
   try {
     res =
-      opts.paymentMode === 'mpp'
-        ? await nhsMppFetch(path, reqInit, { wallet, network: opts.network })
+      opts.paymentMode === 'x402'
+        ? await nhsX402Fetch(path, reqInit, { wallet, network: opts.network })
         : await fetch(path, reqInit)
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Network error.'

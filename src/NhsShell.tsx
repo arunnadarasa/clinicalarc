@@ -14,7 +14,8 @@ import {
 } from './nhsSession'
 
 function navLinkClass(href: string, pathname: string) {
-  const active = pathname === href
+  const active =
+    pathname === href || (href === '/nhs/http-pay' && pathname === '/nhs/purl')
   return `secondary button-like${active ? ' nav-link--active' : ''}`
 }
 
@@ -27,14 +28,15 @@ const PATH_CONTEXT: Record<string, string> = {
   '/nhs/neighbourhood-teams': 'Neighbourhood teams',
   '/nhs/monitoring': 'Monitoring',
   '/nhs/transactions': 'Transactions',
-  '/nhs/purl': 'purl',
+  '/nhs/http-pay': 'HTTP pay',
+  '/nhs/purl': 'HTTP pay',
   '/nhs/ows': 'OWS',
   '/nhs/agentmail': 'AgentMail',
   '/nhs/tip20': 'TIP-20',
 }
 
 function whereYouAre(pathname: string): string {
-  return PATH_CONTEXT[pathname] ?? 'Clinical Tempo'
+  return PATH_CONTEXT[pathname] ?? 'Clinical Arc'
 }
 
 type Props = {
@@ -86,13 +88,13 @@ export default function NhsShell({ title, subtitle, children }: Props) {
       return
     }
     if (network !== 'testnet') {
-      setFaucetStatus('Faucet is testnet-only. Switch network to tempo testnet.')
+      setFaucetStatus('Faucet is testnet-only. Switch network to Arc testnet.')
       return
     }
     setFaucetLoading(true)
     setFaucetStatus('Requesting testnet funds...')
     try {
-      const response = await fetch('/api/tempo/faucet', {
+      const response = await fetch('/api/arc/faucet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address: wallet }),
@@ -146,26 +148,26 @@ export default function NhsShell({ title, subtitle, children }: Props) {
                 setStoredNetwork(next)
               }}
             >
-              <option value="testnet">tempo testnet</option>
-              <option value="mainnet">tempo mainnet</option>
+              <option value="testnet">Arc testnet</option>
+              <option value="mainnet">mainnet (label)</option>
             </select>
             <select
               value={paymentMode}
               onChange={(event) => {
-                const next = event.target.value === 'mpp' ? 'mpp' : 'direct'
+                const next = event.target.value === 'x402' ? 'x402' : 'direct'
                 setPaymentMode(next)
                 setStoredPaymentMode(next)
               }}
             >
               <option value="direct">direct fetch</option>
-              <option value="mpp">mpp wallet pay</option>
+              <option value="x402">x402 wallet pay</option>
             </select>
             <button onClick={connectWallet}>{wallet ? `Wallet ${wallet.slice(0, 10)}...` : 'Connect Wallet'}</button>
             <button
               className="secondary"
               disabled={!wallet || network !== 'testnet' || faucetLoading}
               onClick={requestTestnetFunds}
-              title={network === 'testnet' ? 'Request tempo testnet funds' : 'Switch to testnet for faucet'}
+              title={network === 'testnet' ? 'Open Circle faucet for Arc testnet' : 'Switch to testnet for faucet'}
             >
               {faucetLoading ? 'Requesting faucet...' : 'Get testnet funds'}
             </button>
@@ -177,7 +179,7 @@ export default function NhsShell({ title, subtitle, children }: Props) {
             </a>
           </div>
 
-          <nav className="hero-nav" aria-label="Clinical Tempo sections">
+          <nav className="hero-nav" aria-label="Clinical Arc sections">
             <div className="hero-nav__group hero-nav__group--nhs">
               <span className="hero-nav__label">NHS care</span>
               <div className="hero-nav__links">
@@ -201,8 +203,8 @@ export default function NhsShell({ title, subtitle, children }: Props) {
             <div className="hero-nav__group hero-nav__group--wallet">
               <span className="hero-nav__label">Wallet &amp; CLI</span>
               <div className="hero-nav__links">
-                <a className={navLinkClass('/nhs/purl', pathname)} href="/nhs/purl">
-                  purl
+                <a className={navLinkClass('/nhs/http-pay', pathname)} href="/nhs/http-pay">
+                  HTTP pay
                 </a>
                 <a className={navLinkClass('/nhs/ows', pathname)} href="/nhs/ows">
                   OWS

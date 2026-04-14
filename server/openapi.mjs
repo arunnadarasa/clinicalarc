@@ -1,6 +1,6 @@
 /**
- * OpenAPI 3.1 document for MPPScan / AgentCash discovery.
- * @see https://www.mppscan.com/discovery
+ * OpenAPI 3.1 document for agent discovery.
+ * @see docs/OPENAPI_DISCOVERY.md
  */
 
 export const DANCE_EXTRA_LIVE_AMOUNTS = {
@@ -30,7 +30,7 @@ export function buildOpenApiDocument(req) {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Clinical Tempo NHS API',
+      title: 'Clinical Arc NHS API',
       version: '1.0.0',
       description:
         'NHS neighbourhood health + social prescribing reference backend with wallet identity, RBAC, and Arc Testnet Circle Gateway x402 payment gates.',
@@ -58,7 +58,7 @@ export function buildOpenApiDocument(req) {
             { name: 'flowKey', in: 'path', required: true, schema: { type: 'string', enum: Object.keys(DANCE_EXTRA_LIVE_AMOUNTS) } },
             { name: 'network', in: 'path', required: true, schema: { type: 'string', enum: ['testnet', 'mainnet'] } },
           ],
-          'x-payment-info': { pricingMode: 'range', minPrice, maxPrice, protocols: ['mpp', 'x402'] },
+          'x-payment-info': { pricingMode: 'range', minPrice, maxPrice, protocols: ['x402'] },
           responses: { 200: { description: 'OK' }, 402: { description: 'Payment Required' } },
         },
       },
@@ -70,7 +70,7 @@ export function buildOpenApiDocument(req) {
           operationId: 'nhsGpAccessRequestCreate',
           summary: 'Create same-day GP/front-door access request',
           tags: ['NHS GP access'],
-          'x-payment-info': { pricingMode: 'fixed', minPrice: '0.020000', maxPrice: '0.020000', protocols: ['mpp', 'x402'] },
+          'x-payment-info': { pricingMode: 'fixed', minPrice: '0.020000', maxPrice: '0.020000', protocols: ['x402'] },
           responses: { 201: { description: 'Created' }, 402: { description: 'Payment Required when gate active' } },
         },
       },

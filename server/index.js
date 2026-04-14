@@ -1,7 +1,8 @@
 import 'dotenv/config'
 import express from 'express'
 import multer from 'multer'
-import { Receipt } from 'mppx'
+import { Receipt } from './receiptWire.js'
+import * as x402Env from './x402Env.js'
 import { createGatewayMiddleware } from '@circle-fin/x402-batching/server'
 import { createPublicClient, http } from 'viem'
 import { arcTestnet } from 'viem/chains'
@@ -28,12 +29,11 @@ import { createNhsRouter } from './nhs/router.js'
 const app = express()
 const port = Number(process.env.PORT || 8787)
 
-const openAiMppUpload = multer({
+const openAiGatewayUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 },
 })
-const x402SellerAddress =
-  process.env.X402_SELLER_ADDRESS || process.env.MPP_RECIPIENT || '0x742d35Cc6634c0532925a3b844bC9e7595F8fE00'
+const x402SellerAddress = x402Env.x402SellerAddress()
 
 /** Circle Gateway batched x402 — Arc Testnet (`eip155:5042002`). @see https://developers.circle.com/gateway/nanopayments */
 const arcGateway = createGatewayMiddleware({
@@ -141,10 +141,10 @@ function normalizeArcNetworkFromBody(body) {
   return { network: 'testnet', chainId: 5042002 }
 }
 
-/** Per-flow Tempo MPP charge — imported from openapi.mjs (single source for /openapi.json). */
+/** Per-flow USD charge — imported from openapi.mjs (single source for /openapi.json). */
 
 /**
- * Shared scaffold logic for the seven hub “extra” HealthTech flows (also used by live MPP route).
+ * Shared scaffold logic for the seven hub “extra” HealthTech flows (also used by live x402 demo routes).
  * @returns {{ ok: true, status: number, result: object } | { ok: false, status: number, error: string }}
  */
 function executeDanceExtraFlow(flowKey, body) {
@@ -373,7 +373,7 @@ function executeDanceExtraFlow(flowKey, body) {
   }
 }
 
-/** MPPScan / AgentCash discovery — OpenAPI 3.1 at canonical path. @see https://www.mppscan.com/discovery */
+/** OpenAPI 3.1 at canonical path — see docs/OPENAPI_DISCOVERY.md */
 app.get('/openapi.json', (req, res) => {
   res.type('application/json').send(JSON.stringify(buildOpenApiDocument(req)))
 })
@@ -390,7 +390,7 @@ app.use(
 )
 
 // Arc Testnet: use Circle’s public faucet for USDC + native gas — see https://docs.arc.network/arc/references/connect-to-arc
-app.post('/api/tempo/faucet', async (req, res) => {
+app.post('/api/arc/faucet', async (req, res) => {
   const { address } = req.body ?? {}
 
   if (typeof address !== 'string') {
@@ -410,8 +410,7 @@ app.post('/api/tempo/faucet', async (req, res) => {
     ok: true,
     network: 'arc-testnet',
     chainId: 5042002,
-    message:
-      'Use the Circle Faucet for Arc Testnet USDC and gas. This repo no longer proxies Tempo Moderato faucet.',
+    message: 'Use the Circle Faucet for Arc Testnet USDC and gas.',
     faucetUrl: 'https://faucet.circle.com',
     docsUrl: 'https://docs.arc.network/arc/references/connect-to-arc',
     address: normalized,
@@ -1192,9 +1191,9 @@ app.post(
       }
     }
 
-    // No API key available: direct AgentMail MPP passthrough mode.
-  const mppBaseUrl = process.env.AGENTMAIL_MPP_BASE_URL || 'https://mpp.api.agentmail.to'
-  const endpoint = `${mppBaseUrl.replace(/\/$/, '')}/v0/inboxes/${encodeURIComponent(effectiveInboxId)}/messages/send`
+    // No API key available: direct AgentMail passthrough mode.
+  const gatewayBase = x402Env.agentmailWalletGatewayBaseUrl()
+  const endpoint = `${gatewayBase}/v0/inboxes/${encodeURIComponent(effectiveInboxId)}/messages/send`
 
   try {
     const response = await fetch(endpoint, {
@@ -1202,7 +1201,7 @@ app.post(
       headers: {
         'Content-Type': 'application/json',
         // Includes `Payment` and `Payment-Receipt` headers when the client
-        // successfully solves an x402 challenge via mppx.
+        // successfully solves an x402 challenge via the browser client.
         ...getForwardAuthHeaders(req),
       },
       body: JSON.stringify({
@@ -1214,7 +1213,7 @@ app.post(
       }),
     })
 
-    // Preserve x402 challenge headers on 402 so the mppx client can solve and retry.
+    // Preserve x402 challenge headers on 402 so the browser client can solve and retry.
     if (response.status === 402) return sendFetchResponse(res, response)
 
     const raw = await response.text()
@@ -1245,12 +1244,12 @@ app.post(
   }
 })
 
-// Create an AgentMail inbox using wallet-paid MPP (x402).
-// The browser uses mppx/client to pay and forwards the resulting Payment headers to this route.
+// Create an AgentMail inbox using wallet-paid (x402).
+// The browser pays upstream and forwards the resulting Payment headers to this route.
 app.post('/api/ops/agentmail/inbox/create', async (req, res) => {
   const { username, domain, display_name, client_id } = req.body ?? {}
-  const mppBaseUrl = process.env.AGENTMAIL_MPP_BASE_URL || 'https://mpp.api.agentmail.to'
-  const endpoint = `${mppBaseUrl.replace(/\/$/, '')}/v0/inboxes`
+  const gatewayBase = x402Env.agentmailWalletGatewayBaseUrl()
+  const endpoint = `${gatewayBase}/v0/inboxes`
   const agentmailApiKey = process.env.AGENTMAIL_API_KEY
 
   // AgentMail can auto-generate an inbox if `username` is omitted.
@@ -1384,11 +1383,11 @@ app.post('/api/travel/stable/flights-search', async (req, res) => {
   const url = `https://stabletravel.dev/api/flights/search?${search.toString()}`
 
   try {
-    // Forward MPP/x402 payment headers from the client POST so paid retries succeed.
+    // Forward/x402 payment headers from the client POST so paid retries succeed.
     const forwardHeaders = getForwardAuthHeaders(req)
     const response = await fetch(url, { method: 'GET', headers: forwardHeaders })
-    // StableTravel uses x402/MPP. Preserve upstream `402` challenge so the frontend
-    // can solve it via `mppx` (Tempo MPP wallet flow).
+    // StableTravel uses x402/ Preserve upstream `402` challenge so the frontend
+    // can solve it via x402 (browser wallet flow).
     if (response.status === 402) return sendFetchResponse(res, response)
 
     const text = await response.text()
@@ -1526,7 +1525,7 @@ let warnedLegacyOpenWeatherPath = false
 function resolveOpenWeatherCurrentPath() {
   const raw = process.env.OPENWEATHER_CURRENT_PATH || '/openweather/current-weather'
   const normalized = raw.startsWith('/') ? raw : `/${raw}`
-  // MPP catalog: POST /openweather/current-weather (not legacy OpenWeather GET /data/2.5/weather).
+  // catalog: POST /openweather/current-weather (not legacy OpenWeather GET /data/2.5/weather).
   if (normalized === '/data/2.5/weather') {
     if (!warnedLegacyOpenWeatherPath) {
       warnedLegacyOpenWeatherPath = true
@@ -1590,7 +1589,7 @@ app.post('/api/travel/openweather/current', async (req, res) => {
         upstreamEndpoint: endpoint,
         hint:
           !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-            ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set OPENWEATHER_API_KEY on the server.'
+            ? 'Connect wallet on mainnet and complete payment (x402), or set OPENWEATHER_API_KEY on the server.'
             : undefined,
       })
     }
@@ -1637,12 +1636,12 @@ app.post('/api/market/kicksdb/search', async (req, res) => {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        // Forward MPP payment headers when the client uses an MPP-capable flow (x402).
+        // Forward payment headers when the client uses an-capable flow (x402).
         ...getForwardAuthHeaders(req),
       },
     })
 
-    // Preserve x402 challenge headers on 402 so mppx/client can solve and retry.
+    // Preserve x402 challenge headers on 402 so wallet x402 client can solve and retry.
     if (response.status === 402) return sendFetchResponse(res, response)
 
     const raw = await response.text()
@@ -1673,7 +1672,7 @@ app.post('/api/market/kicksdb/search', async (req, res) => {
   }
 })
 
-/** MPP Suno catalog uses POST /suno/generate-music (not /api/generate). */
+/** Suno catalog uses POST /suno/generate-music (not /api/generate). */
 let warnedLegacySunoGeneratePath = false
 function resolveSunoGeneratePath() {
   const raw = process.env.SUNO_GENERATE_PATH || '/suno/generate-music'
@@ -1701,7 +1700,7 @@ app.post('/api/music/suno/generate', async (req, res) => {
     })
   }
 
-  /** Suno MPP `generate-music` requires this flag (simple prompt vs custom lyrics/style flow). */
+  /** Suno `generate-music` requires this flag (simple prompt vs custom lyrics/style flow). */
   const customModeBool = typeof customMode === 'boolean' ? customMode : false
   /** true = no vocals / instrumental track (Suno API requires the boolean). */
   const instrumentalBool = typeof instrumental === 'boolean' ? instrumental : false
@@ -1751,7 +1750,7 @@ app.post('/api/music/suno/generate', async (req, res) => {
         upstreamEndpoint: endpoint,
         hint:
           !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-            ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP) when prompted.'
+            ? 'Connect wallet on mainnet and complete payment (x402) when prompted.'
             : undefined,
       })
     }
@@ -1774,7 +1773,7 @@ function parallelUpstreamBase() {
 }
 
 /**
- * Parallel (web search / extract / task) via MPP — https://parallelmpp.dev
+ * Parallel (web search / extract / task) via — https://parallelmpp.dev
  * Paid POSTs return 402 until wallet pays; GET task poll is free upstream.
  */
 async function proxyParallelRequest(req, res, { path: upstreamPath, method = 'POST', jsonBody }) {
@@ -1812,7 +1811,7 @@ async function proxyParallelRequest(req, res, { path: upstreamPath, method = 'PO
         upstreamEndpoint: endpoint,
         hint:
           method !== 'GET' && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-            ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP) when prompted.'
+            ? 'Connect wallet on mainnet and complete payment (x402) when prompted.'
             : undefined,
       })
     }
@@ -1874,7 +1873,7 @@ app.post('/api/ops/stablephone/call', async (req, res) => {
       }),
     })
 
-    // Preserve x402 challenge for `mppx` (same pattern as StableTravel / AgentMail).
+    // Preserve x402 challenge for x402 client (same pattern as StableTravel / AgentMail).
     if (response.status === 402) return sendFetchResponse(res, response)
 
     const raw = await response.text()
@@ -2172,13 +2171,13 @@ app.post(
 
   try {
     const lasoBase = process.env.LASO_BASE_URL || 'https://laso.mpp.paywithlocus.com'
-    const lasoPath = process.env.LASO_MPP_PATH || '/get-card'
+    const lasoPath = x402Env.lasoCardPath()
     const lasoEndpoint = `${lasoBase.replace(/\/$/, '')}${lasoPath.startsWith('/') ? lasoPath : `/${lasoPath}`}`
 
     const lasoRequestBody = JSON.stringify({ amount: safeAmount, format: 'json' })
     const lasoHeaders = {
       'Content-Type': 'application/json',
-      ...getForwardAuthHeaders(req), // includes `payment` and `payment-receipt` when MPP succeeded
+      ...getForwardAuthHeaders(req), // includes `payment` and `payment-receipt` when succeeded
     }
 
     let upstream = await fetch(lasoEndpoint, {
@@ -2227,7 +2226,7 @@ app.post(
     const cardStatus = cardData?.status || 'pending'
     const payload = {
       provider: 'laso',
-      source: 'laso-mpp',
+      source: 'laso-x402-gateway',
       cardId: orderedCardId,
       brand: 'Visa',
       // /get-card returns pending card orders initially; poll /get-card-data for details.
@@ -2283,7 +2282,7 @@ app.get('/api/card/:id', async (req, res) => {
       return res.json({
         ...mock,
         provider: 'laso',
-        source: 'laso-mpp',
+        source: 'laso-x402-gateway',
         demo: true,
         demoReason,
       })
@@ -2383,7 +2382,7 @@ app.get('/api/card/:id', async (req, res) => {
 
     return res.json({
       provider: 'laso',
-      source: 'laso-mpp',
+      source: 'laso-x402-gateway',
       cardId: cardData?.card_id || cardData?.cardId || cardId,
       status: cardData?.status || 'unknown',
       cardNumber: details?.card_number || '',
@@ -2401,11 +2400,11 @@ app.get('/api/card/:id', async (req, res) => {
   }
 })
 
-function openAiMppBaseUrl() {
-  return (process.env.OPENAI_MPP_BASE_URL || 'https://openai.mpp.tempo.xyz').replace(/\/$/, '')
+function openAiGatewayBaseUrl() {
+  return x402Env.openAiX402GatewayUrl()
 }
 
-function openAiMppAuthHeaders(req) {
+function openAiGatewayAuthHeaders(req) {
   const apiKey = process.env.OPENAI_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   const headers = { ...forwardHeaders }
@@ -2415,7 +2414,7 @@ function openAiMppAuthHeaders(req) {
   return headers
 }
 
-function openAiMppPaymentHint(req) {
+function openAiGatewayPaymentHint(req) {
   const apiKey = process.env.OPENAI_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
@@ -2424,15 +2423,15 @@ function openAiMppPaymentHint(req) {
 }
 
 /**
- * OpenAI MPP JSON POST proxy (chat, images, …).
- * @see https://mpp.dev/services — OpenAI on Tempo
+ * OpenAI JSON POST proxy (chat, images, …).
+ * @see upstream gateway URL in OPENAI_X402_GATEWAY_URL
  */
-async function proxyOpenAiMppJson(req, res, upstreamPath, jsonBody) {
-  const endpoint = `${openAiMppBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
+async function proxyOpenAiGatewayJson(req, res, upstreamPath, jsonBody) {
+  const endpoint = `${openAiGatewayBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
   try {
     const headers = {
       'Content-Type': 'application/json',
-      ...openAiMppAuthHeaders(req),
+      ...openAiGatewayAuthHeaders(req),
     }
 
     const response = await fetch(endpoint, {
@@ -2453,42 +2452,42 @@ async function proxyOpenAiMppJson(req, res, upstreamPath, jsonBody) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'OpenAI MPP request failed.',
+        error: 'OpenAI request failed.',
         details: data ?? raw,
         upstreamStatus: response.status,
         upstreamEndpoint: endpoint,
-        hint: openAiMppPaymentHint(req),
+        hint: openAiGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'openai-mpp',
+      provider: 'openai-x402-gateway',
       endpoint,
       result: data ?? raw,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'OpenAI MPP integration request failed.',
+      error: 'OpenAI integration request failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
 }
 
 app.post('/api/openai/chat/completions', (req, res) =>
-  proxyOpenAiMppJson(req, res, '/v1/chat/completions', req.body ?? {}),
+  proxyOpenAiGatewayJson(req, res, '/v1/chat/completions', req.body ?? {}),
 )
 
 app.post('/api/openai/images/generations', (req, res) =>
-  proxyOpenAiMppJson(req, res, '/v1/images/generations', req.body ?? {}),
+  proxyOpenAiGatewayJson(req, res, '/v1/images/generations', req.body ?? {}),
 )
 
 /** Text-to-speech — upstream returns audio bytes; we wrap as base64 JSON for the browser. */
 app.post('/api/openai/audio/speech', async (req, res) => {
-  const endpoint = `${openAiMppBaseUrl()}/v1/audio/speech`
+  const endpoint = `${openAiGatewayBaseUrl()}/v1/audio/speech`
   try {
     const headers = {
       'Content-Type': 'application/json',
-      ...openAiMppAuthHeaders(req),
+      ...openAiGatewayAuthHeaders(req),
     }
 
     const response = await fetch(endpoint, {
@@ -2510,10 +2509,10 @@ app.post('/api/openai/audio/speech', async (req, res) => {
         /* keep string */
       }
       return res.status(response.status).json({
-        error: 'OpenAI MPP speech request failed.',
+        error: 'OpenAI speech request failed.',
         details,
         upstreamEndpoint: endpoint,
-        hint: openAiMppPaymentHint(req),
+        hint: openAiGatewayPaymentHint(req),
       })
     }
 
@@ -2525,7 +2524,7 @@ app.post('/api/openai/audio/speech', async (req, res) => {
         data = buf.toString('utf8')
       }
       return res.status(200).json({
-        provider: 'openai-mpp',
+        provider: 'openai-x402-gateway',
         endpoint,
         result: data,
       })
@@ -2533,7 +2532,7 @@ app.post('/api/openai/audio/speech', async (req, res) => {
 
     const mime = ct.split(';')[0].trim() || 'audio/mpeg'
     return res.status(200).json({
-      provider: 'openai-mpp',
+      provider: 'openai-x402-gateway',
       endpoint,
       result: {
         mime,
@@ -2542,15 +2541,15 @@ app.post('/api/openai/audio/speech', async (req, res) => {
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'OpenAI MPP speech integration failed.',
+      error: 'OpenAI speech integration failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
 })
 
 /** Whisper transcription — multipart file field `file` + `model`. */
-app.post('/api/openai/audio/transcriptions', openAiMppUpload.single('file'), async (req, res) => {
-  const endpoint = `${openAiMppBaseUrl()}/v1/audio/transcriptions`
+app.post('/api/openai/audio/transcriptions', openAiGatewayUpload.single('file'), async (req, res) => {
+  const endpoint = `${openAiGatewayBaseUrl()}/v1/audio/transcriptions`
   const file = req.file
   const model = typeof req.body?.model === 'string' && req.body.model.trim() ? req.body.model.trim() : 'whisper-1'
 
@@ -2565,7 +2564,7 @@ app.post('/api/openai/audio/transcriptions', openAiMppUpload.single('file'), asy
     form.append('file', new Blob([file.buffer]), file.originalname || 'audio.webm')
     form.append('model', model)
 
-    const headers = openAiMppAuthHeaders(req)
+    const headers = openAiGatewayAuthHeaders(req)
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -2585,32 +2584,32 @@ app.post('/api/openai/audio/transcriptions', openAiMppUpload.single('file'), asy
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'OpenAI MPP transcription request failed.',
+        error: 'OpenAI transcription request failed.',
         details: data ?? raw,
         upstreamEndpoint: endpoint,
-        hint: openAiMppPaymentHint(req),
+        hint: openAiGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'openai-mpp',
+      provider: 'openai-x402-gateway',
       endpoint,
       result: data ?? raw,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'OpenAI MPP transcription integration failed.',
+      error: 'OpenAI transcription integration failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
 })
 
-function anthropicMppBaseUrl() {
-  return (process.env.ANTHROPIC_MPP_BASE_URL || 'https://anthropic.mpp.tempo.xyz').replace(/\/$/, '')
+function anthropicGatewayBaseUrl() {
+  return x402Env.anthropicX402GatewayUrl()
 }
 
-/** Anthropic-native headers; MPP still uses Payment / Payment-Receipt from the browser when no key. */
-function anthropicMppAuthHeaders(req) {
+/** Anthropic-native headers; still uses Payment / Payment-Receipt from the browser when no key. */
+function anthropicGatewayAuthHeaders(req) {
   const apiKey = process.env.ANTHROPIC_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   const headers = { ...forwardHeaders }
@@ -2621,24 +2620,24 @@ function anthropicMppAuthHeaders(req) {
   return headers
 }
 
-function anthropicMppPaymentHint(req) {
+function anthropicGatewayPaymentHint(req) {
   const apiKey = process.env.ANTHROPIC_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-    ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set ANTHROPIC_API_KEY on the server.'
+    ? 'Connect wallet on mainnet and complete payment (x402), or set ANTHROPIC_API_KEY on the server.'
     : undefined
 }
 
 /**
- * Anthropic MPP JSON POST proxy (Messages API + OpenAI-compatible chat).
- * @see https://mpp.dev/services — Anthropic on Tempo
+ * Anthropic JSON POST proxy (Messages API + OpenAI-compatible chat).
+ * @see ANTHROPIC_X402_GATEWAY_URL
  */
-async function proxyAnthropicMppJson(req, res, upstreamPath, jsonBody) {
-  const endpoint = `${anthropicMppBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
+async function proxyAnthropicGatewayJson(req, res, upstreamPath, jsonBody) {
+  const endpoint = `${anthropicGatewayBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
   try {
     const headers = {
       'Content-Type': 'application/json',
-      ...anthropicMppAuthHeaders(req),
+      ...anthropicGatewayAuthHeaders(req),
     }
 
     const response = await fetch(endpoint, {
@@ -2659,41 +2658,41 @@ async function proxyAnthropicMppJson(req, res, upstreamPath, jsonBody) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'Anthropic MPP request failed.',
+        error: 'Anthropic request failed.',
         details: data ?? raw,
         upstreamStatus: response.status,
         upstreamEndpoint: endpoint,
-        hint: anthropicMppPaymentHint(req),
+        hint: anthropicGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'anthropic-mpp',
+      provider: 'anthropic-x402-gateway',
       endpoint,
       result: data ?? raw,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'Anthropic MPP integration request failed.',
+      error: 'Anthropic integration request failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
 }
 
 app.post('/api/anthropic/v1/messages', (req, res) =>
-  proxyAnthropicMppJson(req, res, '/v1/messages', req.body ?? {}),
+  proxyAnthropicGatewayJson(req, res, '/v1/messages', req.body ?? {}),
 )
 
 app.post('/api/anthropic/v1/chat/completions', (req, res) =>
-  proxyAnthropicMppJson(req, res, '/v1/chat/completions', req.body ?? {}),
+  proxyAnthropicGatewayJson(req, res, '/v1/chat/completions', req.body ?? {}),
 )
 
-function openRouterMppBaseUrl() {
-  return (process.env.OPENROUTER_MPP_BASE_URL || 'https://openrouter.mpp.tempo.xyz').replace(/\/$/, '')
+function openRouterGatewayBaseUrl() {
+  return x402Env.openRouterX402GatewayUrl()
 }
 
-/** OpenRouter uses Bearer auth; forward MPP payment headers from the browser when no key. */
-function openRouterMppAuthHeaders(req) {
+/** OpenRouter uses Bearer auth; forward payment headers from the browser when no key. */
+function openRouterGatewayAuthHeaders(req) {
   const apiKey = process.env.OPENROUTER_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   const headers = { ...forwardHeaders }
@@ -2703,24 +2702,24 @@ function openRouterMppAuthHeaders(req) {
   return headers
 }
 
-function openRouterMppPaymentHint(req) {
+function openRouterGatewayPaymentHint(req) {
   const apiKey = process.env.OPENROUTER_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-    ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set OPENROUTER_API_KEY on the server.'
+    ? 'Connect wallet on mainnet and complete payment (x402), or set OPENROUTER_API_KEY on the server.'
     : undefined
 }
 
 /**
- * OpenRouter MPP JSON POST proxy (OpenAI-compatible chat).
- * @see https://mpp.dev/services#openrouter
+ * OpenRouter JSON POST proxy (OpenAI-compatible chat).
+ * @see OPENROUTER_X402_GATEWAY_URL
  */
-async function proxyOpenRouterMppJson(req, res, upstreamPath, jsonBody) {
-  const endpoint = `${openRouterMppBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
+async function proxyOpenRouterGatewayJson(req, res, upstreamPath, jsonBody) {
+  const endpoint = `${openRouterGatewayBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
   try {
     const headers = {
       'Content-Type': 'application/json',
-      ...openRouterMppAuthHeaders(req),
+      ...openRouterGatewayAuthHeaders(req),
     }
 
     const response = await fetch(endpoint, {
@@ -2741,37 +2740,37 @@ async function proxyOpenRouterMppJson(req, res, upstreamPath, jsonBody) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'OpenRouter MPP request failed.',
+        error: 'OpenRouter request failed.',
         details: data ?? raw,
         upstreamStatus: response.status,
         upstreamEndpoint: endpoint,
-        hint: openRouterMppPaymentHint(req),
+        hint: openRouterGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'openrouter-mpp',
+      provider: 'openrouter-x402-gateway',
       endpoint,
       result: data ?? raw,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'OpenRouter MPP integration request failed.',
+      error: 'OpenRouter integration request failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
 }
 
 app.post('/api/openrouter/v1/chat/completions', (req, res) =>
-  proxyOpenRouterMppJson(req, res, '/v1/chat/completions', req.body ?? {}),
+  proxyOpenRouterGatewayJson(req, res, '/v1/chat/completions', req.body ?? {}),
 )
 
-function perplexityMppBaseUrl() {
-  return (process.env.PERPLEXITY_MPP_BASE_URL || 'https://perplexity.mpp.tempo.xyz').replace(/\/$/, '')
+function perplexityGatewayBaseUrl() {
+  return x402Env.perplexityX402GatewayUrl()
 }
 
-/** Perplexity uses Bearer auth; forward MPP payment headers from the browser when no key. */
-function perplexityMppAuthHeaders(req) {
+/** Perplexity uses Bearer auth; forward payment headers from the browser when no key. */
+function perplexityGatewayAuthHeaders(req) {
   const apiKey = process.env.PERPLEXITY_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   const headers = { ...forwardHeaders }
@@ -2781,24 +2780,24 @@ function perplexityMppAuthHeaders(req) {
   return headers
 }
 
-function perplexityMppPaymentHint(req) {
+function perplexityGatewayPaymentHint(req) {
   const apiKey = process.env.PERPLEXITY_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-    ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set PERPLEXITY_API_KEY on the server.'
+    ? 'Connect wallet on mainnet and complete payment (x402), or set PERPLEXITY_API_KEY on the server.'
     : undefined
 }
 
 /**
- * Perplexity MPP JSON POST proxy (chat, search, embeddings).
- * @see https://mpp.dev/services#perplexity
+ * Perplexity JSON POST proxy (chat, search, embeddings).
+ * @see PERPLEXITY_X402_GATEWAY_URL
  */
-async function proxyPerplexityMppJson(req, res, upstreamPath, jsonBody) {
-  const endpoint = `${perplexityMppBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
+async function proxyPerplexityGatewayJson(req, res, upstreamPath, jsonBody) {
+  const endpoint = `${perplexityGatewayBaseUrl()}${upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`}`
   try {
     const headers = {
       'Content-Type': 'application/json',
-      ...perplexityMppAuthHeaders(req),
+      ...perplexityGatewayAuthHeaders(req),
     }
 
     const response = await fetch(endpoint, {
@@ -2819,49 +2818,49 @@ async function proxyPerplexityMppJson(req, res, upstreamPath, jsonBody) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'Perplexity MPP request failed.',
+        error: 'Perplexity request failed.',
         details: data ?? raw,
         upstreamStatus: response.status,
         upstreamEndpoint: endpoint,
-        hint: perplexityMppPaymentHint(req),
+        hint: perplexityGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'perplexity-mpp',
+      provider: 'perplexity-x402-gateway',
       endpoint,
       result: data ?? raw,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'Perplexity MPP integration request failed.',
+      error: 'Perplexity integration request failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
 }
 
 app.post('/api/perplexity/chat', (req, res) =>
-  proxyPerplexityMppJson(req, res, '/perplexity/chat', req.body ?? {}),
+  proxyPerplexityGatewayJson(req, res, '/perplexity/chat', req.body ?? {}),
 )
 
 app.post('/api/perplexity/search', (req, res) =>
-  proxyPerplexityMppJson(req, res, '/perplexity/search', req.body ?? {}),
+  proxyPerplexityGatewayJson(req, res, '/perplexity/search', req.body ?? {}),
 )
 
 app.post('/api/perplexity/embed', (req, res) =>
-  proxyPerplexityMppJson(req, res, '/perplexity/embed', req.body ?? {}),
+  proxyPerplexityGatewayJson(req, res, '/perplexity/embed', req.body ?? {}),
 )
 
 app.post('/api/perplexity/context-embed', (req, res) =>
-  proxyPerplexityMppJson(req, res, '/perplexity/context-embed', req.body ?? {}),
+  proxyPerplexityGatewayJson(req, res, '/perplexity/context-embed', req.body ?? {}),
 )
 
-function alchemyMppBaseUrl() {
-  return (process.env.ALCHEMY_MPP_BASE_URL || 'https://mpp.alchemy.com').replace(/\/$/, '')
+function alchemyGatewayBaseUrl() {
+  return x402Env.alchemyX402GatewayUrl()
 }
 
-/** Alchemy MPP uses Bearer when ALCHEMY_API_KEY is set; otherwise forward MPP payment headers from the browser. */
-function alchemyMppAuthHeaders(req) {
+/** Alchemy uses Bearer when ALCHEMY_API_KEY is set; otherwise forward payment headers from the browser. */
+function alchemyGatewayAuthHeaders(req) {
   const apiKey = process.env.ALCHEMY_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   const headers = { ...forwardHeaders }
@@ -2871,25 +2870,25 @@ function alchemyMppAuthHeaders(req) {
   return headers
 }
 
-function alchemyMppPaymentHint(req) {
+function alchemyGatewayPaymentHint(req) {
   const apiKey = process.env.ALCHEMY_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-    ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set ALCHEMY_API_KEY on the server.'
+    ? 'Connect wallet on mainnet and complete payment (x402), or set ALCHEMY_API_KEY on the server.'
     : undefined
 }
 
 /**
- * Alchemy MPP proxy — forwards to `/:network/v2` (JSON-RPC) and `/:network/nft/v3/...` (NFT API v3).
+ * Alchemy proxy — forwards to `/:network/v2` (JSON-RPC) and `/:network/nft/v3/...` (NFT API v3).
  * Browser calls `/api/alchemy/...`; upstream path is the same without the `/api` prefix.
- * @see https://mpp.dev/services#alchemy
+ * @see ALCHEMY_X402_GATEWAY_URL
  */
-async function proxyAlchemyMpp(req, res) {
+async function proxyAlchemyGateway(req, res) {
   const suffix = req.url || '/'
-  const endpoint = `${alchemyMppBaseUrl()}${suffix.startsWith('/') ? suffix : `/${suffix}`}`
+  const endpoint = `${alchemyGatewayBaseUrl()}${suffix.startsWith('/') ? suffix : `/${suffix}`}`
   const method = (req.method || 'GET').toUpperCase()
 
-  const headers = { ...alchemyMppAuthHeaders(req) }
+  const headers = { ...alchemyGatewayAuthHeaders(req) }
   const fetchOpts = { method, headers }
 
   if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
@@ -2912,22 +2911,22 @@ async function proxyAlchemyMpp(req, res) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'Alchemy MPP request failed.',
+        error: 'Alchemy request failed.',
         details: data ?? raw,
         upstreamStatus: response.status,
         upstreamEndpoint: endpoint,
-        hint: alchemyMppPaymentHint(req),
+        hint: alchemyGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'alchemy-mpp',
+      provider: 'alchemy-x402-gateway',
       endpoint,
       result: data,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'Alchemy MPP integration request failed.',
+      error: 'Alchemy integration request failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
@@ -2938,15 +2937,15 @@ app.use('/api/alchemy', (req, res) => {
     res.setHeader('Allow', 'GET,HEAD,POST,OPTIONS')
     return res.status(204).end()
   }
-  return proxyAlchemyMpp(req, res)
+  return proxyAlchemyGateway(req, res)
 })
 
-function falMppBaseUrl() {
-  return (process.env.FAL_MPP_BASE_URL || 'https://fal.mpp.tempo.xyz').replace(/\/$/, '')
+function falGatewayBaseUrl() {
+  return x402Env.falX402GatewayUrl()
 }
 
-/** fal.ai MPP uses Bearer when FAL_API_KEY is set; otherwise forward MPP payment headers from the browser. */
-function falMppAuthHeaders(req) {
+/** fal.ai uses Bearer when FAL_API_KEY is set; otherwise forward payment headers from the browser. */
+function falGatewayAuthHeaders(req) {
   const apiKey = process.env.FAL_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   const headers = { ...forwardHeaders }
@@ -2956,25 +2955,25 @@ function falMppAuthHeaders(req) {
   return headers
 }
 
-function falMppPaymentHint(req) {
+function falGatewayPaymentHint(req) {
   const apiKey = process.env.FAL_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-    ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set FAL_API_KEY on the server.'
+    ? 'Connect wallet on mainnet and complete payment (x402), or set FAL_API_KEY on the server.'
     : undefined
 }
 
 /**
- * fal.ai MPP proxy — image / video / audio model endpoints (`POST /fal-ai/...`, `POST /xai/...`, etc.).
+ * fal.ai proxy — image / video / audio model endpoints (`POST /fal-ai/...`, `POST /xai/...`, etc.).
  * Browser calls `/api/fal/...`; upstream path is the same without the `/api` prefix.
- * @see https://mpp.dev/services#fal
+ * @see FAL_X402_GATEWAY_URL
  */
-async function proxyFalMpp(req, res) {
+async function proxyFalGateway(req, res) {
   const suffix = req.url || '/'
-  const endpoint = `${falMppBaseUrl()}${suffix.startsWith('/') ? suffix : `/${suffix}`}`
+  const endpoint = `${falGatewayBaseUrl()}${suffix.startsWith('/') ? suffix : `/${suffix}`}`
   const method = (req.method || 'GET').toUpperCase()
 
-  const headers = { ...falMppAuthHeaders(req) }
+  const headers = { ...falGatewayAuthHeaders(req) }
   const fetchOpts = { method, headers }
 
   if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
@@ -2997,22 +2996,22 @@ async function proxyFalMpp(req, res) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'fal MPP request failed.',
+        error: 'fal request failed.',
         details: data ?? raw,
         upstreamStatus: response.status,
         upstreamEndpoint: endpoint,
-        hint: falMppPaymentHint(req),
+        hint: falGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'fal-mpp',
+      provider: 'fal-x402-gateway',
       endpoint,
       result: data,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'fal MPP integration request failed.',
+      error: 'fal integration request failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
@@ -3023,15 +3022,15 @@ app.use('/api/fal', (req, res) => {
     res.setHeader('Allow', 'GET,HEAD,POST,OPTIONS')
     return res.status(204).end()
   }
-  return proxyFalMpp(req, res)
+  return proxyFalGateway(req, res)
 })
 
-function replicateMppBaseUrl() {
-  return (process.env.REPLICATE_MPP_BASE_URL || 'https://replicate.mpp.paywithlocus.com').replace(/\/$/, '')
+function replicateGatewayBaseUrl() {
+  return x402Env.replicateX402GatewayUrl()
 }
 
-/** Replicate MPP uses Bearer when REPLICATE_API_KEY is set; otherwise forward MPP payment headers from the browser. */
-function replicateMppAuthHeaders(req) {
+/** Replicate uses Bearer when REPLICATE_API_KEY is set; otherwise forward payment headers from the browser. */
+function replicateGatewayAuthHeaders(req) {
   const apiKey = process.env.REPLICATE_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   const headers = { ...forwardHeaders }
@@ -3041,25 +3040,25 @@ function replicateMppAuthHeaders(req) {
   return headers
 }
 
-function replicateMppPaymentHint(req) {
+function replicateGatewayPaymentHint(req) {
   const apiKey = process.env.REPLICATE_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-    ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set REPLICATE_API_KEY on the server.'
+    ? 'Connect wallet on mainnet and complete payment (x402), or set REPLICATE_API_KEY on the server.'
     : undefined
 }
 
 /**
- * Replicate MPP proxy — `POST /replicate/run`, `/replicate/get-prediction`, `/replicate/get-model`, `/replicate/list-models`.
+ * Replicate proxy — `POST /replicate/run`, `/replicate/get-prediction`, `/replicate/get-model`, `/replicate/list-models`.
  * Browser calls `/api/replicate/...`; upstream path is the same without the `/api` prefix.
- * @see https://mpp.dev/services#replicate
+ * @see REPLICATE_X402_GATEWAY_URL
  */
-async function proxyReplicateMpp(req, res) {
+async function proxyReplicateGateway(req, res) {
   const suffix = req.url || '/'
-  const endpoint = `${replicateMppBaseUrl()}${suffix.startsWith('/') ? suffix : `/${suffix}`}`
+  const endpoint = `${replicateGatewayBaseUrl()}${suffix.startsWith('/') ? suffix : `/${suffix}`}`
   const method = (req.method || 'GET').toUpperCase()
 
-  const headers = { ...replicateMppAuthHeaders(req) }
+  const headers = { ...replicateGatewayAuthHeaders(req) }
   const fetchOpts = { method, headers }
 
   if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
@@ -3082,22 +3081,22 @@ async function proxyReplicateMpp(req, res) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: 'Replicate MPP request failed.',
+        error: 'Replicate request failed.',
         details: data ?? raw,
         upstreamStatus: response.status,
         upstreamEndpoint: endpoint,
-        hint: replicateMppPaymentHint(req),
+        hint: replicateGatewayPaymentHint(req),
       })
     }
 
     return res.status(response.status).json({
-      provider: 'replicate-mpp',
+      provider: 'replicate-x402-gateway',
       endpoint,
       result: data,
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'Replicate MPP integration request failed.',
+      error: 'Replicate integration request failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
@@ -3108,7 +3107,7 @@ app.use('/api/replicate', (req, res) => {
     res.setHeader('Allow', 'GET,HEAD,POST,OPTIONS')
     return res.status(204).end()
   }
-  return proxyReplicateMpp(req, res)
+  return proxyReplicateGateway(req, res)
 })
 
 app.post('/api/ai/explain-flow', async (req, res) => {
@@ -3138,7 +3137,7 @@ app.post('/api/ai/explain-flow', async (req, res) => {
       'You are explaining a HealthTech payment flow to non-technical users.',
       'Return 3 short bullets:',
       '1) Why this flow matters',
-      '2) How payment works with MPP + Tempo',
+      '2) How payment works with Arc Testnet x402',
       '3) What user trust benefit they get',
       '',
       `Flow title: ${flowTitle}`,
@@ -3192,6 +3191,6 @@ app.post('/api/ai/explain-flow', async (req, res) => {
 
 app.listen(port, () => {
   console.log(`API server listening on http://localhost:${port}`)
-  console.log(`  OpenAPI (MPPScan discovery): GET /openapi.json`)
-  console.log(`  Dance extras (live MPP): POST /api/dance-extras/live/:flowKey/:network  (GET /api/dance-extras/live to verify)`)
+  console.log(`  OpenAPI: GET /openapi.json`)
+  console.log(`  Dance extras (live x402): POST /api/dance-extras/live/:flowKey/:network  (GET /api/dance-extras/live to verify)`)
 })

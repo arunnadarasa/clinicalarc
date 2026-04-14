@@ -15,16 +15,12 @@ const FILES = [
   ['CLAWHUB.md', 'CLAWHUB.md'],
   ['HEALTHTECH_USE_CASES.md', 'HEALTHTECH_USE_CASES.md'],
   ['HEALTH_TECH_PROTOCOL_AZ.md', 'HEALTH_TECH_PROTOCOL_AZ.md'],
-  ['docs/PURL_CLINICAL_TEMPO.md', 'docs/PURL_CLINICAL_TEMPO.md'],
-  ['docs/PURL_NHS.md', 'docs/PURL_NHS.md'],
+  ['docs/ARC_X402_NOTES.md', 'docs/ARC_X402_NOTES.md'],
+  ['docs/OPENAPI_DISCOVERY.md', 'docs/OPENAPI_DISCOVERY.md'],
   ['docs/OWS_NHS.md', 'docs/OWS_NHS.md'],
-  ['docs/TEMPO_WALLET_TEST.md', 'docs/TEMPO_WALLET_TEST.md'],
-  ['docs/EVVM_TEMPO.md', 'docs/EVVM_TEMPO.md'],
-  ['docs/MPPSCAN_DISCOVERY.md', 'docs/MPPSCAN_DISCOVERY.md'],
-  ['docs/ECOSYSTEM_SYNERGY.md', 'docs/ECOSYSTEM_SYNERGY.md'],
 ]
 
-const header = `# Clinical Tempo / HealthTech Protocol — LLM context bundle
+const header = `# Clinical Arc / HealthTech Protocol — LLM context bundle
 
 **Purpose:** Single file to paste into an LLM system prompt, upload to a coding agent, or feed RAG — **full orientation** to this repository.
 

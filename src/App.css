@@ -233,7 +233,7 @@
   font-size: inherit;
 }
 
-/* Tabs (e.g. testnet / mainnet on /purl) */
+/* Tabs (e.g. testnet / mainnet on dance-extras) */
 .doc-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -306,8 +306,8 @@
   max-width: 40rem;
 }
 
-/* /purl — in-browser wire check + MPP */
-.purl-browser-panel {
+/* HTTP pay panel — in-browser wire check + x402 */
+.http-pay-browser-panel {
   margin: 0 0 1.35rem;
   padding: 1rem 1.05rem;
   border-radius: 0.65rem;
@@ -315,16 +315,16 @@
   background: #fafafa;
 }
 
-.purl-browser-panel__title {
+.http-pay-browser-panel__title {
   margin: 0 0 0.35rem;
   font-size: 1rem;
 }
 
-.purl-browser-panel__lede {
+.http-pay-browser-panel__lede {
   margin: 0 0 0.75rem;
 }
 
-.purl-browser-panel__actions {
+.http-pay-browser-panel__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -332,30 +332,30 @@
   margin-bottom: 0.65rem;
 }
 
-.purl-browser-panel__error {
+.http-pay-browser-panel__error {
   margin: 0.35rem 0 0;
   color: #b91c1c;
   font-size: 0.88rem;
 }
 
-.purl-browser-panel__ok {
+.http-pay-browser-panel__ok {
   margin: 0.35rem 0 0;
   color: #166534;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
-.purl-browser-panel__out {
+.http-pay-browser-panel__out {
   margin-top: 0.65rem;
 }
 
-.purl-browser-panel__out-label {
+.http-pay-browser-panel__out-label {
   font-size: 0.82rem;
   color: #52525b;
   margin-bottom: 0.35rem;
 }
 
-.purl-browser-panel__pre {
+.http-pay-browser-panel__pre {
   margin: 0;
   padding: 0.75rem 0.85rem;
   max-height: 220px;

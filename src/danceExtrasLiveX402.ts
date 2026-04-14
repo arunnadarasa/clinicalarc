@@ -2,10 +2,10 @@
  * Arc Testnet + Circle Gateway x402 for `POST /api/dance-extras/live/...` (browser wallet).
  */
 import { createArcX402PaymentFetch } from './arcX402Fetch'
-import type { BrowserEthereumProvider } from './tempoMpp'
+import type { BrowserEthereumProvider } from './evmWallet'
 import { arcTestnetChain } from './arcChains'
 
-export type TempoHubNetwork = 'testnet' | 'mainnet'
+export type DanceLiveNetwork = 'testnet' | 'mainnet'
 
 export const toHexChainId = (id: number) => `0x${id.toString(16)}`
 
@@ -65,7 +65,7 @@ type EthWindow = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
 }
 
-export async function addTempoNetwork(ethereum: EthWindow, _target: TempoHubNetwork) {
+export async function addArcNetwork(ethereum: EthWindow, _target: DanceLiveNetwork) {
   const chain = arcTestnetChain
   const rpcUrl = chain.rpcUrls.default.http[0]
   await ethereum.request({
@@ -82,7 +82,7 @@ export async function addTempoNetwork(ethereum: EthWindow, _target: TempoHubNetw
   })
 }
 
-export async function ensureSelectedWalletNetwork(ethereum: EthWindow, _network: TempoHubNetwork) {
+export async function ensureSelectedWalletNetwork(ethereum: EthWindow, _network: DanceLiveNetwork) {
   const chain = arcTestnetChain
   const chainIdHex = toHexChainId(chain.id)
   try {
@@ -93,7 +93,7 @@ export async function ensureSelectedWalletNetwork(ethereum: EthWindow, _network:
   } catch (err: unknown) {
     const e = err as { code?: number }
     if (e?.code === 4902) {
-      await addTempoNetwork(ethereum, 'testnet')
+      await addArcNetwork(ethereum, 'testnet')
       await ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: chainIdHex }],
@@ -104,10 +104,10 @@ export async function ensureSelectedWalletNetwork(ethereum: EthWindow, _network:
   }
 }
 
-export async function liveMppFetch(
+export async function liveX402Fetch(
   url: string,
   init: RequestInit,
-  opts: { walletAddress: `0x${string}`; network: TempoHubNetwork },
+  opts: { walletAddress: `0x${string}`; network: DanceLiveNetwork },
 ): Promise<Response> {
   const { walletAddress } = opts
   const eth = window.ethereum as BrowserEthereumProvider | undefined

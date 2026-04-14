@@ -8,7 +8,7 @@ type Props = {
 }
 
 /**
- * High-contrast CLI snippet with copy — used on /tempo-wallet, /purl.
+ * High-contrast CLI snippet with copy — used on /nhs/http-pay and similar doc pages.
  */
 export function DocCodeBlock({ code, label = 'bash' }: Props) {
   const [copied, setCopied] = useState(false)

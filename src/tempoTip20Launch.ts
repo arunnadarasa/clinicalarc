@@ -3,9 +3,42 @@ import { writeContractSync } from 'viem/actions'
 import { TokenId, TokenRole } from 'ox/tempo'
 import { Abis, Actions, tempoActions } from 'viem/tempo'
 import type { NhsNetwork } from './nhsSession'
-import { tempoMainnetChain, tempoTestnetChain } from './tempoChains'
-import { ensureWalletOnNetwork } from './nhsMpp'
-import { tempoBrowserWalletTransport, type BrowserEthereumProvider, TEMPO_TIP20_DECIMALS } from './tempoMpp'
+import { tip20MainnetChain, tip20TestnetChain } from './tip20Chains'
+import { browserWalletTransport, type BrowserEthereumProvider, TIP20_DECIMALS } from './evmWallet'
+
+function toHexChainId(id: number) {
+  return `0x${id.toString(16)}`
+}
+
+async function ensureTip20WalletNetwork(ethereum: BrowserEthereumProvider, network: NhsNetwork) {
+  const chain = network === 'mainnet' ? tip20MainnetChain : tip20TestnetChain
+  const chainId = toHexChainId(chain.id)
+  try {
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId }],
+    } as { method: string; params: unknown[] })
+  } catch (error) {
+    const e = error as { code?: number }
+    if (e?.code !== 4902) throw error
+    await ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [
+        {
+          chainId,
+          chainName: chain.name,
+          nativeCurrency: chain.nativeCurrency,
+          rpcUrls: [chain.rpcUrls.default.http[0]],
+          blockExplorerUrls: chain.blockExplorers?.default?.url ? [chain.blockExplorers.default.url] : [],
+        },
+      ],
+    } as { method: string; params: unknown[] })
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId }],
+    } as { method: string; params: unknown[] })
+  }
+}
 
 export type Tip20LaunchResult = {
   tokenAddress: `0x${string}`
@@ -18,7 +51,7 @@ export type Tip20LaunchResult = {
 }
 
 /**
- * Deploy a new TIP-20 via the Tempo factory (`Actions.token.createSync`) on testnet or mainnet.
+ * Deploy a new TIP-20 via the factory (`Actions.token.createSync`) on testnet or mainnet.
  * Requires the wallet to be on the matching chain and to pay fees in the chain fee token.
  */
 export async function launchTip20OnChain(params: {
@@ -31,11 +64,11 @@ export async function launchTip20OnChain(params: {
   const ethereum = (window as Window & { ethereum?: BrowserEthereumProvider }).ethereum
   if (!ethereum) throw new Error('Wallet provider not found.')
 
-  await ensureWalletOnNetwork(ethereum, params.network)
-  const chain = params.network === 'mainnet' ? tempoMainnetChain : tempoTestnetChain
+  await ensureTip20WalletNetwork(ethereum, params.network)
+  const chain = params.network === 'mainnet' ? tip20MainnetChain : tip20TestnetChain
   const client = createWalletClient({
     chain,
-    transport: tempoBrowserWalletTransport(ethereum, chain.rpcUrls.default.http[0]),
+    transport: browserWalletTransport(ethereum, chain.rpcUrls.default.http[0]),
     account: params.walletAddress,
   }).extend(tempoActions())
 
@@ -70,7 +103,7 @@ export type Tip20MintResult = {
 
 /**
  * Mint TIP-20 tokens to an address (caller must be permitted to mint — typically the token admin from `createSync`).
- * `amountHuman` is a decimal string interpreted with {@link TEMPO_TIP20_DECIMALS} (6 for typical Tempo stable-style assets).
+ * `amountHuman` is a decimal string interpreted with {@link TIP20_DECIMALS} (6 for typical stable-style assets).
  */
 export async function mintTip20OnChain(params: {
   network: NhsNetwork
@@ -82,8 +115,8 @@ export async function mintTip20OnChain(params: {
   const ethereum = (window as Window & { ethereum?: BrowserEthereumProvider }).ethereum
   if (!ethereum) throw new Error('Wallet provider not found.')
 
-  await ensureWalletOnNetwork(ethereum, params.network)
-  const chain = params.network === 'mainnet' ? tempoMainnetChain : tempoTestnetChain
+  await ensureTip20WalletNetwork(ethereum, params.network)
+  const chain = params.network === 'mainnet' ? tip20MainnetChain : tip20TestnetChain
   const rpcUrl = chain.rpcUrls.default.http[0]
   const publicClient = createPublicClient({
     chain,
@@ -92,7 +125,7 @@ export async function mintTip20OnChain(params: {
 
   const walletClient = createWalletClient({
     chain,
-    transport: tempoBrowserWalletTransport(ethereum, rpcUrl),
+    transport: browserWalletTransport(ethereum, rpcUrl),
     account: params.walletAddress,
   }).extend(tempoActions())
 
@@ -104,8 +137,6 @@ export async function mintTip20OnChain(params: {
 
   let grantIssuerTxHash: `0x${string}` | undefined
   if (!hasIssuer) {
-    // Use a single contract write — `grantRolesSync` uses batched `sendTransaction` which can emit
-    // Tempo envelope type 0x76; browser wallets + viem only accept 0x0/0x1/0x2/0x4 for that path.
     const grantReceipt = await writeContractSync(walletClient, {
       address: TokenId.toAddress(params.tokenAddress),
       abi: Abis.tip20,
@@ -117,7 +148,7 @@ export async function mintTip20OnChain(params: {
     grantIssuerTxHash = grantReceipt.transactionHash
   }
 
-  const amount = parseUnits(params.amountHuman.trim(), TEMPO_TIP20_DECIMALS)
+  const amount = parseUnits(params.amountHuman.trim(), TIP20_DECIMALS)
   const result = await Actions.token.mintSync(walletClient, {
     token: params.tokenAddress,
     to: params.to,

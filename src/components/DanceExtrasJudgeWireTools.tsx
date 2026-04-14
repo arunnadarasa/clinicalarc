@@ -5,11 +5,11 @@ import {
   extractHexHash,
   getErrorMessage,
   httpFailureMessage,
-  liveMppFetch,
+  liveX402Fetch,
   mapLivePayError,
   parseResponseJson,
-  type TempoHubNetwork,
-} from '../danceExtrasLiveMpp'
+  type DanceLiveNetwork,
+} from '../danceExtrasLiveX402'
 import { judgePayload } from '../danceExtrasJudgeWire'
 
 declare global {
@@ -22,16 +22,16 @@ declare global {
 }
 
 type NetworkChromeProps = {
-  network: TempoHubNetwork
-  onNetwork: (n: TempoHubNetwork) => void
+  network: DanceLiveNetwork
+  onNetwork: (n: DanceLiveNetwork) => void
   panelId: string
 }
 
-/** Testnet / mainnet tabs + risk callouts (shared by /purl and /tempo-wallet). */
+/** Testnet / mainnet tabs + risk callouts (dance-extras live judge wire). */
 export function DanceExtrasJudgeWireNetworkChrome({ network, onNetwork, panelId }: NetworkChromeProps) {
   return (
     <>
-      <div className="doc-tabs" role="tablist" aria-label="Tempo network">
+      <div className="doc-tabs" role="tablist" aria-label="Network">
         <button
           type="button"
           role="tab"
@@ -40,7 +40,7 @@ export function DanceExtrasJudgeWireNetworkChrome({ network, onNetwork, panelId 
           id={`${panelId}-tab-testnet`}
           onClick={() => onNetwork('testnet')}
         >
-          Testnet (42431)
+          Testnet (5042002)
         </button>
         <button
           type="button"
@@ -51,7 +51,7 @@ export function DanceExtrasJudgeWireNetworkChrome({ network, onNetwork, panelId 
           id={`${panelId}-tab-mainnet`}
           onClick={() => onNetwork('mainnet')}
         >
-          Mainnet (4217)
+          Mainnet label (demo)
         </button>
       </div>
 
@@ -61,8 +61,8 @@ export function DanceExtrasJudgeWireNetworkChrome({ network, onNetwork, panelId 
             ⚠️
           </span>
           <div>
-            <strong>Real money.</strong> Live browser pay uses Tempo mainnet. Confirm <code>MPP_RECIPIENT</code>, wallet
-            balance, and intent to pay.
+            <strong>Real funds.</strong> Confirm <code>X402_SELLER_ADDRESS</code> / seller config, wallet balance, and
+            intent to pay before using mainnet-labelled routes.
           </div>
         </div>
       ) : (
@@ -71,8 +71,8 @@ export function DanceExtrasJudgeWireNetworkChrome({ network, onNetwork, panelId 
             ✓
           </span>
           <div>
-            <strong>Safe default.</strong> Path <code>…/judge-score/testnet</code> — expect <code>eip155:42431</code>{' '}
-            and pathUSD-style fees in dry-run output.
+            <strong>Safe default.</strong> Path <code>…/judge-score/testnet</code> — expect Arc Testnet (
+            <code>eip155:5042002</code>) in payment output.
           </div>
         </div>
       )}
@@ -81,12 +81,12 @@ export function DanceExtrasJudgeWireNetworkChrome({ network, onNetwork, panelId 
 }
 
 type BrowserPanelProps = {
-  network: TempoHubNetwork
+  network: DanceLiveNetwork
   /** Shown under the panel title */
   lede: ReactNode
 }
 
-/** Wire check (402) + MetaMask MPP pay — same as /dance-extras live. */
+/** Wire check (402) + browser wallet x402 pay — same as /dance-extras live. */
 export function DanceExtrasJudgeWireBrowserPanel({ network, lede }: BrowserPanelProps) {
   const [walletAddress, setWalletAddress] = useState('')
   const [walletBusy, setWalletBusy] = useState(false)
@@ -145,7 +145,7 @@ export function DanceExtrasJudgeWireBrowserPanel({ network, lede }: BrowserPanel
     try {
       await ensureSelectedWalletNetwork(window.ethereum!, network)
       const payload = judgePayload(network)
-      const res = await liveMppFetch(
+      const res = await liveX402Fetch(
         `/api/dance-extras/live/judge-score/${network}`,
         {
           method: 'POST',
@@ -155,7 +155,7 @@ export function DanceExtrasJudgeWireBrowserPanel({ network, lede }: BrowserPanel
         { walletAddress: walletAddress as `0x${string}`, network },
       )
       const { data, text } = await parseResponseJson(res)
-      if (!res.ok) throw new Error(httpFailureMessage(res, text, data, 'MPP payment failed'))
+      if (!res.ok) throw new Error(httpFailureMessage(res, text, data, 'Payment failed'))
       const receiptHeader = res.headers.get('payment-receipt') || ''
       const txHint = extractHexHash(receiptHeader)
       const rid =
@@ -171,10 +171,10 @@ export function DanceExtrasJudgeWireBrowserPanel({ network, lede }: BrowserPanel
   }
 
   return (
-    <div className="purl-browser-panel">
-      <h3 className="purl-browser-panel__title">Try in browser (1-click)</h3>
-      <div className="doc-prose-muted purl-browser-panel__lede">{lede}</div>
-      <div className="purl-browser-panel__actions">
+    <div className="http-pay-browser-panel">
+      <h3 className="http-pay-browser-panel__title">Try in browser (1-click)</h3>
+      <div className="doc-prose-muted http-pay-browser-panel__lede">{lede}</div>
+      <div className="http-pay-browser-panel__actions">
         <button type="button" className="secondary" disabled={wireLoading} onClick={runWireCheck}>
           {wireLoading ? 'Requesting…' : 'Run wire check (no wallet)'}
         </button>
@@ -182,18 +182,18 @@ export function DanceExtrasJudgeWireBrowserPanel({ network, lede }: BrowserPanel
           {walletAddress ? `Wallet ${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : 'Connect wallet'}
         </button>
         <button type="button" disabled={payLoading || !walletAddress} onClick={payWithBrowser}>
-          {payLoading ? 'Paying…' : 'Pay with MPP (browser)'}
+          {payLoading ? 'Paying…' : 'Pay with wallet (x402)'}
         </button>
       </div>
-      {payError ? <p className="purl-browser-panel__error">{payError}</p> : null}
-      {paySummary ? <p className="purl-browser-panel__ok">{paySummary}</p> : null}
+      {payError ? <p className="http-pay-browser-panel__error">{payError}</p> : null}
+      {paySummary ? <p className="http-pay-browser-panel__ok">{paySummary}</p> : null}
       {wireStatus ? (
-        <div className="purl-browser-panel__out">
-          <div className="purl-browser-panel__out-label">
+        <div className="http-pay-browser-panel__out">
+          <div className="http-pay-browser-panel__out-label">
             Wire check · <strong>{wireStatus}</strong>
             {wireStatus.startsWith('402') ? ' (expected without payment)' : null}
           </div>
-          {wirePreview ? <pre className="purl-browser-panel__pre">{wirePreview}</pre> : null}
+          {wirePreview ? <pre className="http-pay-browser-panel__pre">{wirePreview}</pre> : null}
         </div>
       ) : null}
     </div>

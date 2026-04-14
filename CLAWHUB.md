@@ -1,22 +1,22 @@
-# ClawHub Learning Notes (Clinical Tempo / HealthTech Protocol)
+# ClawHub Learning Notes (Clinical Arc / HealthTech Protocol)
 
 ## LLM context bundle (`llm-full.txt`)
 
-For **full-repo orientation** in one paste (ChatGPT, Claude, Cursor, OpenClaw): use **`public/llm-full.txt`**, built from README + this file + `HEALTHTECH_USE_CASES.md` + `HEALTH_TECH_PROTOCOL_AZ.md` + purl/tempo wallet + **`docs/EVVM_TEMPO.md`** + **`docs/MPPSCAN_DISCOVERY.md`**.
+For **full-repo orientation** in one paste (ChatGPT, Claude, Cursor, OpenClaw): use **`public/llm-full.txt`**, built from README + this file + `HEALTHTECH_USE_CASES.md` + `HEALTH_TECH_PROTOCOL_AZ.md` + **`docs/ARC_X402_NOTES.md`** + **`docs/OPENAPI_DISCOVERY.md`** (when present).
 
-**Published skill (ClawHub):** [clawhub.ai/arunnadarasa/clinicaltempo](https://clawhub.ai/arunnadarasa/clinicaltempo) — install the Clinical Tempo skill for IDE/OpenClaw; source of truth remains **`.cursor/skills/clawhub/`** in git. **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — documented in **`references/openclaw-clinical-tempo.md`**. **Ecosystem framing:** **`docs/ECOSYSTEM_SYNERGY.md`** (mpp-nanogpt-modal, nanoGPT/nanochat/autoresearch, ClawHub + plugins).
+**Published skill (ClawHub):** [clawhub.ai/arunnadarasa/clinicalarc](https://clawhub.ai/arunnadarasa/clinicalarc) — install the Clinical Arc skill for IDE/OpenClaw; source of truth remains **`.cursor/skills/clawhub/`** in git. **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — documented in **`references/openclaw-clinical-tempo.md`**. **Ecosystem framing:** optional **`docs/ECOSYSTEM_SYNERGY.md`** when present.
 
 - **Regenerate:** `npm run build:llm` (runs automatically before `npm run build`).
 - **In the browser:** open **`/llm-full.txt`** or use the hub **“Download LLM context bundle”** button on `/`.
-- **In GitHub (raw `llm-full.txt`):** `https://raw.githubusercontent.com/arunnadarasa/clinicaltempo/main/public/llm-full.txt`
+- **In GitHub (raw `llm-full.txt`):** `https://raw.githubusercontent.com/arunnadarasa/clinicalarc/main/public/llm-full.txt`
 
-Keep **this file (`CLAWHUB.md`)** for debugging checklists and failures; pair it with `llm-full.txt` when an agent needs both product context and tribal knowledge. For **EVVM** depth beyond `docs/EVVM_TEMPO.md`, use upstream **`https://www.evvm.info/llms-full.txt`** (EVVM’s bundle; not vendored here).
+Keep **this file (`CLAWHUB.md`)** for debugging checklists and failures; pair it with `llm-full.txt` when an agent needs both product context and tribal knowledge. For **EVVM** depth, use upstream **`https://www.evvm.info/llms-full.txt`** (not vendored here).
 
 ---
 
-This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any future agent) to the Clinical Tempo repository:
+This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any future agent) to the Clinical Arc repository:
 
-- what the repo is (**HealthTech Protocol** reference stack on Tempo + MPP),
+- what the repo is (**HealthTech Protocol** reference stack on Arc + x402),
 - what succeeded,
 - what failed and why,
 - and the repeatable best practices that prevent re-learning the hard parts.
@@ -25,14 +25,14 @@ This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any f
 
 ## What this repo is
 
-**HealthTech Protocol** (this repo’s framing) is the set of **interoperable payment + ops patterns** for **neighbourhood health and care coordination**—wallet identity, payment-gated service requests, care plans, referrals, monitoring, AgentMail/TIP-20/purl integrations—implemented with **Tempo** settlement and **MPP / x402** machine payments. **Legacy** event/dance demos (`/dance-extras`) use the same rails. Clinical Tempo is the **reference superapp** that encodes those patterns in code.
+**HealthTech Protocol** (this repo’s framing) is the set of **interoperable payment + ops patterns** for **neighbourhood health and care coordination**—wallet identity, payment-gated service requests, care plans, referrals, monitoring, AgentMail/TIP-20 integrations—implemented with **Arc Testnet** settlement and **Circle Gateway x402** machine payments. **Legacy** event/dance demos (`/dance-extras`) use the same rails. Clinical Arc is the **reference superapp** that encodes those patterns in code.
 
-Clinical Tempo is built around:
+Clinical Arc is built around:
 
-- **Tempo** (on-chain payments and receipts)
-- **MPP** via `mppx` (client/server-side handling of `402 Payment Required` challenges)
+- **Arc Testnet** (chain id 5042002) for nanopaid flows
+- **x402** (client/server-side handling of `402 Payment Required` challenges)
 - **Dedicated use-case routes** (hub + full-screen flows)
-- A **Node/Express backend** that creates/verifies MPP intents and proxies/handles integrations.
+- A **Node/Express backend** that verifies x402 receipts and proxies/handles integrations.
 
 Core docs to reuse:
 
@@ -44,9 +44,9 @@ Core docs to reuse:
 
 ## Successes (what worked)
 
-1. **Stripe `purl` + Clinical Tempo `402` (MPP on Tempo testnet)**  
-   - With a **Tempo** keystore (`purl wallet add --type tempo`), `purl --dry-run -X POST --json '…' http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet` correctly detects **402**, protocol **mpp**, network **eip155:42431**, **0.01 pathUSD**.  
-   - `purl inspect` uses **GET**; POST-only routes return 404 — use **dry-run + POST** for dance-extras live. See **`docs/PURL_CLINICAL_TEMPO.md`**.
+1. **Arc + x402 on dance-extras live**  
+   - `curl` to `http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet` returns **402** until a browser wallet completes payment via Circle Gateway on Arc.  
+   - See **`docs/ARC_X402_NOTES.md`** and `/nhs/http-pay` for copy-paste examples.
 
 2. **Superapp README now reflects the real architecture**
    - Added a “super app” definition that maps: hub vs dedicated routes vs backend vs integrations.
@@ -59,42 +59,37 @@ Core docs to reuse:
    - Resolution strategy: keep the README focused (short title/one-line description) and remove template bulk rather than trying to merge two incompatible README styles.
 
 4. **AgentMail “email” flow got to a working end-to-end pattern**
-   - Earlier attempts hit MPP/inbox scope mismatches (notably `Inbox not found`).
+   - Earlier attempts hit inbox scope mismatches (notably `Inbox not found`).
    - The final working approach:
-     - the wallet pays **this backend** using **Tempo MPP** (`mppx` server charge),
+     - the wallet pays **this backend** using **x402** (server charge),
      - then the backend sends the email via **AgentMail’s API key endpoint** (`AGENTMAIL_API_KEY`).
    - This preserves “wallet-paid UX” while avoiding fragile inbox scope behavior in passthrough mode.
 
-5. **`/dance-extras` live MPP + shared server handler**
-   - `POST /api/dance-extras/live/:flowKey/:network` runs `mppx.tempo.charge` then `executeDanceExtraFlow` so the seven core HealthTech scaffolds share one payment path.
+5. **`/dance-extras` live x402 + shared server handler**
+   - `POST /api/dance-extras/live/:flowKey/:network` runs the gateway gate then `executeDanceExtraFlow` so the seven core HealthTech scaffolds share one payment path.
    - `GET /api/dance-extras/live` returns `flowKeys` — use it to verify the running Node process actually has the route (see failure §5).
 
 6. **AgentMail bot flow: always send `inbox_id`**
    - `/api/ops/agentmail/send` requires `inbox_id` (or `AGENTMAIL_INBOX_ID` on the server).
    - Demo default in the client: `streetkode@agentmail.to` via `src/agentmailDemo.ts` (`AGENTMAIL_DEMO_INBOX_ID`).
 
-7. **MPPScan discovery (`GET /openapi.json`)**
-   - Express serves **OpenAPI 3.1** at **`/openapi.json`** (`server/openapi.mjs`) so agents can discover MPP-paid routes; **`DANCE_EXTRA_LIVE_AMOUNTS`** lives in **`openapi.mjs`** and is imported by **`server/index.js`** (single source of truth).
-   - Validate with **`npm run discovery`** while **`npm run server`** is running on **8787**. See **`docs/MPPSCAN_DISCOVERY.md`** and [mppscan.com/discovery](https://www.mppscan.com/discovery).
+7. **OpenAPI discovery (`GET /openapi.json`)**
+   - Express serves **OpenAPI 3.1** at **`/openapi.json`** (`server/openapi.mjs`) so agents can discover paid routes; **`DANCE_EXTRA_LIVE_AMOUNTS`** lives in **`openapi.mjs`** and is imported by **`server/index.js`** (single source of truth).
+   - Validate with **`npm run discovery`** while **`npm run server`** is running on **8787**. See **`docs/OPENAPI_DISCOVERY.md`** when present.
 
 8. **Server integration patterns are consistent**
    - For `402`-capable third-party endpoints:
-     - if upstream returns `402`, the backend should pass that challenge back to the client (so `mppx` can solve).
+     - if upstream returns `402`, the backend should pass that challenge back to the client (so `x402` can solve).
    - For “paid endpoints then poll” integrations:
      - use the correct auth header strategy for the paid + polling phases (x402 vs SIWX vs bearer-token style).
 
-9. **NHS routes: extracting the on-chain reference after `mppx.tempo.charge()`**
-   - `charge(fetchRequest)` resolves to **`{ status: 200 | 402, withReceipt(response) | challenge }`**. There is **no** `mppResponse.receipt` field — the verified receipt object exists only inside **`withReceipt()`**, which sets the **`Payment-Receipt`** header via `Receipt.serialize(receipt)`.
-   - **Wrong:** `mppResponse?.receipt?.reference` (always `undefined` on success).
-   - **Right:** after `status === 200`, derive the tx reference with one of:
-     - call **`mppResponse.withReceipt(new Response('{}', { headers: { 'Content-Type': 'application/json' } }))`**, then **`Receipt.fromResponse(wrapped).reference`** (canonical hash from Tempo verify), or
-     - parse **`Authorization: Payment …`** with **`Credential.deserialize`** and use **`payload.hash`** when `payload.type === 'hash'`, or
-     - if the inbound request already carries **`payment-receipt`**, **`Receipt.deserialize(header).reference`**.
-   - Implementation lives in **`server/nhs/payment.js`** (`resolvePaymentReceiptRef`). NHS **GP access** persists that value as **`gp_access_requests.receipt_ref`** and echoes **`receiptRef`** in JSON via **`withReceipt()`** in **`server/nhs/router.js`**. The client prefers **`payload.receiptRef`** in **`src/nhsApi.ts`** (`txFromResponse`) so local **Transactions** history can show **On-chain** rows even when response headers are thin.
+9. **NHS routes: extracting the on-chain reference after x402 settlement**
+   - After the gateway verifies payment, the handler should surface a stable **`receiptRef`** / tx hash for audit — see **`server/nhs/payment.js`** (`resolvePaymentReceiptRef`) and **`server/nhs/router.js`**.
+   - The client prefers **`payload.receiptRef`** in **`src/nhsApi.ts`** (`txFromResponse`) so **Transactions** can show **On-chain** rows.
 
 10. **NHS `/nhs/tip20`: mint after factory create (`viem/tempo`)**  
    - Factory **`createSync`** sets **`admin`** to the connected wallet; **mint** requires **`ISSUER_ROLE`**, which is **not** granted automatically — check with **`Actions.token.hasRole`** (`role: 'issuer'`) and, if missing, **`grantRole`** on the token contract before **`Actions.token.mintSync`**.  
-   - Prefer **`writeContractSync`** for a **single** `grantRole` call. **`Actions.token.grantRolesSync`** uses **`sendTransaction`** with batched `calls`, which on Tempo can produce envelope type **`0x76`**; browser wallets + viem reject that path (`Invalid transaction envelope type: "0x76". Must be one of: 0x0, 0x1, 0x2, 0x4`).  
+   - Prefer **`writeContractSync`** for a **single** `grantRole` call. **`Actions.token.grantRolesSync`** uses **`sendTransaction`** with batched `calls`, which on some chains can produce envelope type **`0x76`**; browser wallets + viem reject that path (`Invalid transaction envelope type: "0x76". Must be one of: 0x0, 0x1, 0x2, 0x4`).  
    - Misleading reverts (e.g. “gas limit too high”) can appear when mint is unauthorized — fix roles first, not gas.  
    - Implementation: **`src/tempoTip20Launch.ts`** (`mintTip20OnChain`), UI **`src/NhsTip20App.tsx`**.
 
@@ -134,22 +129,22 @@ Core docs to reuse:
 **Common causes**
 - `AGENTMAIL_INBOX_ID` not set and no `inbox_id` provided in the request body.
 - Inbox ID mismatch vs the paid-scope the integration expects.
-- Using passthrough MPP mode while the integration expects a specific inbox access scope.
+- Using passthrough wallet-paid mode while the integration expects a specific inbox access scope.
 
 **Fix pattern that worked**
 - If `AGENTMAIL_API_KEY` is available:
-  - pay via Tempo MPP to this backend,
+  - pay via x402 to this backend,
   - send via AgentMail stable API endpoint using the API key,
   - return the upstream result.
 
-### 4) MPP / x402 mismatch and recurring `402` loops
+### 4) x402 mismatch and recurring `402` loops
 
 **Symptom**
 - The frontend repeatedly encounters `402` (or can’t recover from an auth challenge).
 
 **Common causes**
 - Hitting the wrong base URL for the x402-capable endpoint.
-- Not preserving `402` challenge headers/body back to the `mppx` client.
+- Not preserving `402` challenge headers/body back to the `x402` client.
 - Forwarding the wrong headers for the solved/authorized phase.
 
 **Fix**
@@ -186,8 +181,8 @@ Core docs to reuse:
 - Payment failures that mention token/fee/address/chain inconsistencies.
 
 **Common causes**
-- Using the wrong chain network (Tempo testnet vs mainnet).
-- Passing amount in base units when the `mppx` chain method expects a decimal-string amount (see server implementation).
+- Using the wrong chain network (testnet vs mainnet).
+- Passing amount in base units when the `x402` chain method expects a decimal-string amount (see server implementation).
 - Misconfigured recipients/fee tokens for a specific provider method.
 
 **Fix**
@@ -214,7 +209,7 @@ Core docs to reuse:
 - `/nhs/transactions` shows **Audit** rows for paid GP access; **Explorer** has no per-row tx link; **`receiptRef`** missing from API JSON.
 
 **Cause**
-- Server code assumed **`mppResponse.receipt.reference`** after `mppx.tempo.charge()`. That property does not exist — the receipt is only produced when **`withReceipt()`** runs on a `Response`, or when read from **`Payment-Receipt`** / credential **`payload.hash`**.
+- Server code assumed **`chargeResponse.receipt.reference`** after the gateway charge. That property does not exist — the receipt is only produced when **`withReceipt()`** runs on a `Response`, or when read from **`Payment-Receipt`** / credential **`payload.hash`**.
 
 **Fix**
 - Use **`resolvePaymentReceiptRef`** (see Success §9 and **`server/nhs/payment.js`**). Persist **`receipt_ref`** on **`gp_access_requests`** and return **`receiptRef`** in JSON. Ensure **`NHS_ENABLE_PAYMENT_GATE`** is not `false` if you expect on-chain receipts.
@@ -226,7 +221,7 @@ Core docs to reuse:
 
 **Cause**
 - **`mint`** requires **`ISSUER_ROLE`**. Factory **`admin` ≠ issuer** unless roles were granted.
-- **`grantRolesSync`** batches via **`sendTransaction`** and can emit Tempo **type `0x76`** envelopes that **viem + injected wallets** do not accept (only `0x0`, `0x1`, `0x2`, `0x4`).
+- **`grantRolesSync`** batches via **`sendTransaction`** and can emit **type `0x76`** envelopes that **viem + injected wallets** do not accept (only `0x0`, `0x1`, `0x2`, `0x4`).
 
 **Fix**
 - Grant issuer with **`writeContractSync`** on **`grantRole`** (single call), then **`Actions.token.mintSync`**. See Success §10 and **`src/tempoTip20Launch.ts`**.
@@ -249,11 +244,11 @@ Core docs to reuse:
 ### Payment flow correctness
 
 1. For x402 endpoints:
-   - on upstream `402`, return the challenge response so `mppx` can solve.
+   - on upstream `402`, return the challenge response so `x402` can solve.
 2. For solved payment forwarding:
    - forward the correct auth headers from the incoming request.
 3. Keep a consistent “two-stage” mental model:
-   - paid endpoint interaction (x402 / Tempo MPP solve),
+   - paid endpoint interaction (x402 solve),
    - polling or follow-up calls (often SIWX or bearer-token style depending on provider).
 
 ### Engineering hygiene
@@ -284,7 +279,7 @@ Core docs to reuse:
 3. Implementation patterns and provider edge cases:
    - `server/index.js` (integration handlers, `402` passthrough, AgentMail send/inbox create)
 4. Dev proxy: `vite.config.ts` (proxy `/api` -> `http://localhost:8787`)
-5. Dance-extras live MPP: `POST /api/dance-extras/live/:flowKey/:network`, verify with `GET /api/dance-extras/live`
+5. Dance-extras live x402: `POST /api/dance-extras/live/:flowKey/:network`, verify with `GET /api/dance-extras/live`
 6. Demo AgentMail inbox constant: `src/agentmailDemo.ts`
 7. NHS payment gate + receipt reference: `server/nhs/payment.js`, `server/nhs/router.js`, `src/nhsApi.ts`; SQLite schema in `server/nhs/db.js` (`gp_access_requests.receipt_ref`)
 8. TIP-20 launch + mint (issuer role, avoid `grantRolesSync` in browser): `src/tempoTip20Launch.ts`, `src/NhsTip20App.tsx`

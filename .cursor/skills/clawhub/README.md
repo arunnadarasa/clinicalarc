@@ -11,7 +11,7 @@ Authoritative copy: **`.cursor/skills/clawhub/`** in the **[Clinical Tempo](http
 ## Purpose
 
 - Point agents at **`public/llm-full.txt`** (full bundle) and **`CLAWHUB.md`** (tribal debugging).
-- Document Tempo, MPP/x402, NHS, TIP-20, EVVM, OpenAPI — without duplicating the whole repo.
+- Document Arc Testnet, x402, NHS, TIP-20, OpenAPI — without duplicating the whole repo.
 
 ---
 

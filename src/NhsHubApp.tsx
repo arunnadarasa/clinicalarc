@@ -28,7 +28,7 @@ export default function NhsHubApp() {
             <p>Use this path to get funded, bootstrap identity, and start testing flows quickly.</p>
             <ol className="log">
               <li>Connect wallet from the top bar.</li>
-              <li>Keep network on <strong>tempo testnet</strong> and click <strong>Get testnet funds</strong>.</li>
+              <li>Keep network on <strong>Arc testnet</strong> and click <strong>Get testnet funds</strong>.</li>
               <li>Choose role, complete bootstrap fields, and click <strong>Bootstrap identity</strong>.</li>
             </ol>
             <p className="note">Tip: faucet is testnet-only and may take a short time to appear in wallet balance.</p>
@@ -98,18 +98,14 @@ export default function NhsHubApp() {
             </div>
           </article>
           <article className="card">
-            <h2>Stripe purl (agents &amp; CLI)</h2>
+            <h2>HTTP + Arc (agents &amp; CLI)</h2>
             <p>
-              Try the official <a href="https://www.purl.dev/">purl.dev</a> <strong>free</strong> and <strong>paid</strong>{' '}
-              test endpoints — same mental model as HTTP + <code>402</code> before you wire Tempo MPP NHS APIs.
-            </p>
-            <p className="note">
-              Paid demo uses Stripe’s hosted test (0.01 USDC). Tempo NHS routes are documented separately in{' '}
-              <code>docs/PURL_CLINICAL_TEMPO.md</code>.
+              Copy-paste <code>curl</code> examples for local APIs, Arc Testnet chain id <strong>5042002</strong>, and the
+              Circle faucet — then use the in-app flows when a route needs wallet-signed x402 authorization.
             </p>
             <div className="actions">
-              <a className="secondary button-like" href="/nhs/purl">
-                Open purl use case
+              <a className="secondary button-like" href="/nhs/http-pay">
+                Open HTTP pay notes
               </a>
             </div>
           </article>

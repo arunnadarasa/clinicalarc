@@ -1,6 +1,6 @@
 import { arcTestnetChain } from './arcChains'
 import { createArcX402PaymentFetch } from './arcX402Fetch'
-import type { BrowserEthereumProvider } from './tempoMpp'
+import type { BrowserEthereumProvider } from './evmWallet'
 import type { NhsNetwork } from './nhsSession'
 
 function toHexChainId(id: number) {
@@ -38,7 +38,7 @@ export async function ensureWalletOnNetwork(ethereum: BrowserEthereumProvider, _
   }
 }
 
-export async function nhsMppFetch(
+export async function nhsX402Fetch(
   url: string,
   init: RequestInit,
   opts: { wallet: string; network: NhsNetwork },

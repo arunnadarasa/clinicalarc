@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { PaymentRequest, Receipt } from 'mppx'
+import { PaymentRequest, Receipt } from './receiptWire.js'
 
 /** Creates a mock receipt for demo/simulate mode. */
 export function createMockReceipt(intent) {
@@ -42,10 +42,12 @@ function getPaymentConfig(options = {}) {
     mode: process.env.PAYMENT_MODE || 'mock',
     testnet: useTestnet,
     chainId: chain.chainId,
-    currency: process.env.MPP_CURRENCY || chain.currency,
+    currency: process.env.X402_CURRENCY || process.env.MPP_CURRENCY || chain.currency,
     recipient:
-      process.env.MPP_RECIPIENT || '0x742d35Cc6634c0532925a3b844bC9e7595F8fE00',
-    decimals: Number(process.env.MPP_DECIMALS || DEFAULT_DECIMALS),
+      process.env.X402_SELLER_ADDRESS ||
+      process.env.MPP_RECIPIENT ||
+      '0x742d35Cc6634c0532925a3b844bC9e7595F8fE00',
+    decimals: Number(process.env.X402_DECIMALS || process.env.MPP_DECIMALS || DEFAULT_DECIMALS),
   }
 }
 

@@ -1,8 +1,8 @@
-# Clinical Tempo / HealthTech Protocol — LLM context bundle
+# Clinical Arc / HealthTech Protocol — LLM context bundle
 
 **Purpose:** Single file to paste into an LLM system prompt, upload to a coding agent, or feed RAG — **full orientation** to this repository.
 
-**Generated:** 2026-04-14T06:18:06.394Z (re-run `npm run build:llm` after doc edits)
+**Generated:** 2026-04-14T06:31:43.859Z (re-run `npm run build:llm` after doc edits)
 
 **Download (running app):** `/llm-full.txt` from the dev server or production site.
 
@@ -26,28 +26,28 @@ The following sections are **verbatim** exports from the repo (order matters for
 
 ## >>> BEGIN FILE: README.md
 
-# HealthTech Protocol · Clinical Tempo
+# HealthTech Protocol · Clinical Arc
 
-**Clinical Tempo** is the **core app** in this repository: an **NHS-aligned neighbourhood health** experience—**wallet-linked identity**, **GP access requests**, **care plans**, **social prescribing** (referrals and link-worker plans), **neighbourhood team coordination**, **remote monitoring** with proactive alerts, **transaction history**, and **Tempo / MPP** payment gates on selected service writes—plus **Stripe purl**, **Open Wallet Standard (OWS)**, **AgentMail**, and **TIP-20** flows. The **NHS hub** is at **`/`** and **`/nhs`**; feature screens live under **`/nhs/*`**.
+**Clinical Arc** is the **core app** in this repository: an **NHS-aligned neighbourhood health** experience—wallet-linked identity, GP access requests, care plans, social prescribing, neighbourhood team coordination, remote monitoring with proactive alerts, transaction history, and **Arc Testnet + Circle Gateway x402** payment gates on selected service writes—plus **Open Wallet Standard (OWS)**, **AgentMail**, and optional **TIP-20** (via `viem/tempo`) demos. The **NHS hub** is at **`/`** and **`/nhs`**; feature screens live under **`/nhs/*`**.
 
-**HealthTech Protocol** is the open **pattern stack** that powers it: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Tempo](https://tempo.xyz)** and **authorized via MPP / x402** so patients, clinicians, care teams, and agents can pay for APIs and services with predictable receipts. The repo also includes **reference demos** (legacy event-style flows such as **`/dance-extras`**, battle, coaching, beats) that exercise the same rails in another domain.
+**HealthTech Protocol** is the open **pattern stack**: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Arc](https://docs.arc.network/arc/references/connect-to-arc)** with **USDC nanopayments** via [Circle Gateway](https://developers.circle.com/gateway/nanopayments) and the **x402** HTTP payment protocol ([overview](https://developers.circle.com/gateway/nanopayments/concepts/x402)). Reference demos (e.g. **`/dance-extras`**, battle, coaching) exercise the same rails in another domain.
 
-This is a **reference implementation**: React (Vite) front ends, a Node/Express API, and production-style persistence for NHS flows. **Treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract** for routes, endpoints, and testing.
+This is a **reference implementation**: React (Vite) front ends, a Node/Express API, and production-style persistence for NHS flows. **Treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract** for routes, endpoints, and testing notes.
 
-**This repository is [arunnadarasa/clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** — use it for **`git clone`**, **`git pull`**, and **`git push`**. **NHS / hackathon notes:** [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md). **Data safety:** use **dummy or synthetic** patient data in demos only — never real patient-identifiable data.
+**Primary remote:** **[arunnadarasa/clinicalarc](https://github.com/arunnadarasa/clinicalarc)**. **NHS / hackathon notes:** [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md). **Data safety:** use **dummy or synthetic** patient data in demos only — never real patient-identifiable data.
 
-### Interaction modes (humans & agents)—one protocol, not four
+### Interaction modes (humans & agents)
 
-HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization). What changes is **who authorizes spend** and **who receives value**—often described informally as human↔human, human↔agent, or agent↔agent flows. Those labels are **use-case shorthand**, not separate protocols.
+HealthTech Protocol is **one** stack (Arc Testnet + Circle Gateway x402). What changes is **who authorizes spend** and **who receives value**.
 
 | Shorthand | Typical meaning here | How it maps in this repo |
 |-----------|----------------------|----------------------------|
-| **Human → human** | One person or org pays another (fees, passes, reimbursements, entry). | Wallet-mediated flows in **Clinical Tempo** (care and access requests); legacy routes also include battle / fan / clip **demos** in another domain. |
-| **Human → agent** | A person approves payment; an **orchestrator** (UI wizard, MCP tool, script) calls your HTTP APIs. | **`/nhs/*`** and shared hub routes; the **human still signs** with the browser wallet unless you delegate. |
-| **Agent → human** | Automated action delivers something to a person (email, alert, receipt, pass). | Ops bot + AgentMail, notifications; fulfillment after payment—not a second payment “protocol.” |
-| **Agent → agent** | Service-to-service: backends, cron, or **machine payments** between APIs. | `402` + `mppx` on the server, **API keys** where allowed (e.g. AgentMail after MPP), webhooks, `POST /api/*` from trusted workers. |
+| **Human → human** | One person or org pays another. | Wallet-mediated flows in **Clinical Arc** (care and access requests); legacy demos in other routes. |
+| **Human → agent** | A person approves payment; an orchestrator calls your HTTP APIs. | **`/nhs/*`** and shared hub routes; the **human still signs** with the browser wallet unless you delegate. |
+| **Agent → human** | Automated action delivers something to a person. | Ops bot + AgentMail, notifications. |
+| **Agent → agent** | Service-to-service backends or workers. | `402` + gateway settlement, API keys where allowed, `POST /api/*` from trusted workers. |
 
-**Roles (mental model):** **Payer** (human wallet vs server treasury vs delegated agent), **beneficiary** (human vs org vs system), **channel** (browser vs server). Ambient agents (e.g. coding assistants) consume **skills** like [`CLAWHUB.md`](./CLAWHUB.md), the **[ClawHub](https://clawhub.ai/)** skill for **Clinical Tempo** (search **clinicaltempo**), and repo **[`.cursor/skills/clawhub/`](./.cursor/skills/clawhub/README.md)**; runtime agents should call the **same** Express contracts with explicit trust boundaries.
+**Roles:** **Payer** (human wallet vs server treasury vs delegated agent), **beneficiary**, **channel** (browser vs server). Ambient agents can use [`CLAWHUB.md`](./CLAWHUB.md) and repo **[`.cursor/skills/clawhub/`](./.cursor/skills/clawhub/README.md)**.
 
 ---
 
@@ -55,28 +55,23 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 
 | Layer | Role |
 |--------|------|
-| **Clinical Tempo (`/` · `/nhs/*`)** | **Core product:** NHS-aligned hub and flows—wallet identity, GP access, care plans, social prescribing, neighbourhood teams, monitoring, transactions, purl, OWS, AgentMail, TIP-20. |
-| **Backend (`server/`)** | Express API: **`/api/nhs/*`** care coordination, audit, and Tempo-gated service requests; MPP intents; live payment verification; proxies to paid third-party APIs. |
-| **Integrations** | Optional rails: AgentMail, StablePhone, StableSocial, StableTravel, Laso cards, Suno, Parallel, OpenWeather, OpenAI MPP (`/openai`), Google Maps, Aviationstack, KicksDB, TIP‑20 factory, OpenAI explainer. |
-| **Reference demos** | **`/dance-extras`**, battle, coaching, beats, judges—**10+** flows that showcase the same protocol in a different domain (API previews + live MPP). |
-| **Dedicated frontends** | Full-screen flows for **live Tempo testnet/mainnet** and complex UX (wallet, network, receipts, recovery). |
+| **Clinical Arc (`/` · `/nhs/*`)** | **Core product:** NHS-aligned hub and flows—wallet identity, GP access, care plans, social prescribing, neighbourhood teams, monitoring, transactions, HTTP pay notes, OWS, AgentMail, TIP-20. |
+| **Backend (`server/`)** | Express API: **`/api/nhs/*`** care coordination, audit, and x402-gated service requests; live payment verification; proxies to paid third-party APIs. |
+| **Integrations** | Optional rails: AgentMail, StablePhone, StableSocial, StableTravel, Laso cards, Suno, Parallel, OpenWeather, OpenAI gateway, Google Maps, Aviationstack, KicksDB, TIP‑20 factory, OpenAI explainer. |
+| **Reference demos** | **`/dance-extras`**, battle, coaching, beats — flows that showcase paid HTTP patterns in another domain. |
+| **Dedicated frontends** | Full-screen flows for wallet, network, receipts, recovery. |
 
 ---
 
 ## Tech stack
 
 - **Frontend:** React 19, TypeScript, Vite 8  
-- **Payments:** `mppx` (client + server), **viem** + **Tempo** chain actions (`viem/tempo`, `viem/chains`)  
+- **Payments:** **Circle Gateway** x402 (`@circle-fin/x402-batching`), **x402** stack (`@x402/core`, `@x402/fetch`, `@x402/evm`), **viem** + **Arc Testnet** (`arcTestnet`, chain id **5042002**)  
 - **Backend:** Node.js, Express 5  
-- **Docs in repo:** [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) — flows, endpoints, testing notes  
-- **Landing / Lovable handoff:** [`HEALTH_TECH_PROTOCOL_AZ.md`](./HEALTH_TECH_PROTOCOL_AZ.md) — A–Z narrative + GitHub links for marketing sites  
-- **Stripe `purl` CLI:** routes **`/purl`** and **`/nhs/purl`** — copy-paste `curl` + `purl` for **testnet + mainnet**; long-form [`docs/PURL_CLINICAL_TEMPO.md`](./docs/PURL_CLINICAL_TEMPO.md) · NHS-focused [`docs/PURL_NHS.md`](./docs/PURL_NHS.md)  
-- **EVVM:** optional **`npm run evvm:vendor`** (full upstream clone + `./evvm install`); Solidity library: **`npm install @evvm/testnet-contracts`** when you need imports; route **`/evvm`** — deploy on **Tempo testnet only**; long-form [`docs/EVVM_TEMPO.md`](./docs/EVVM_TEMPO.md) (skip global registry until EVVM lists Tempo)  
-- **Tempo Wallet CLI (official):** route **`/tempo-wallet`** — in-app showcase + copy-paste for [`tempoxyz/wallet`](https://github.com/tempoxyz/wallet); verification log [`docs/TEMPO_WALLET_TEST.md`](./docs/TEMPO_WALLET_TEST.md)  
-- **Agent / tribal knowledge:** [`CLAWHUB.md`](./CLAWHUB.md) — successes, failures, debugging checklists  
-- **MPPScan / AgentCash discovery:** **`GET /openapi.json`** — OpenAPI 3.1 for agents; validate with **`npm run discovery`** (requires **`npm run server`**). Long-form [`docs/MPPSCAN_DISCOVERY.md`](./docs/MPPSCAN_DISCOVERY.md)  
-- **LLM context bundle (single file):** [`public/llm-full.txt`](./public/llm-full.txt) — concatenated README + use cases + ClawHub + protocol docs; **regenerate** with `npm run build:llm`. **Download** from the running app at **`/llm-full.txt`** (hub button: “Download LLM context bundle”) or from GitHub raw after push.
-- **GitHub Copilot:** [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) — short project hints. **Published ClawHub skill:** **[clawhub.ai/arunnadarasa/clinicaltempo](https://clawhub.ai/arunnadarasa/clinicaltempo)** — **[ClawHub](https://clawhub.ai/)** versioned skill dock; mirrors repo **`.cursor/skills/clawhub/`** with the same **package rigor** as [self-improving-agent](https://clawhub.ai/pskoett/self-improving-agent): **`SKILL.md`**, **`references/`** (incl. **`openclaw-integration.md`**, **`hooks-setup.md`**), **`assets/`** (templates, optional **`learnings/`** stubs), **`scripts/`** (`verify-clinical-tempo-context.sh`, **`activator.sh`**, **`error-detector.sh`**, **`extract-skill.sh`**), optional **`hooks/openclaw/`** (**`clinicaltempo-clawhub`**), **`_meta.sample.json`**. Install: `npx clawhub@latest install arunnadarasa/clinicaltempo` (or site UI). Zip the folder to publish updates. **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — pair with the skill + **`references/openclaw-clinical-tempo.md`**.
+- **Docs:** [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md), [`docs/ARC_X402_NOTES.md`](./docs/ARC_X402_NOTES.md), [`docs/OPENAPI_DISCOVERY.md`](./docs/OPENAPI_DISCOVERY.md)  
+- **Landing / Lovable handoff:** [`HEALTH_TECH_PROTOCOL_AZ.md`](./HEALTH_TECH_PROTOCOL_AZ.md)  
+- **Agent / tribal knowledge:** [`CLAWHUB.md`](./CLAWHUB.md)  
+- **LLM context bundle:** [`public/llm-full.txt`](./public/llm-full.txt) — **regenerate:** `npm run build:llm`  
 
 ### Local dev (Vite + API)
 
@@ -84,154 +79,77 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 |--------|------------|
 | `npm run dev` | Vite only — **proxies `/api` → `http://localhost:8787`** |
 | `npm run server` | Express API (default **port 8787**) |
-| `npm run dev:full` | Both (recommended for live MPP flows) |
+| `npm run dev:full` | Both (recommended for live x402 flows) |
 
-If the UI shows **`Cannot POST /api/...`** (HTML 404), the backend on **8787** is missing that route (often an **old** `node server/index.js` still running). **Restart** `npm run server`. Quick checks: **`GET http://localhost:8787/openapi.json`** (OpenAPI) or **`GET http://localhost:8787/api/dance-extras/live`** (legacy demo JSON with `flowKeys`).
-
----
-
-## Tempo & MPP (quick reference)
-
-- **Tempo testnet (Moderato):** chain ID `42431` — typical fee/path asset: **pathUSD**  
-- **Tempo mainnet:** chain ID `4217` — common fee token: **USDC** (e.g. bridged USDC.e where configured)  
-- **MPP (Machine Payments Protocol):** server creates/verifies intents; browser can pay via injected wallet (`MetaMask` / Tempo wallet) using `MppxClient` + `tempoClient`.  
-- **x402:** some third-party APIs return `402` + `WWW-Authenticate`; the app forwards challenges so `mppx` can pay and retry.
-
-### MPP service directory (`mpp.dev`)
-
-The **[Machine Payments Protocol service catalog](https://mpp.dev/services)** lists hosted integrations (base URLs, `POST` paths, and per-call pricing). Use it when adding new rails or checking upstream contracts. Agent-oriented discovery is often linked from that site as **`llms.txt`**.
-
-**How this repo maps to the catalog**
-
-| Catalog idea | In Clinical Tempo |
-|--------------|----------------|
-| Wallet pays via **402 → `mppx`** on **Tempo mainnet** | Same pattern on `/music` (Suno), `/travel`, `/kicks`, `/card`, etc.; NHS **payment-gated** routes under **`/api/nhs/*`** follow the same server MPP verification pattern where applicable. |
-| **AgentMail** has two entry points | **`AGENTMAIL_BASE_URL`** (`https://api.agentmail.to`) for Bearer/API-key flows; **`AGENTMAIL_MPP_BASE_URL`** (`https://mpp.api.agentmail.to`) for wallet-paid MPP passthrough — both are named in `.env.example` and match [AgentMail on MPP](https://mpp.dev/services#agentmail). |
-| **Suno** at `suno.mpp.paywithlocus.com` | **`SUNO_BASE_URL`** + `/suno/generate-music` — no vendor “Suno API key” in the UI; payment is MPP headers from the wallet. |
-| **Parallel** at `parallelmpp.dev` | **`PARALLEL_BASE_URL`** — `/parallel` proxies search / extract / task (+ task poll). |
-| **OpenWeather** at `weather.mpp.paywithlocus.com` | **`OPENWEATHER_BASE_URL`** — `/weather` uses wallet MPP; optional **`OPENWEATHER_API_KEY`** for server `appid`. |
-| **OpenAI** at `openai.mpp.tempo.xyz` | **`OPENAI_MPP_BASE_URL`** — `/openai` proxies chat, images, speech & transcription (see `POST /api/openai/*`). |
+If the UI shows **`Cannot POST /api/...`**, restart the backend on **8787**. Quick checks: **`GET http://localhost:8787/openapi.json`** or **`GET http://localhost:8787/api/dance-extras/live`**.
 
 ---
 
-## Routes
+## Arc Testnet (quick reference)
 
-### Clinical Tempo (core NHS app)
+- **Chain ID:** `5042002` (`eip155:5042002`)  
+- **Settlement:** Circle Gateway x402 + USDC-style nanopayments  
+- **Faucet:** [faucet.circle.com](https://faucet.circle.com) (linked from the app)  
+- **Explorer:** [testnet.arcscan.app](https://testnet.arcscan.app)  
+
+---
+
+## Routes (selected)
+
+### NHS hub
 
 | Path | Purpose |
 |------|---------|
-| `/` · `/nhs` | **NHS hub** — wallet identity, patient bootstrap, directory to all **`/nhs/*`** flows |
-| `/nhs/gp-access` | Same-day **GP access** request workflow |
-| `/nhs/care-plans` | **Care plans** — create and update personalised plans |
-| `/nhs/social-prescribing` | **Social prescribing** — referral + link-worker plan |
-| `/nhs/neighbourhood-teams` | **Neighbourhood (MDT) coordination** |
-| `/nhs/monitoring` | **Remote monitoring** — readings + proactive alerts |
-| `/nhs/transactions` | **Transaction history** (Tempo) |
-| `/nhs/purl` | **Stripe [purl](https://www.purl.dev/)** — free / paid CLI demos against Tempo MPP |
-| `/nhs/ows` | **Open Wallet Standard** — install **`ows`** ([installer](https://docs.openwallet.sh/install.sh)); see **`docs/OWS_NHS.md`** |
-| `/nhs/agentmail` | **AgentMail** — MPP send + inbox patterns |
-| `/nhs/tip20` | **TIP-20** — on-chain factory (testnet + mainnet) |
+| `/` · `/nhs` | **NHS hub** |
+| `/nhs/gp-access` | GP access requests |
+| `/nhs/care-plans` | Care plans |
+| `/nhs/social-prescribing` | Social prescribing |
+| `/nhs/neighbourhood-teams` | Neighbourhood coordination |
+| `/nhs/monitoring` | Remote monitoring |
+| `/nhs/transactions` | Transaction history |
+| `/nhs/http-pay` | **HTTP + Arc** curl / CLI notes (legacy **`/nhs/purl`** redirects to the same screen) |
+| `/nhs/ows` | Open Wallet Standard |
+| `/nhs/agentmail` | AgentMail |
+| `/nhs/tip20` | TIP-20 token factory demo |
 
-**API:** **`/api/nhs/*`** — identity bootstrap, GP access, care plans, social prescribing, neighbourhood coordination, monitoring, alerts, patient timeline, audit. **Discovery:** **`GET /openapi.json`**.
+**API:** **`/api/nhs/*`** — **`GET /openapi.json`** for discovery.
 
-### Reference demos & integration showcases
+### Reference demos
 
 | Path | Purpose |
 |------|---------|
-| `/battle` | Battle entry + auto payout (live testnet/mainnet) |
-| `/coaching` | Coaching minutes marketplace (live payments) |
-| `/beats` | Beat API licensing (live payments) |
-| `/dance-extras` | HealthTech-pattern demos (judge, cypher, clips, reputation, studio AI, bot, fan pass); **simulate** mock APIs or **Live Tempo MPP** via `POST /api/dance-extras/live/:flowKey/:network` |
-| `/card` | Virtual debit card (Laso / MPP + demo fallback) |
-| `/travel` | StableTravel, Aviationstack, Google Maps |
-| `/email` | AgentMail ops (wallet-paid relay + send) |
-| `/ops` | AgentMail + StablePhone console |
-| `/social` | StableSocial |
-| `/music` | Suno |
-| `/parallel` | Parallel search / extract / task (MPP) |
-| `/weather` | OpenWeather current conditions (MPP) |
-| `/openai` | OpenAI chat completions (MPP gateway) |
-| `/kicks` | KicksDB (live MPP + simulate) |
-| `/tip20` | TIP‑20 token launch & post-launch ops (non-NHS entry) |
-| `/tempo-wallet` | Showcase: [Tempo Wallet CLI](https://github.com/tempoxyz/wallet) (MPP + `tempo request`; pairs with `/dance-extras` live routes) |
-| `/purl` | Showcase: [Stripe purl](https://github.com/stripe/purl) — `curl` + `purl --dry-run` / live pay for **testnet + mainnet** live MPP URLs |
-| `/evvm` | [EVVM](https://www.evvm.info/) — `evvm:vendor` + deploy on **Tempo testnet (42431)**; optional `npm i @evvm/testnet-contracts` for Solidity; registry step deferred |
-
----
-
-## Core HealthTech capabilities
-
-**Clinical Tempo (NHS)** — implemented in **`/api/nhs/*`** and the **`/nhs/*`** apps:
-
-- **Identity** — wallet-linked bootstrap and role-aware actions (`patient`, `gp`, `nhc_provider` where configured).  
-- **Access & care** — GP access requests; care plan CRUD and updates; social prescribing referrals and link-worker plans.  
-- **Neighbourhood** — team coordination events.  
-- **Monitoring** — sessions, readings, proactive alerts, and resolution paths.  
-- **Payments & audit** — Tempo payment gates on gated service requests; **audit** and **patient timeline** surfaces for traceability.  
-- **Wallet ecosystem** — purl, OWS, AgentMail, TIP-20 from the NHS section of the app.
-
-**Reference demos** (`/dance-extras`, battle, coaching, beats — same protocol, different domain) remain documented end-to-end for the paid-API patterns they illustrate:
-
-1. **Battle entry + auto payout** — intents, results, payout execution  
-2. **Judge score submission** — paid write API pattern  
-3. **Cypher micropot** — session-style sponsorship  
-4. **Coaching minutes** — start / tick usage / end + receipt  
-5. **Beat licensing** — intent, grant access, recovery helpers  
-6. **Clip marketplace** — listing + purchase scaffold  
-7. **Fan reputation attestations**  
-8. **Studio AI usage billing**  
-9. **Tournament ops bot** — actions + AgentMail / phone / travel hooks  
-10. **Fan membership battle pass**  
-
-Full step-by-step and endpoint list: **[`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md)**.
+| `/dance-extras` | Pattern demos; live **`POST /api/dance-extras/live/:flowKey/:network`** |
+| `/battle`, `/coaching`, `/beats` | Legacy paid demos |
+| `/card`, `/travel`, `/kicks`, `/music`, `/parallel`, `/weather`, `/openai` | Integration showcases |
 
 ---
 
 ## Quick start
 
 ```bash
-git clone https://github.com/arunnadarasa/clinicaltempo.git
-cd clinicaltempo
+git clone https://github.com/arunnadarasa/clinicalarc.git
+cd clinicalarc
 npm install
 cp .env.example .env
-# Edit .env: API keys, MPP_RECIPIENT, Tempo flags, third-party URLs as needed.
+# Edit .env: API keys, X402_SELLER_ADDRESS / seller, third-party URLs as needed.
 
-# Terminal 1 — API (default port 8787)
-npm run server
-
-# Terminal 2 — Vite dev server (proxies /api → backend)
-npm run dev
+npm run server    # Terminal 1 — API (default 8787)
+npm run dev       # Terminal 2 — Vite (proxies /api)
 ```
 
-Or one command:
+Or: `npm run dev:full`
 
-```bash
-npm run dev:full
-```
+Open **http://localhost:5173/** (NHS hub) or **http://localhost:5173/nhs/gp-access**.
 
-Open **http://localhost:5173/** (NHS hub) or **http://localhost:5173/nhs/gp-access** and other **`/nhs/*`** paths. Reference demos: e.g. **http://localhost:5173/dance-extras**.
-
-**Production build:**
-
-```bash
-npm run build
-npm run preview   # optional static preview; API still needs `npm run server` or your host
-```
+**Production build:** `npm run build` then `npm run preview` (API still needs `npm run server` or your host).
 
 ---
 
 ## Environment variables
 
-Copy **`.env.example`** → **`.env`**. Never commit **`.env`** (it is gitignored).
+Copy **`.env.example`** → **`.env`**. Never commit **`.env`**.
 
-Typical groups:
-
-- **OpenAI** — `OPENAI_API_KEY` (optional; hub explainer + optional Bearer on MPP proxy), `OPENAI_MPP_BASE_URL` (default `https://openai.mpp.tempo.xyz`), `OPENAI_MODEL` (hub explainer default)  
-- **MPP / Tempo** — `MPP_RECIPIENT`, `TMPO_TESTNET`, `PAYMENT_MODE`, etc.  
-- **AgentMail** — `AGENTMAIL_API_KEY` (optional), `AGENTMAIL_BASE_URL` (direct API), **`AGENTMAIL_MPP_BASE_URL`** (wallet-paid host; default matches [mpp.dev#agentmail](https://mpp.dev/services#agentmail)), `AGENTMAIL_INBOX_ID`, `AGENTMAIL_SEND_FEE`  
-- **Integrations** — KicksDB, StablePhone, StableSocial, Laso, Suno (`SUNO_BASE_URL`), Parallel (`PARALLEL_BASE_URL`), OpenWeather (`OPENWEATHER_BASE_URL`, optional `OPENWEATHER_API_KEY`), OpenAI MPP (`OPENAI_MPP_BASE_URL`), maps, aviation, etc.  
-
-See `.env.example` for the full list and placeholders.
+Typical groups: **OpenAI**, **Arc / x402** (`X402_SELLER_ADDRESS`, `ARC_TESTNET`, …), **AgentMail**, **integration base URLs** — see `.env.example`.
 
 ---
 
@@ -239,32 +157,23 @@ See `.env.example` for the full list and placeholders.
 
 | Resource | Purpose |
 |----------|---------|
-| [`public/llm-full.txt`](./public/llm-full.txt) | Single-file bundle (README + use cases + ClawHub + protocol + purl/wallet/EVVM/MPPScan docs). **Regenerate:** `npm run build:llm` |
-| [`CLAWHUB.md`](./CLAWHUB.md) | Tribal debugging — what worked / failed |
-| [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) | Hints for GitHub Copilot |
-| **ClawHub skill** | Bundled as **`.cursor/skills/clawhub/`** — install from [ClawHub](https://clawhub.ai/) (search **clinicaltempo**); manifest: **[`.cursor/skills/clawhub/README.md`](./.cursor/skills/clawhub/README.md)** |
-| **OpenClaw Anyway plugin (optional)** | `openclaw plugins install @anyway-sh/anyway-openclaw` — extra runtime tools; pair with the skill · **`.cursor/skills/clawhub/references/openclaw-clinical-tempo.md`** |
-| EVVM upstream | [`https://www.evvm.info/llms-full.txt`](https://www.evvm.info/llms-full.txt) (not vendored; attach when doing deep EVVM work) |
-| **MPPScan discovery** | **`GET /openapi.json`** on the API (OpenAPI 3.1 + `x-payment-info` for live MPP routes). Validate: **`npm run discovery`** (server on **8787**). Guide: [`docs/MPPSCAN_DISCOVERY.md`](./docs/MPPSCAN_DISCOVERY.md) · [mppscan.com/discovery](https://www.mppscan.com/discovery) |
-| **Ecosystem synergy** | [docs/ECOSYSTEM_SYNERGY.md](./docs/ECOSYSTEM_SYNERGY.md) — MPP + Tempo vs **mpp-nanogpt-modal**; nanoGPT / nanochat / autoresearch vs Clinical Tempo; OpenClaw skill + plugins |
+| [`public/llm-full.txt`](./public/llm-full.txt) | Single-file bundle — **regenerate:** `npm run build:llm` |
+| [`CLAWHUB.md`](./CLAWHUB.md) | Debugging notes |
+| [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) | Copilot hints |
 
 ---
 
 ## Repository layout
 
 ```
-├── src/              # React apps (App + route-specific *App.tsx); routes in main.tsx + hubRoutes.ts
+├── src/              # React apps; routes in main.tsx + hubRoutes.ts
 ├── server/           # Express API (index.js, payments.js)
 ├── public/           # Static assets; llm-full.txt generated here
-├── scripts/          # build-llm-full.mjs, install-evvm.mjs
-├── docs/             # PURL, wallet, EVVM, MPPScan, ECOSYSTEM_SYNERGY, …
-├── .cursor/skills/clawhub/  # ClawHub / Cursor skill (hooks, references, assets)
-├── .github/          # copilot-instructions.md
+├── scripts/          # build-llm-full.mjs, …
+├── docs/             # ARC_X402_NOTES, OPENAPI_DISCOVERY, OWS_NHS, …
+├── .cursor/skills/clawhub/  # Cursor skill
 ├── HEALTHTECH_USE_CASES.md
-├── HEALTH_TECH_PROTOCOL_AZ.md  # A–Z protocol copy for landing pages (e.g. Lovable)
-├── CLAWHUB.md        # Learning notes, failures, debugging playbooks
-├── OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md  # Hackathon / OpenClaw participant notes
-├── LOVABLE_HANDOFF.md
+├── CLAWHUB.md
 └── vite.config.ts    # dev proxy: /api → http://localhost:8787
 ```
 
@@ -272,18 +181,18 @@ See `.env.example` for the full list and placeholders.
 
 ## Security & operations
 
-- Keep **secrets in `.env`** only; rotate keys if exposed.  
+- Keep **secrets in `.env`** only.  
 - **Live mainnet** flows spend real assets — test on **testnet** first.  
-- Transaction hashes can be recorded locally (see hub + dedicated pages) for audit; explorers: [Tempo mainnet](https://explore.tempo.xyz), [testnet](https://explore.testnet.tempo.xyz).  
+- Transaction hashes can be recorded locally; use **[testnet.arcscan.app](https://testnet.arcscan.app)** for Arc Testnet.
 
 ---
 
-## Contributing / fork
+## Contributing
 
-1. Fork or clone **`https://github.com/arunnadarasa/clinicaltempo.git`**  
+1. Fork **`https://github.com/arunnadarasa/clinicalarc`**  
 2. Configure `.env` for the use cases you need  
-3. Extend `server/index.js` or add a new `src/*App.tsx` + route in `src/main.tsx` and **`src/hubRoutes.ts`** (hub directory)  
-4. After editing docs that feed **`llm-full.txt`**, run **`npm run build:llm`** before committing  
+3. Extend `server/index.js` or add `src/*App.tsx` + route in `src/main.tsx` and **`src/hubRoutes.ts`**  
+4. After doc edits that feed **`llm-full.txt`**, run **`npm run build:llm`** before committing  
 
 ---
 
@@ -293,7 +202,7 @@ This project is licensed under the MIT License. See [`LICENSE`](./LICENSE).
 
 ---
 
-**HealthTech Protocol** · **Clinical Tempo** — *Tempo + MPP for health: one reference stack.*
+**HealthTech Protocol** · **Clinical Arc** — *Arc Testnet + Circle Gateway x402 for health use cases.*
 
 
 ## <<< END FILE: README.md
@@ -301,25 +210,25 @@ This project is licensed under the MIT License. See [`LICENSE`](./LICENSE).
 
 ## >>> BEGIN FILE: CLAWHUB.md
 
-# ClawHub Learning Notes (Clinical Tempo / HealthTech Protocol)
+# ClawHub Learning Notes (Clinical Arc / HealthTech Protocol)
 
 ## LLM context bundle (`llm-full.txt`)
 
-For **full-repo orientation** in one paste (ChatGPT, Claude, Cursor, OpenClaw): use **`public/llm-full.txt`**, built from README + this file + `HEALTHTECH_USE_CASES.md` + `HEALTH_TECH_PROTOCOL_AZ.md` + purl/tempo wallet + **`docs/EVVM_TEMPO.md`** + **`docs/MPPSCAN_DISCOVERY.md`**.
+For **full-repo orientation** in one paste (ChatGPT, Claude, Cursor, OpenClaw): use **`public/llm-full.txt`**, built from README + this file + `HEALTHTECH_USE_CASES.md` + `HEALTH_TECH_PROTOCOL_AZ.md` + **`docs/ARC_X402_NOTES.md`** + **`docs/OPENAPI_DISCOVERY.md`** (when present).
 
-**Published skill (ClawHub):** [clawhub.ai/arunnadarasa/clinicaltempo](https://clawhub.ai/arunnadarasa/clinicaltempo) — install the Clinical Tempo skill for IDE/OpenClaw; source of truth remains **`.cursor/skills/clawhub/`** in git. **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — documented in **`references/openclaw-clinical-tempo.md`**. **Ecosystem framing:** **`docs/ECOSYSTEM_SYNERGY.md`** (mpp-nanogpt-modal, nanoGPT/nanochat/autoresearch, ClawHub + plugins).
+**Published skill (ClawHub):** [clawhub.ai/arunnadarasa/clinicalarc](https://clawhub.ai/arunnadarasa/clinicalarc) — install the Clinical Arc skill for IDE/OpenClaw; source of truth remains **`.cursor/skills/clawhub/`** in git. **OpenClaw (optional):** `openclaw plugins install @anyway-sh/anyway-openclaw` — documented in **`references/openclaw-clinical-tempo.md`**. **Ecosystem framing:** optional **`docs/ECOSYSTEM_SYNERGY.md`** when present.
 
 - **Regenerate:** `npm run build:llm` (runs automatically before `npm run build`).
 - **In the browser:** open **`/llm-full.txt`** or use the hub **“Download LLM context bundle”** button on `/`.
-- **In GitHub (raw `llm-full.txt`):** `https://raw.githubusercontent.com/arunnadarasa/clinicaltempo/main/public/llm-full.txt`
+- **In GitHub (raw `llm-full.txt`):** `https://raw.githubusercontent.com/arunnadarasa/clinicalarc/main/public/llm-full.txt`
 
-Keep **this file (`CLAWHUB.md`)** for debugging checklists and failures; pair it with `llm-full.txt` when an agent needs both product context and tribal knowledge. For **EVVM** depth beyond `docs/EVVM_TEMPO.md`, use upstream **`https://www.evvm.info/llms-full.txt`** (EVVM’s bundle; not vendored here).
+Keep **this file (`CLAWHUB.md`)** for debugging checklists and failures; pair it with `llm-full.txt` when an agent needs both product context and tribal knowledge. For **EVVM** depth, use upstream **`https://www.evvm.info/llms-full.txt`** (not vendored here).
 
 ---
 
-This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any future agent) to the Clinical Tempo repository:
+This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any future agent) to the Clinical Arc repository:
 
-- what the repo is (**HealthTech Protocol** reference stack on Tempo + MPP),
+- what the repo is (**HealthTech Protocol** reference stack on Arc + x402),
 - what succeeded,
 - what failed and why,
 - and the repeatable best practices that prevent re-learning the hard parts.
@@ -328,14 +237,14 @@ This is a “tribal knowledge” file for quickly onboarding OpenClaw (and any f
 
 ## What this repo is
 
-**HealthTech Protocol** (this repo’s framing) is the set of **interoperable payment + ops patterns** for **neighbourhood health and care coordination**—wallet identity, payment-gated service requests, care plans, referrals, monitoring, AgentMail/TIP-20/purl integrations—implemented with **Tempo** settlement and **MPP / x402** machine payments. **Legacy** event/dance demos (`/dance-extras`) use the same rails. Clinical Tempo is the **reference superapp** that encodes those patterns in code.
+**HealthTech Protocol** (this repo’s framing) is the set of **interoperable payment + ops patterns** for **neighbourhood health and care coordination**—wallet identity, payment-gated service requests, care plans, referrals, monitoring, AgentMail/TIP-20 integrations—implemented with **Arc Testnet** settlement and **Circle Gateway x402** machine payments. **Legacy** event/dance demos (`/dance-extras`) use the same rails. Clinical Arc is the **reference superapp** that encodes those patterns in code.
 
-Clinical Tempo is built around:
+Clinical Arc is built around:
 
-- **Tempo** (on-chain payments and receipts)
-- **MPP** via `mppx` (client/server-side handling of `402 Payment Required` challenges)
+- **Arc Testnet** (chain id 5042002) for nanopaid flows
+- **x402** (client/server-side handling of `402 Payment Required` challenges)
 - **Dedicated use-case routes** (hub + full-screen flows)
-- A **Node/Express backend** that creates/verifies MPP intents and proxies/handles integrations.
+- A **Node/Express backend** that verifies x402 receipts and proxies/handles integrations.
 
 Core docs to reuse:
 
@@ -347,9 +256,9 @@ Core docs to reuse:
 
 ## Successes (what worked)
 
-1. **Stripe `purl` + Clinical Tempo `402` (MPP on Tempo testnet)**  
-   - With a **Tempo** keystore (`purl wallet add --type tempo`), `purl --dry-run -X POST --json '…' http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet` correctly detects **402**, protocol **mpp**, network **eip155:42431**, **0.01 pathUSD**.  
-   - `purl inspect` uses **GET**; POST-only routes return 404 — use **dry-run + POST** for dance-extras live. See **`docs/PURL_CLINICAL_TEMPO.md`**.
+1. **Arc + x402 on dance-extras live**  
+   - `curl` to `http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet` returns **402** until a browser wallet completes payment via Circle Gateway on Arc.  
+   - See **`docs/ARC_X402_NOTES.md`** and `/nhs/http-pay` for copy-paste examples.
 
 2. **Superapp README now reflects the real architecture**
    - Added a “super app” definition that maps: hub vs dedicated routes vs backend vs integrations.
@@ -362,42 +271,37 @@ Core docs to reuse:
    - Resolution strategy: keep the README focused (short title/one-line description) and remove template bulk rather than trying to merge two incompatible README styles.
 
 4. **AgentMail “email” flow got to a working end-to-end pattern**
-   - Earlier attempts hit MPP/inbox scope mismatches (notably `Inbox not found`).
+   - Earlier attempts hit inbox scope mismatches (notably `Inbox not found`).
    - The final working approach:
-     - the wallet pays **this backend** using **Tempo MPP** (`mppx` server charge),
+     - the wallet pays **this backend** using **x402** (server charge),
      - then the backend sends the email via **AgentMail’s API key endpoint** (`AGENTMAIL_API_KEY`).
    - This preserves “wallet-paid UX” while avoiding fragile inbox scope behavior in passthrough mode.
 
-5. **`/dance-extras` live MPP + shared server handler**
-   - `POST /api/dance-extras/live/:flowKey/:network` runs `mppx.tempo.charge` then `executeDanceExtraFlow` so the seven core HealthTech scaffolds share one payment path.
+5. **`/dance-extras` live x402 + shared server handler**
+   - `POST /api/dance-extras/live/:flowKey/:network` runs the gateway gate then `executeDanceExtraFlow` so the seven core HealthTech scaffolds share one payment path.
    - `GET /api/dance-extras/live` returns `flowKeys` — use it to verify the running Node process actually has the route (see failure §5).
 
 6. **AgentMail bot flow: always send `inbox_id`**
    - `/api/ops/agentmail/send` requires `inbox_id` (or `AGENTMAIL_INBOX_ID` on the server).
    - Demo default in the client: `streetkode@agentmail.to` via `src/agentmailDemo.ts` (`AGENTMAIL_DEMO_INBOX_ID`).
 
-7. **MPPScan discovery (`GET /openapi.json`)**
-   - Express serves **OpenAPI 3.1** at **`/openapi.json`** (`server/openapi.mjs`) so agents can discover MPP-paid routes; **`DANCE_EXTRA_LIVE_AMOUNTS`** lives in **`openapi.mjs`** and is imported by **`server/index.js`** (single source of truth).
-   - Validate with **`npm run discovery`** while **`npm run server`** is running on **8787**. See **`docs/MPPSCAN_DISCOVERY.md`** and [mppscan.com/discovery](https://www.mppscan.com/discovery).
+7. **OpenAPI discovery (`GET /openapi.json`)**
+   - Express serves **OpenAPI 3.1** at **`/openapi.json`** (`server/openapi.mjs`) so agents can discover paid routes; **`DANCE_EXTRA_LIVE_AMOUNTS`** lives in **`openapi.mjs`** and is imported by **`server/index.js`** (single source of truth).
+   - Validate with **`npm run discovery`** while **`npm run server`** is running on **8787**. See **`docs/OPENAPI_DISCOVERY.md`** when present.
 
 8. **Server integration patterns are consistent**
    - For `402`-capable third-party endpoints:
-     - if upstream returns `402`, the backend should pass that challenge back to the client (so `mppx` can solve).
+     - if upstream returns `402`, the backend should pass that challenge back to the client (so `x402` can solve).
    - For “paid endpoints then poll” integrations:
      - use the correct auth header strategy for the paid + polling phases (x402 vs SIWX vs bearer-token style).
 
-9. **NHS routes: extracting the on-chain reference after `mppx.tempo.charge()`**
-   - `charge(fetchRequest)` resolves to **`{ status: 200 | 402, withReceipt(response) | challenge }`**. There is **no** `mppResponse.receipt` field — the verified receipt object exists only inside **`withReceipt()`**, which sets the **`Payment-Receipt`** header via `Receipt.serialize(receipt)`.
-   - **Wrong:** `mppResponse?.receipt?.reference` (always `undefined` on success).
-   - **Right:** after `status === 200`, derive the tx reference with one of:
-     - call **`mppResponse.withReceipt(new Response('{}', { headers: { 'Content-Type': 'application/json' } }))`**, then **`Receipt.fromResponse(wrapped).reference`** (canonical hash from Tempo verify), or
-     - parse **`Authorization: Payment …`** with **`Credential.deserialize`** and use **`payload.hash`** when `payload.type === 'hash'`, or
-     - if the inbound request already carries **`payment-receipt`**, **`Receipt.deserialize(header).reference`**.
-   - Implementation lives in **`server/nhs/payment.js`** (`resolvePaymentReceiptRef`). NHS **GP access** persists that value as **`gp_access_requests.receipt_ref`** and echoes **`receiptRef`** in JSON via **`withReceipt()`** in **`server/nhs/router.js`**. The client prefers **`payload.receiptRef`** in **`src/nhsApi.ts`** (`txFromResponse`) so local **Transactions** history can show **On-chain** rows even when response headers are thin.
+9. **NHS routes: extracting the on-chain reference after x402 settlement**
+   - After the gateway verifies payment, the handler should surface a stable **`receiptRef`** / tx hash for audit — see **`server/nhs/payment.js`** (`resolvePaymentReceiptRef`) and **`server/nhs/router.js`**.
+   - The client prefers **`payload.receiptRef`** in **`src/nhsApi.ts`** (`txFromResponse`) so **Transactions** can show **On-chain** rows.
 
 10. **NHS `/nhs/tip20`: mint after factory create (`viem/tempo`)**  
    - Factory **`createSync`** sets **`admin`** to the connected wallet; **mint** requires **`ISSUER_ROLE`**, which is **not** granted automatically — check with **`Actions.token.hasRole`** (`role: 'issuer'`) and, if missing, **`grantRole`** on the token contract before **`Actions.token.mintSync`**.  
-   - Prefer **`writeContractSync`** for a **single** `grantRole` call. **`Actions.token.grantRolesSync`** uses **`sendTransaction`** with batched `calls`, which on Tempo can produce envelope type **`0x76`**; browser wallets + viem reject that path (`Invalid transaction envelope type: "0x76". Must be one of: 0x0, 0x1, 0x2, 0x4`).  
+   - Prefer **`writeContractSync`** for a **single** `grantRole` call. **`Actions.token.grantRolesSync`** uses **`sendTransaction`** with batched `calls`, which on some chains can produce envelope type **`0x76`**; browser wallets + viem reject that path (`Invalid transaction envelope type: "0x76". Must be one of: 0x0, 0x1, 0x2, 0x4`).  
    - Misleading reverts (e.g. “gas limit too high”) can appear when mint is unauthorized — fix roles first, not gas.  
    - Implementation: **`src/tempoTip20Launch.ts`** (`mintTip20OnChain`), UI **`src/NhsTip20App.tsx`**.
 
@@ -437,22 +341,22 @@ Core docs to reuse:
 **Common causes**
 - `AGENTMAIL_INBOX_ID` not set and no `inbox_id` provided in the request body.
 - Inbox ID mismatch vs the paid-scope the integration expects.
-- Using passthrough MPP mode while the integration expects a specific inbox access scope.
+- Using passthrough wallet-paid mode while the integration expects a specific inbox access scope.
 
 **Fix pattern that worked**
 - If `AGENTMAIL_API_KEY` is available:
-  - pay via Tempo MPP to this backend,
+  - pay via x402 to this backend,
   - send via AgentMail stable API endpoint using the API key,
   - return the upstream result.
 
-### 4) MPP / x402 mismatch and recurring `402` loops
+### 4) x402 mismatch and recurring `402` loops
 
 **Symptom**
 - The frontend repeatedly encounters `402` (or can’t recover from an auth challenge).
 
 **Common causes**
 - Hitting the wrong base URL for the x402-capable endpoint.
-- Not preserving `402` challenge headers/body back to the `mppx` client.
+- Not preserving `402` challenge headers/body back to the `x402` client.
 - Forwarding the wrong headers for the solved/authorized phase.
 
 **Fix**
@@ -489,8 +393,8 @@ Core docs to reuse:
 - Payment failures that mention token/fee/address/chain inconsistencies.
 
 **Common causes**
-- Using the wrong chain network (Tempo testnet vs mainnet).
-- Passing amount in base units when the `mppx` chain method expects a decimal-string amount (see server implementation).
+- Using the wrong chain network (testnet vs mainnet).
+- Passing amount in base units when the `x402` chain method expects a decimal-string amount (see server implementation).
 - Misconfigured recipients/fee tokens for a specific provider method.
 
 **Fix**
@@ -517,7 +421,7 @@ Core docs to reuse:
 - `/nhs/transactions` shows **Audit** rows for paid GP access; **Explorer** has no per-row tx link; **`receiptRef`** missing from API JSON.
 
 **Cause**
-- Server code assumed **`mppResponse.receipt.reference`** after `mppx.tempo.charge()`. That property does not exist — the receipt is only produced when **`withReceipt()`** runs on a `Response`, or when read from **`Payment-Receipt`** / credential **`payload.hash`**.
+- Server code assumed **`chargeResponse.receipt.reference`** after the gateway charge. That property does not exist — the receipt is only produced when **`withReceipt()`** runs on a `Response`, or when read from **`Payment-Receipt`** / credential **`payload.hash`**.
 
 **Fix**
 - Use **`resolvePaymentReceiptRef`** (see Success §9 and **`server/nhs/payment.js`**). Persist **`receipt_ref`** on **`gp_access_requests`** and return **`receiptRef`** in JSON. Ensure **`NHS_ENABLE_PAYMENT_GATE`** is not `false` if you expect on-chain receipts.
@@ -529,7 +433,7 @@ Core docs to reuse:
 
 **Cause**
 - **`mint`** requires **`ISSUER_ROLE`**. Factory **`admin` ≠ issuer** unless roles were granted.
-- **`grantRolesSync`** batches via **`sendTransaction`** and can emit Tempo **type `0x76`** envelopes that **viem + injected wallets** do not accept (only `0x0`, `0x1`, `0x2`, `0x4`).
+- **`grantRolesSync`** batches via **`sendTransaction`** and can emit **type `0x76`** envelopes that **viem + injected wallets** do not accept (only `0x0`, `0x1`, `0x2`, `0x4`).
 
 **Fix**
 - Grant issuer with **`writeContractSync`** on **`grantRole`** (single call), then **`Actions.token.mintSync`**. See Success §10 and **`src/tempoTip20Launch.ts`**.
@@ -552,11 +456,11 @@ Core docs to reuse:
 ### Payment flow correctness
 
 1. For x402 endpoints:
-   - on upstream `402`, return the challenge response so `mppx` can solve.
+   - on upstream `402`, return the challenge response so `x402` can solve.
 2. For solved payment forwarding:
    - forward the correct auth headers from the incoming request.
 3. Keep a consistent “two-stage” mental model:
-   - paid endpoint interaction (x402 / Tempo MPP solve),
+   - paid endpoint interaction (x402 solve),
    - polling or follow-up calls (often SIWX or bearer-token style depending on provider).
 
 ### Engineering hygiene
@@ -587,7 +491,7 @@ Core docs to reuse:
 3. Implementation patterns and provider edge cases:
    - `server/index.js` (integration handlers, `402` passthrough, AgentMail send/inbox create)
 4. Dev proxy: `vite.config.ts` (proxy `/api` -> `http://localhost:8787`)
-5. Dance-extras live MPP: `POST /api/dance-extras/live/:flowKey/:network`, verify with `GET /api/dance-extras/live`
+5. Dance-extras live x402: `POST /api/dance-extras/live/:flowKey/:network`, verify with `GET /api/dance-extras/live`
 6. Demo AgentMail inbox constant: `src/agentmailDemo.ts`
 7. NHS payment gate + receipt reference: `server/nhs/payment.js`, `server/nhs/router.js`, `src/nhsApi.ts`; SQLite schema in `server/nhs/db.js` (`gp_access_requests.receipt_ref`)
 8. TIP-20 launch + mint (issuer role, avoid `grantRolesSync` in browser): `src/tempoTip20Launch.ts`, `src/NhsTip20App.tsx`
@@ -599,35 +503,35 @@ Core docs to reuse:
 
 ## >>> BEGIN FILE: HEALTHTECH_USE_CASES.md
 
-# HealthTech Use Cases (Tempo + MPP)
+# HealthTech Use Cases (Arc + x402)
 
-This document is the **behavioral contract** for payment-gated flows in this repo: **Clinical Tempo** NHS APIs (`/api/nhs/*`), integrations (AgentMail, purl, etc.), and **legacy** event/dance scaffolds (`/dance-extras`, battle/coaching) that demonstrate the same **HealthTech Protocol** patterns on Tempo + MPP.
+This document is the **behavioral contract** for payment-gated flows in this repo: **Clinical Arc** NHS APIs (`/api/nhs/*`), integrations (AgentMail, HTTP pay notes, etc.), and **legacy** event/dance scaffolds (`/dance-extras`, battle/coaching) that demonstrate the same **HealthTech Protocol** patterns on Arc Testnet + x402.
 
 ## Interaction modes (humans & agents)
 
-**HealthTech Protocol** stays **one** contract: payments and API access are governed by **Tempo** + **MPP/x402**. Colloquial pairings (human↔human, human↔agent, agent↔human, agent↔agent) describe **who authorizes** and **who benefits**, not four different protocol specs.
+**HealthTech Protocol** stays **one** contract: payments and API access are governed by **Arc Testnet settlement** + **x402**. Colloquial pairings (human↔human, human↔agent, agent↔human, agent↔agent) describe **who authorizes** and **who benefits**, not four different protocol specs.
 
 - **Human ↔ human** — Wallet-funded commerce between people/orgs (battles, passes, royalties). Primary flows in §1–§10 below.
 - **Human → agent (orchestrated)** — A human approves spend; an agent or script **calls the same `POST /api/...` routes** (e.g. from MCP, CI, or an assistant). The signing wallet is usually still the user’s unless you implement delegation or server-side treasury.
 - **Agent → human** — Backend or paid job **delivers** to a person (email, SMS, pass state). Example: tournament ops bot + AgentMail after a `charge`.
-- **Agent → agent** — **Machine-to-machine**: server keys, HMAC, or **x402** between services; overlaps with “machine payments” in MPP. This repo often uses **wallet MPP to this backend**, then **Bearer/API-key** upstream (e.g. AgentMail) to avoid inbox scope issues.
+- **Agent → agent** — **Machine-to-machine**: server keys, HMAC, or **x402** between services; overlaps with “machine payments” in x402. This repo often uses **wallet x402 to this backend**, then **Bearer/API-key** upstream (e.g. AgentMail) to avoid inbox scope issues.
 
-When testing, default to **Tempo testnet** and treat **402** responses as “payment required”—whether the client is a browser or an automated caller that can complete the challenge per your security model.
+When testing, default to **Arc testnet** and treat **402** responses as “payment required”—whether the client is a browser or an automated caller that can complete the challenge per your security model.
 
 ## Scope
 
-- **MPP catalog:** Hosted integrations (Suno, AgentMail, KicksDB, weather, …) are listed at [mpp.dev/services](https://mpp.dev/services) with base URLs and prices; this repo’s proxies use the same hosts via env (see `README.md` and `.env.example`).
-- Network: Tempo `testnet` and `mainnet`
-- Payment rail: MPP style `charge` and `session` patterns
+- **Third-party gateways:** Integrations (Suno, AgentMail, KicksDB, weather, …) use configurable base URLs in `.env.example`; upstream hosts may return `402` for wallet-paid calls.
+- Network: `testnet` and `mainnet` (UI labels; Arc chain id **5042002** for nanopayments)
+- Payment rail: x402 style `charge` and `session` patterns
 - Locus bridge: Laso Finance endpoints can be used for card issuance and status polling
 - Status: Battle flow has a dedicated frontend; other use cases are implemented as backend scaffolds and/or demo interactions
 
 ## Environment and Networks
 
-- Tempo testnet
+- Arc testnet
   - Chain ID: `42431`
   - Default currency: `pathUSD`
-- Tempo mainnet
+- mainnet
   - Chain ID: `4217`
   - Default currency: `USDC`
 
@@ -737,13 +641,13 @@ Intent type: `charge`
 
 - Suno is relevant to Beat API Licensing because creators can generate new beat drafts, then route into paid licensing flows.
 - It supports rapid prototyping for event promos, battle intros, and creator packs tied to monetized beat distribution.
-- Tempo x MPP reference endpoint: [suno.mpp.paywithlocus.com](https://suno.mpp.paywithlocus.com)
+- Reference gateway host (Suno): [suno.mpp.paywithlocus.com](https://suno.mpp.paywithlocus.com)
 
 ---
 
 ## Parallel (web search / extract / task)
 
-Dedicated UI: **`/parallel`**. Uses **Tempo mainnet** + **`mppx`** for paid `POST`s; task status polling uses **`GET /api/parallel/task/:runId`** (proxied to upstream; typically no per-poll charge).
+Dedicated UI: **`/parallel`**. Uses **mainnet** + **`x402 client`** for paid `POST`s; task status polling uses **`GET /api/parallel/task/:runId`** (proxied to upstream; typically no per-poll charge).
 
 ### API mapping
 
@@ -756,9 +660,9 @@ Reference host: [parallelmpp.dev](https://parallelmpp.dev) · env: **`PARALLEL_B
 
 ---
 
-## OpenAI (chat via MPP gateway)
+## OpenAI (chat via x402 gateway)
 
-Dedicated UI: **`/openai`**. Proxies **`POST /v1/chat/completions`** to **`OPENAI_MPP_BASE_URL`** (default `https://openai.mpp.tempo.xyz`) with **Tempo mainnet** + **`mppx`**. Optional **`OPENAI_API_KEY`** adds `Authorization: Bearer` on the server.
+Dedicated UI: **`/openai`**. Proxies **`POST /v1/chat/completions`** to **`OPENAI_X402_GATEWAY_URL`** (default `https://openai.mpp.tempo.xyz`) with **mainnet** + **`x402 client`**. Optional **`OPENAI_API_KEY`** adds `Authorization: Bearer` on the server.
 
 The hub **AI explainer** still uses **`POST /api/ai/explain-flow`** and direct **`api.openai.com`** when **`OPENAI_API_KEY`** is set.
 
@@ -770,7 +674,7 @@ The hub **AI explainer** still uses **`POST /api/ai/explain-flow`** and direct *
 - `POST /api/openai/audio/transcriptions` → `POST /v1/audio/transcriptions` (multipart `file` + `model`)
 - `POST /api/ai/explain-flow` (hub) → OpenAI direct (key required)
 
-Catalog: [mpp.dev/services](https://mpp.dev/services) (OpenAI on Tempo)
+Configure **`OPENAI_X402_GATEWAY_URL`** for the OpenAI-compatible gateway you use.
 
 ---
 
@@ -781,7 +685,7 @@ Intent type: `charge`
 ### User flow steps
 
 1. Operator submits funded card request with wallet and amount.
-2. Backend routes issuance through Locus/Laso MPP endpoint.
+2. Backend routes issuance through Locus/Laso x402 endpoint.
 3. API returns card creation response or payment challenge details.
 4. Operator polls card status endpoint until card is ready.
 
@@ -886,20 +790,20 @@ Intent type: `charge`
 
 - StablePhone is relevant for tournament operations because AI voice calls can handle urgent call-time reminders and live coordination tasks.
 - It complements bot actions by adding direct phone outreach with transcript/status polling for auditability.
-- Paid call initiation is x402/MPP and status polling is SIWX-authenticated wallet access.
+- Paid call initiation is x402/x402 and status polling is SIWX-authenticated wallet access.
 - Integration reference: [StablePhone](https://stablephone.dev)
 
 ### StableSocial relevance
 
 - StableSocial is relevant for ops and growth because teams can collect social profile intelligence for dancers, events, and fan campaigns.
 - It complements tournament operations by enabling lightweight social monitoring workflows with token-based polling.
-- Trigger calls are paid (x402/MPP) and `/api/jobs` polling requires SIWX from the same wallet that paid.
+- Trigger calls are paid (x402/x402) and `/api/jobs` polling requires SIWX from the same wallet that paid.
 - Integration reference: [StableSocial](https://stablesocial.dev)
 
 ### StableTravel relevance
 
 - StableTravel is relevant for tournament operations where organizers coordinate travel for dancers, judges, and crew.
-- It fits as a paid machine-to-machine API call pattern aligned with Tempo + MPP style rails.
+- It fits as a paid machine-to-machine API call pattern aligned with x402-style rails.
 - Integration reference: [StableTravel API](https://stabletravel.dev/llms.txt)
 
 ### Aviationstack relevance
@@ -913,15 +817,15 @@ Intent type: `charge`
 - Google Maps is relevant for tournament operations because crews need accurate venue coordinates, route planning, and dispatch precision.
 - It complements flight and hotel flows by turning raw addresses into reliable geospatial data for logistics tooling.
 - Integration reference: [Google Maps Platform](https://developers.google.com/maps)
-- Tempo x MPP reference endpoint: [googlemaps.mpp.tempo.xyz](https://googlemaps.mpp.tempo.xyz)
+- Reference gateway host (maps): [googlemaps.mpp.tempo.xyz](https://googlemaps.mpp.tempo.xyz)
 
 ### OpenWeather relevance
 
 - OpenWeather is relevant to tournament operations because weather conditions impact travel windows, call times, and safety.
 - It complements travel routing by adding real-time environmental context for venue and transport decisions.
-- Dedicated wallet-paid UI: **`/weather`** → `POST /api/travel/openweather/current` → MPP **`POST /openweather/current-weather`** JSON body `{ lat, lon, units? }` (not legacy GET `/data/2.5/weather`; see [mpp.dev](https://mpp.dev/api/services) OpenWeather).
+- Dedicated wallet-paid UI: **`/weather`** → `POST /api/travel/openweather/current` → x402 **`POST /openweather/current-weather`** JSON body `{ lat, lon, units? }` (not legacy GET `/data/2.5/weather`).
 - Integration reference: [OpenWeather](https://openweathermap.org)
-- Tempo x MPP reference endpoint: [weather.mpp.paywithlocus.com](https://weather.mpp.paywithlocus.com)
+- Reference gateway host (OpenWeather): [weather.mpp.paywithlocus.com](https://weather.mpp.paywithlocus.com)
 
 ---
 
@@ -946,7 +850,7 @@ Intent type: `charge`
 - KicksDB is relevant to fan membership because battle passes can include sneaker/merch perks driven by real market signals.
 - It helps ops and growth teams price drops, target inventory, and tailor tier benefits using product and pricing data.
 - Integration reference: [KicksDB docs](https://docs.kicks.dev/llms-full.txt)
-- Tempo x MPP reference endpoint: [kicksdb.mpp.tempo.xyz](https://kicksdb.mpp.tempo.xyz)
+- Reference gateway host (KicksDB): [kicksdb.mpp.tempo.xyz](https://kicksdb.mpp.tempo.xyz)
 
 ---
 
@@ -1019,10 +923,10 @@ Use `curl` for any endpoint with JSON body and verify:
 
 | | |
 |---|---|
-| **Protocol** | HealthTech Protocol — pattern stack for **neighbourhood health** and care-ops money flows on **Tempo** + **MPP/x402** |
-| **Reference app** | **Clinical Tempo** — [`github.com/arunnadarasa/clinicaltempo`](https://github.com/arunnadarasa/clinicaltempo) |
+| **Protocol** | HealthTech Protocol — pattern stack for **neighbourhood health** and care-ops money flows on **Tempo** + **x402/x402** |
+| **Reference app** | **Clinical Arc** — [`github.com/arunnadarasa/clinicaltempo`](https://github.com/arunnadarasa/clinicaltempo) |
 | **Settlement** | [Tempo](https://tempo.xyz) (L1 tuned for payments) |
-| **Machine payments** | [Machine Payments Protocol (MPP)](https://mpp.dev) · [Service catalog](https://mpp.dev/services) |
+| **HTTP payments** | [x402 protocol](https://developers.circle.com/gateway/nanopayments/concepts/x402) (Circle Gateway on Arc) |
 
 ---
 
@@ -1030,24 +934,24 @@ Use `curl` for any endpoint with JSON body and verify:
 
 **HealthTech Protocol** is an open **pattern stack** for **health and care delivery**: wallet-verified requests, payment-gated service writes, care coordination, monitoring, and agent-friendly APIs—plus **legacy** demo flows (battle entry, coaching, beats, dance-extras) that prove the same **charge / session / 402** patterns. Paid third-party APIs (email, travel, music, intel) plug in the same way.
 
-Money and API access are **settled on Tempo** and **authorized through MPP and HTTP 402 (x402)** so flows stay **verifiable**, **composable**, and **agent-ready**: humans, scripts, and services can participate under explicit trust boundaries.
+Money and API access are **settled on Tempo** and **authorized through x402 and HTTP 402 (x402)** so flows stay **verifiable**, **composable**, and **agent-ready**: humans, scripts, and services can participate under explicit trust boundaries.
 
-**Clinical Tempo** is the **reference implementation**: one hub, dedicated demos, and a production-style Node/Express API you can fork.
+**Clinical Arc** is the **reference implementation**: one hub, dedicated demos, and a production-style Node/Express API you can fork.
 
 ---
 
 ## A — Architecture (four layers)
 
-1. **Experience** — Clinical Tempo NHS apps (`/nhs/*`) and legacy full-screen demos (battle, coaching, beats, dance-extras, kicks, travel, …).  
+1. **Experience** — Clinical Arc NHS apps (`/nhs/*`) and legacy full-screen demos (battle, coaching, beats, dance-extras, kicks, travel, …).  
 2. **API** — Express routes that encode intents, receipts, and integration behavior.  
-3. **Payments** — `mppx` on client and server; Tempo chain actions via `viem`.  
-4. **Integrations** — Paid third parties (AgentMail, Suno, OpenWeather, KicksDB, …) via MPP catalog hosts or env-configured proxies.
+3. **Payments** — `x402 client` on client and server; Tempo chain actions via `viem`.  
+4. **Integrations** — Paid third parties (AgentMail, Suno, OpenWeather, KicksDB, …) via x402 catalog hosts or env-configured proxies.
 
 ---
 
 ## B — Blockchain: why Tempo?
 
-Tempo is used as the **settlement layer**: fast finality, stable-asset patterns, and tooling that fits **machine-readable payments** (MPP) alongside human wallet UX. The protocol is **not** “one smart contract”—it’s **how you wire** industry flows to Tempo’s settlement and receipts.
+Tempo is used as the **settlement layer**: fast finality, stable-asset patterns, and tooling that fits **machine-readable payments** (x402) alongside human wallet UX. The protocol is **not** “one smart contract”—it’s **how you wire** industry flows to Tempo’s settlement and receipts.
 
 ---
 
@@ -1058,13 +962,13 @@ Two recurring **payment intents** in the stack:
 - **`charge`** — One-shot payment (entry, license, attestation, pass).  
 - **`session`** — Metered or repeated ticks (coaching minutes, micropot-style accumulation).
 
-Both map to MPP semantics and show up across hub copy and `HEALTHTECH_USE_CASES.md`.
+Both map to x402 semantics and show up across hub copy and `HEALTHTECH_USE_CASES.md`.
 
 ---
 
-## D — Clinical Tempo (reference implementation)
+## D — Clinical Arc (reference implementation)
 
-**Clinical Tempo** encodes HealthTech Protocol in a real codebase:
+**Clinical Arc** encodes HealthTech Protocol in a real codebase:
 
 - **Frontend:** React, TypeScript, Vite.  
 - **Backend:** Express 5, payment verification, `402` passthrough, proxies.  
@@ -1072,9 +976,9 @@ Both map to MPP semantics and show up across hub copy and `HEALTHTECH_USE_CASES.
 
 ---
 
-## E — Ecosystem (mpp.dev)
+## E — Ecosystem (third-party gateways)
 
-The **[MPP service catalog](https://mpp.dev/services)** lists hosted integrations (base URLs, paths, pricing). Clinical Tempo wires many of the same vendors through **`server/index.js`** and documents env vars in **`.env.example`**.
+Third-party HTTP APIs often use **x402** challenges; Clinical Arc wires vendors through **`server/index.js`** and documents env vars in **`.env.example`**.
 
 ---
 
@@ -1086,7 +990,7 @@ The protocol is **meant to be forked**: add a route, add a `src/*App.tsx`, mirro
 
 ## G — Glossary (money on the internet)
 
-- **x402 / 402** — HTTP *Payment Required*; challenge that `mppx` can solve so a client pays and retries.  
+- **x402 / 402** — HTTP *Payment Required*; challenge that `x402 client` can solve so a client pays and retries.  
 - **Receipt** — Proof linked to a payment or intent (audit trail for judges, ops, fans).  
 - **TIP-20** — Token patterns on Tempo (e.g. factory demos in-repo).
 
@@ -1101,13 +1005,13 @@ HealthTech Protocol is **one** stack. “Human→human,” “human→agent,” 
 | Human ↔ human | Wallet commerce (fees, passes, splits). |
 | Human → agent | User approves; orchestrator calls the same HTTP APIs. |
 | Agent → human | Automation delivers email, alerts, passes to people. |
-| Agent ↔ agent | Service-to-service: machine payments, API keys after MPP, webhooks. |
+| Agent ↔ agent | Service-to-service: machine payments, API keys after x402, webhooks. |
 
 ---
 
 ## I — Integrations (examples)
 
-Illustrative rails demonstrated or scaffolded: **AgentMail**, **StablePhone**, **StableSocial**, **StableTravel**, **Laso** cards, **Suno**, **Parallel**, **OpenWeather**, **OpenAI MPP**, **KicksDB**, **Google Maps**, **Aviationstack**, **Alchemy**, **Fal**, **Replicate**, **TIP-20** factory—not all required; enable via env.
+Illustrative rails demonstrated or scaffolded: **AgentMail**, **StablePhone**, **StableSocial**, **StableTravel**, **Laso** cards, **Suno**, **Parallel**, **OpenWeather**, **OpenAI x402**, **KicksDB**, **Google Maps**, **Aviationstack**, **Alchemy**, **Fal**, **Replicate**, **TIP-20** factory—not all required; enable via env.
 
 ---
 
@@ -1119,19 +1023,19 @@ Judge score submission is modeled as a **paid write API**: accountability and re
 
 ## K — Keys & configuration
 
-Operators use **`.env`**: `MPP_RECIPIENT`, optional vendor keys, AgentMail (`AGENTMAIL_API_KEY`, `AGENTMAIL_INBOX_ID`), OpenAI, KicksDB, etc. **Never commit secrets**; copy from **`.env.example`**.
+Operators use **`.env`**: `X402_SELLER_ADDRESS`, optional vendor keys, AgentMail (`AGENTMAIL_API_KEY`, `AGENTMAIL_INBOX_ID`), OpenAI, KicksDB, etc. **Never commit secrets**; copy from **`.env.example`**.
 
 ---
 
 ## L — Live vs simulate
 
-Many flows support **simulate** (mock API, no chain spend) and **live** (Tempo MPP with wallet). Example: **`/dance-extras`** → `POST /api/dance-extras/live/:flowKey/:network` after an MPP charge.
+Many flows support **simulate** (mock API, no chain spend) and **live** (Tempo x402 with wallet). Example: **`/dance-extras`** → `POST /api/dance-extras/live/:flowKey/:network` after an x402 charge.
 
 ---
 
-## M — MPP (Machine Payments Protocol)
+## M — x402 (Machine Payments Protocol)
 
-MPP standardizes **how** machines and wallets pay for HTTP resources: challenges, retries, receipts. Clinical Tempo uses **`mppx`** client/server and forwards **402** responses so clients can complete payment.
+x402 standardizes **how** machines and wallets pay for HTTP resources: challenges, retries, receipts. Clinical Arc uses **`x402 client`** client/server and forwards **402** responses so clients can complete payment.
 
 ---
 
@@ -1139,8 +1043,8 @@ MPP standardizes **how** machines and wallets pay for HTTP resources: challenges
 
 | Network | Chain ID | Notes |
 |---------|-----------|--------|
-| Tempo testnet (Moderato) | `42431` | Default for safe iteration; pathUSD-style fee patterns. |
-| Tempo mainnet | `4217` | Real value; test thoroughly on testnet first. |
+| Arc testnet (Moderato) | `42431` | Default for safe iteration; pathUSD-style fee patterns. |
+| mainnet | `4217` | Real value; test thoroughly on testnet first. |
 
 ---
 
@@ -1152,15 +1056,15 @@ License: **MIT** (see `LICENSE` in the repo). Use commercially; attribute; contr
 
 ## P — Product surfaces (routes)
 
-Examples users can open in Clinical Tempo:
+Examples users can open in Clinical Arc:
 
 | Path | Idea |
 |------|------|
-| `/nhs`, `/` | **Clinical Tempo** — NHS neighbourhood care hub + workflows |
+| `/nhs`, `/` | **Clinical Arc** — NHS neighbourhood care hub + workflows |
 | `/battle` | Battle entry + payout (legacy demo) |
 | `/coaching` | Coaching minutes (legacy demo) |
 | `/beats` | Beat licensing (legacy demo) |
-| `/dance-extras` | Seven core **event-style** scaffolds + live MPP |
+| `/dance-extras` | Seven core **event-style** scaffolds + live x402 |
 | `/kicks`, `/travel`, `/music`, `/email`, … | Vertical demos |
 
 Full table: **`README.md`** in the repo.
@@ -1207,27 +1111,27 @@ The protocol bias is **prove what happened**: payment proof, API receipt, option
 
 ## W — Wallets
 
-Users pay with **injected wallets** (e.g. MetaMask, Tempo-capable wallets). Server-side keys handle **delegated** or **post-payment** calls where appropriate (e.g. AgentMail after MPP charge).
+Users pay with **injected wallets** (e.g. MetaMask, Tempo-capable wallets). Server-side keys handle **delegated** or **post-payment** calls where appropriate (e.g. AgentMail after x402 charge).
 
 ---
 
 ## X — x402 (HTTP Payment Required)
 
-Third-party APIs may return **402** + **WWW-Authenticate**. The backend **preserves** the challenge for `mppx`; swallowing 402 as a generic error breaks the payment loop.
+Third-party APIs may return **402** + **WWW-Authenticate**. The backend **preserves** the challenge for `x402 client`; swallowing 402 as a generic error breaks the payment loop.
 
 ---
 
 ## Y — You (who this is for)
 
 - **Event orgs & platforms** — standardized payment patterns for competitions and community products.  
-- **Builders** — fork Clinical Tempo, swap branding, connect your keys.  
+- **Builders** — fork Clinical Arc, swap branding, connect your keys.  
 - **Agents & automation** — same HTTP contracts; explicit trust for who signs and who pays.
 
 ---
 
 ## Z — Zero lock-in (philosophy)
 
-The protocol is **patterns + reference code**, not a single vendor gate. Swap integrations via env; replace UIs; keep Tempo + MPP as the spine—or extract the API contract only.
+The protocol is **patterns + reference code**, not a single vendor gate. Swap integrations via env; replace UIs; keep Tempo + x402 as the spine—or extract the API contract only.
 
 ---
 
@@ -1235,7 +1139,7 @@ The protocol is **patterns + reference code**, not a single vendor gate. Swap in
 
 **Headline:** *HealthTech Protocol — verifiable payments for neighbourhood health.*
 
-**Sub:** *Built on Tempo & MPP. Ship faster with the open Clinical Tempo reference app.*
+**Sub:** *Built on Tempo & x402. Ship faster with the open Clinical Arc reference app.*
 
 **Primary button:** [View on GitHub](https://github.com/arunnadarasa/clinicaltempo)
 
@@ -1254,186 +1158,59 @@ The protocol is **patterns + reference code**, not a single vendor gate. Swap in
 
 ---
 
-*This file is maintained for landing-page and handoff use. Protocol naming: **HealthTech Protocol**; implementation / app: **Clinical Tempo** · [`github.com/arunnadarasa/clinicaltempo`](https://github.com/arunnadarasa/clinicaltempo).*
+*This file is maintained for landing-page and handoff use. Protocol naming: **HealthTech Protocol**; implementation / app: **Clinical Arc** · [`github.com/arunnadarasa/clinicaltempo`](https://github.com/arunnadarasa/clinicaltempo).*
 
 
 ## <<< END FILE: HEALTH_TECH_PROTOCOL_AZ.md
 
 
-## >>> BEGIN FILE: docs/PURL_CLINICAL_TEMPO.md
+## >>> BEGIN FILE: docs/ARC_X402_NOTES.md
 
-# Testing [Stripe `purl`](https://github.com/stripe/purl) with Clinical Tempo
+# Arc Testnet + Circle Gateway x402
 
-**See also:** in-app **`/purl`** page — copy-paste `curl` + `purl` wire for **testnet and mainnet** (`judge-score` live routes). In-app showcase for the official [**Tempo Wallet CLI**](https://github.com/tempoxyz/wallet) at **`/tempo-wallet`** — passkey login and `tempo request` for the same MPP patterns.
+- **Chain:** Arc Testnet, id **5042002** (`eip155:5042002` in challenges).
+- **Payments:** [Circle Gateway nanopayments](https://developers.circle.com/gateway/nanopayments) with the **x402** HTTP payment protocol.
+- **Faucet:** [Circle Faucet](https://faucet.circle.com) for test USDC and gas — the app’s **Get testnet funds** button links to this flow.
+- **Explorer:** [testnet.arcscan.app](https://testnet.arcscan.app).
 
----
+NHS and demo routes that require payment use **`createGatewayMiddleware`** on the server and **`wrapFetchWithPayment`** / batch schemes in the browser (`src/arcX402Fetch.ts`, `src/nhsArcPaidFetch.ts`).
 
-This documents a **local smoke test**: `purl` can **parse** the `402 Payment Required` response from Clinical Tempo’s live MPP routes and identify **MPP on Tempo testnet** (`eip155:42431`).
+Seller address and related settings follow **`X402_SELLER_ADDRESS`** and `.env.example`.
 
-## Prerequisites
 
-- **Clinical Tempo API** running on `http://127.0.0.1:8787` (`npm run server` from repo root).
-- **`purl` CLI** ≥ 0.2.0 (`cargo install --path cli` from [stripe/purl](https://github.com/stripe/purl), or Homebrew `stripe/purl/purl` when the install completes).
-- **`~/.purl/config.toml`** with a **Tempo** wallet (`purl wallet add --type tempo …`). Use a **dedicated test wallet**; do not reuse mainnet keys.
+## <<< END FILE: docs/ARC_X402_NOTES.md
 
-Example (dev-only private key — **never use on mainnet**):
 
-```bash
-mkdir -p ~/.purl
-purl wallet add --type tempo --name clinical-tempo-dev \
-  -k <YOUR_TESTNET_PRIVATE_KEY_HEX> \
-  -p "<keystore-password>" \
-  --set-active true
-```
+## >>> BEGIN FILE: docs/OPENAPI_DISCOVERY.md
 
-## 1) Baseline: `curl` sees `402`
+# OpenAPI discovery (`/openapi.json`)
 
-```bash
-curl -s -w "\nHTTP:%{http_code}\n" -X POST \
-  http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet \
-  -H "Content-Type: application/json" \
-  -d '{"network":"testnet","battleId":"b","roundId":"r","judgeId":"j","dancerId":"d","score":9}'
-```
+Clinical Arc exposes **OpenAPI 3.1** at **`GET /openapi.json`** for tooling and agent discovery.
 
-Expect **`HTTP:402`** and JSON with `type` / `challengeId` (x402 / paymentauth problem shape).
+- **Implementation:** `server/openapi.mjs` (builds the document) + `GET /openapi.json` in `server/index.js`
+- **Paid routes:** Documented with **`x-payment-info`**, **`402`** responses, and JSON **`requestBody`** schemas where required
 
-## 2) `purl --dry-run` (recommended first `purl` test)
+## Local URLs
 
-`purl` parses the challenge and prints what it **would** pay, without sending a transaction:
+| Context | OpenAPI URL |
+|--------|----------------|
+| Express only | `http://localhost:8787/openapi.json` |
+| Vite dev (proxied) | `http://localhost:5173/openapi.json` → 8787 |
+
+## Validate
 
 ```bash
-BODY='{"network":"testnet","battleId":"b","roundId":"r","judgeId":"j","dancerId":"d","score":9}'
-purl --dry-run -v -X POST --json "$BODY" \
-  "http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet"
+# Terminal 1
+npm run server
+
+# Terminal 2 (with server up)
+npm run discovery
 ```
 
-**Observed (successful parse):**
-
-- `402 status: payment required`
-- `Detected protocol: mpp`
-- `Network: eip155:42431`
-- `Amount: 0.01 pathUSD`
-- `Method: tempo`
-
-Exit code may be **non-zero** even on success (`Error: Dry run completed`) — treat output as the source of truth.
-
-## 3) `purl inspect`
-
-`purl inspect <URL>` issues a **GET** by default. Clinical Tempo’s live route is **POST-only**, so **GET returns `404`**, and `purl` reports “No payment required.” Use **`--dry-run` with `-X POST --json`** for this API instead of `inspect`, unless you add a GET probe route.
-
-## 4) Real payment (optional)
-
-Omit `--dry-run` to attempt an on-chain pay (requires **funded Tempo testnet** balance for the wallet, and valid `MPP_RECIPIENT` / server MPP config):
-
-```bash
-purl -X POST --json "$BODY" \
-  "http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet"
-```
-
-Use **`--confirm`** if you want an extra prompt.
-
-## Summary
-
-| Tool | Result with Clinical Tempo live route |
-|------|-----------------------------------|
-| `curl` | `402` + JSON challenge body |
-| `purl --dry-run` + POST JSON | Recognizes **MPP**, **Tempo** (`eip155:42431`), **pathUSD** amount |
-| `purl inspect` (GET) | **404** on POST-only route — not applicable without a GET handler |
-
-**Conclusion:** `purl` is **compatible at the payment-requirement layer** with Clinical Tempo’s MPP/402 responses on Tempo testnet. For automation, prefer **`purl --dry-run`** or a funded **`purl`** wallet on **testnet** before any mainnet use.
-
----
-
-## Mainnet wire (same pattern, **real value**)
-
-Use path suffix **`mainnet`** and JSON with `"network":"mainnet"`. **Only** after testnet dry-run succeeds and you intend to spend on chain **4217**.
-
-```bash
-curl -s -w "\nHTTP:%{http_code}\n" -X POST \
-  http://127.0.0.1:8787/api/dance-extras/live/judge-score/mainnet \
-  -H "Content-Type: application/json" \
-  -d '{"network":"mainnet","battleId":"b","roundId":"r","judgeId":"j","dancerId":"d","score":9}'
-```
-
-```bash
-BODY='{"network":"mainnet","battleId":"b","roundId":"r","judgeId":"j","dancerId":"d","score":9}'
-purl --dry-run -v -X POST --json "$BODY" \
-  "http://127.0.0.1:8787/api/dance-extras/live/judge-score/mainnet"
-```
-
-Your purl wallet must be funded on **Tempo mainnet**; verify `MPP_RECIPIENT` and server MPP config before omitting `--dry-run`.
+The **`discover`** command loads **`GET /openapi.json`** and lists routes + pricing. Keep **`DANCE_EXTRA_LIVE_AMOUNTS`** in sync in `openapi.mjs` — it is the single source imported by `server/index.js`.
 
 
-## <<< END FILE: docs/PURL_CLINICAL_TEMPO.md
-
-
-## >>> BEGIN FILE: docs/PURL_NHS.md
-
-# Stripe `purl` — NHS hackathon use case (Tempo + MPP + purl.dev demos)
-
-**In-app:** **`/nhs/purl`** — copy-paste install, **Tempo / MPP** examples, and **purl.dev** free + paid smoke tests.
-
-**What `purl` is:** A *curl*-style CLI for HTTP requests that may require payment — *payments + curl = purl* — built by [Stripe](https://www.purl.dev/). It supports **Tempo** and **MPP** (as well as x402). Source: **[github.com/stripe/purl](https://github.com/stripe/purl)**.
-
-## Install
-
-```bash
-brew install stripe/purl/purl
-
-# or
-curl -fsSL https://www.purl.dev/install.sh | bash
-```
-
-## Wallet
-
-```bash
-purl wallet add
-```
-
-Add a **Tempo** wallet when prompted so MPP and balances work on Tempo networks.
-
-## Tempo + MPP (native)
-
-Check balances on **tempo** (e.g. USDC) and **tempo-moderato** (e.g. pathUSD):
-
-```bash
-purl balance
-```
-
-Example **paid** HTTP POST (uses purl’s payment path; illustrative third-party API):
-
-```bash
-purl -X POST https://climate.stripe.dev/api/contribute \
-  -H "Content-Type: application/json" \
-  -d '{"amount": 7}'
-```
-
-Then point `purl` at **this repo’s** MPP-gated NHS API (local):
-
-- See [`docs/PURL_CLINICAL_TEMPO.md`](./PURL_CLINICAL_TEMPO.md) for `purl --dry-run -X POST` to `http://127.0.0.1:8787/api/nhs/...` on Tempo testnet.
-
-## Official purl.dev smoke tests (Stripe-hosted)
-
-| Endpoint | Payment |
-|----------|---------|
-| `https://www.purl.dev/test/free` | None |
-| `https://www.purl.dev/test/paid` | **0.01 USDC** (demo) |
-
-```bash
-purl https://www.purl.dev/test/free
-purl --dry-run https://www.purl.dev/test/paid
-purl https://www.purl.dev/test/paid
-```
-
-These URLs are **not** your Tempo NHS server — they are the simplest free vs paid checks from [purl.dev](https://www.purl.dev/).
-
-## Relationship to Clinical Tempo
-
-- **Tempo MPP** powers **`/api/nhs/*`** when the payment gate is on (`NHS_ENABLE_PAYMENT_GATE` not `false`).
-- Use **`purl balance`** + **Tempo** wallet to align CLI state with hackathon wallets; use **`docs/PURL_CLINICAL_TEMPO.md`** for local dry-runs and live POSTs.
-
-
-## <<< END FILE: docs/PURL_NHS.md
+## <<< END FILE: docs/OPENAPI_DISCOVERY.md
 
 
 ## >>> BEGIN FILE: docs/OWS_NHS.md
@@ -1472,275 +1249,3 @@ This page is **education only**; follow upstream docs for production wallet secu
 
 
 ## <<< END FILE: docs/OWS_NHS.md
-
-
-## >>> BEGIN FILE: docs/TEMPO_WALLET_TEST.md
-
-# Verifying Tempo Wallet CLI + Clinical Tempo (local)
-
-Last verified with **Tempo CLI v1.4.3** and Clinical Tempo `server/index.js` on `http://127.0.0.1:8787`.
-
-## Official Tempo agent skill (upstream)
-
-Tempo publishes **[tempo.xyz/SKILL.md](https://tempo.xyz/SKILL.md)** for coding agents: use **`tempo` / `tempo request`** when the user says “use tempo”, discover endpoints via **`tempo wallet -t services`**, prefer **absolute paths** to `"$HOME/.tempo/bin/tempo"`, and allow **long timeouts** for **`tempo wallet login`** (passkey).
-
-**Get the exact file (avoid summarized web-fetch):**
-
-```bash
-curl -fsSL https://tempo.xyz/SKILL.md
-```
-
-In-app explainer: **`/tempo-wallet`** on Clinical Tempo.
-
-## 1) API returns `402` (no wallet)
-
-```bash
-curl -s -w "\nHTTP:%{http_code}\n" -X POST \
-  "http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet" \
-  -H "Content-Type: application/json" \
-  -d '{"network":"testnet","battleId":"battle_demo","roundId":"round_1","judgeId":"judge_1","dancerId":"dancer_1","score":8.7}'
-```
-
-**Expected:** `HTTP:402` and JSON with `"title":"Payment Required"`, `challengeId`, etc.
-
-## 2) Install `tempo` (official installer)
-
-```bash
-curl -fsSL https://tempo.xyz/install | bash
-source ~/.tempo/env   # or restart shell
-tempo --version
-```
-
-## 3) `tempo request --dry-run` **before** `tempo wallet login`
-
-```bash
-BODY='{"network":"testnet","battleId":"battle_demo","roundId":"round_1","judgeId":"judge_1","dancerId":"dancer_1","score":8.7}'
-tempo request --dry-run -X POST --json "$BODY" \
-  "http://127.0.0.1:8787/api/dance-extras/live/judge-score/testnet"
-```
-
-**Observed (expected):**
-
-```text
-code: E_USAGE
-message: "Configuration missing: No key configured for network 'tempo-moderato'."
-```
-
-The CLI correctly associates the challenge with **Tempo Moderato (testnet)** but cannot sign until you configure a key via **`tempo wallet login`** (passkey flow).
-
-## 4) After passkey login + fund (manual)
-
-1. `tempo wallet login` — complete browser passkey at `wallet.tempo.xyz`.
-2. `tempo wallet whoami`
-3. `tempo wallet fund` (testnet) as needed.
-4. Re-run the **`tempo request --dry-run`** command from §3.
-
-You should see payment preview (amount, asset, recipient) similar to **`purl --dry-run`** / browser `mppx`, without the `E_USAGE` error.
-
-## Summary
-
-| Step | Result |
-|------|--------|
-| `curl` POST | `402` + payment challenge ✓ |
-| `tempo request` without session | Clear error: need key for `tempo-moderato` ✓ |
-| `tempo request` after login | User completes dry-run / pay (not automated in CI) |
-
-This proves **Clinical Tempo’s MPP endpoint is compatible with the official Tempo Wallet’s network selection**; the remaining step is **human passkey login**, not a protocol mismatch.
-
-
-## <<< END FILE: docs/TEMPO_WALLET_TEST.md
-
-
-## >>> BEGIN FILE: docs/EVVM_TEMPO.md
-
-# EVVM on Tempo testnet (Clinical Tempo)
-
-[EVVM](https://www.evvm.info/) is an “Ethereum Virtual Virtual Machine” — deploy a full EVVM **stack** (Evvm, Staking, Estimator, NameService, Treasury, P2PSwap) onto a **host chain**. This repo documents **Tempo testnet only** (chain ID **42431**, Moderato).
-
-## Install (two levels)
-
-### A) Solidity / npm library (lightweight)
-
-In a **Foundry/Hardhat** project (or after `forge install EVVM-org/Testnet-Contracts`):
-
-```bash
-npm install @evvm/testnet-contracts
-```
-
-Clinical Tempo does **not** pin this package in `package.json` (transitive deps are large). Use imports such as `import "@evvm/testnet-contracts/interfaces/ICore.sol";` — see [How to make an EVVM service](https://www.evvm.info/docs/HowToMakeAEVVMService).
-
-### B) Full CLI + contracts repo (deploy)
-
-From the Clinical Tempo repo root:
-
-```bash
-npm run evvm:vendor
-```
-
-This clones **`vendor/evvm-testnet-contracts`** (gitignored) and runs `./evvm install` (Bun + Foundry setup).
-
-**Prerequisites:** [Foundry](https://getfoundry.sh/), [Bun](https://bun.sh/) (≥ 1.0), `git`.
-
-Manual equivalent:
-
-```bash
-git clone --recursive https://github.com/EVVM-org/Testnet-Contracts.git vendor/evvm-testnet-contracts
-cd vendor/evvm-testnet-contracts
-chmod +x ./evvm
-./evvm install
-cp .env.example .env
-```
-
-## Tempo testnet connection (host chain)
-
-| Field | Value |
-|--------|--------|
-| Network | Tempo testnet (Moderato) |
-| Chain ID | `42431` |
-| RPC (HTTP) | `https://rpc.moderato.tempo.xyz` |
-| Explorer | `https://explore.testnet.tempo.xyz` |
-
-In **`vendor/evvm-testnet-contracts/.env`** set:
-
-```bash
-RPC_URL="https://rpc.moderato.tempo.xyz"
-# Optional: Tempo contract verification API (see Tempo docs)
-# ETHERSCAN_API=...
-```
-
-Import a deployer wallet (Foundry keystore — **do not** put private keys in `.env`):
-
-```bash
-cast wallet import defaultKey --interactive
-```
-
-## Deploy
-
-```bash
-cd vendor/evvm-testnet-contracts
-./evvm deploy
-# or: ./evvm deploy --walletName myWallet
-```
-
-Follow the interactive wizard. For **verification**, pick an option that matches Tempo (e.g. **Custom** / **Sourcify** / **Skip** depending on CLI version). Tempo publishes verifier patterns at **[contracts.tempo.xyz](https://contracts.tempo.xyz/docs)** (supported chains include **42431**).
-
-## Registry: skip for now (Clinical Tempo stance)
-
-After deploy, the CLI may ask to **register** the instance on the **EVVM Registry** (Ethereum Sepolia). That step is **optional**.
-
-- We are **not** relying on an official EVVM ID from the global registry until the founding team can **whitelist / list Tempo** and related metadata.
-- At the **“register now?”** prompt, answer **`n`**. You can still use the deployed contracts on **Tempo testnet**; you simply won’t have a public EVVM registry ID yet.
-- **Sepolia gas** is only needed if you choose to register later (`./evvm register …`).
-
-## Chain allowlist caveat
-
-Upstream EVVM tooling **validates some testnets** against their registry allowlist. If `./evvm deploy` reports that chain **`42431` is unsupported**, deployment is blocked until **EVVM** adds Tempo testnet to their supported set (track via [EVVM-org/Testnet-Contracts issues](https://github.com/EVVM-org/Testnet-Contracts/issues)). Local chains (e.g. Anvil) skip that check per upstream docs.
-
-## LLM context
-
-Full EVVM documentation bundle: **[https://www.evvm.info/llms-full.txt](https://www.evvm.info/llms-full.txt)**
-
-## In-app
-
-Dedicated page: **`/evvm`** on the Clinical Tempo hub.
-
-
-## <<< END FILE: docs/EVVM_TEMPO.md
-
-
-## >>> BEGIN FILE: docs/MPPSCAN_DISCOVERY.md
-
-# MPPScan discovery (`/openapi.json`)
-
-Clinical Tempo exposes **OpenAPI 3.1** at **`GET /openapi.json`** for **[MPPScan](https://www.mppscan.com/)** / AgentCash-style discovery.
-
-- **Spec:** [Discovery Spec | MPPScan](https://www.mppscan.com/discovery)
-- **Implementation:** `server/openapi.mjs` (builds the document) + `GET /openapi.json` in `server/index.js`
-- **Paid routes:** Documented with **`x-payment-info`** (MPP + x402), **`402`** responses, and JSON **`requestBody`** schemas where required
-
-## Local URLs
-
-| Context | OpenAPI URL |
-|--------|----------------|
-| Express only | `http://localhost:8787/openapi.json` |
-| Vite dev (proxied) | `http://localhost:5173/openapi.json` → 8787 |
-
-## Validate before registering
-
-```bash
-# Terminal 1
-npm run server
-
-# Terminal 2 (with server up)
-npm run discovery
-```
-
-Or manually:
-
-```bash
-npx -y @agentcash/discovery@latest discover "http://localhost:8787"
-```
-
-The **`discover`** command loads **`GET /openapi.json`** and lists routes + pricing. You may see **warnings** (e.g. `L2_AUTH_MODE_MISSING` on free routes, `WELLKNOWN_NOT_FOUND` if you have not added `/.well-known/x402`) — tighten the spec over time. Fix structural issues in `server/openapi.mjs` (and keep **`DANCE_EXTRA_LIVE_AMOUNTS`** in sync — it is the single source imported by `server/index.js`).
-
-## Registration
-
-After validation passes, register the **public origin** of your API (production or tunnel) on [MPPScan](https://www.mppscan.com/discovery). Add **`x-discovery.ownershipProofs`** as required by MPPScan when you have proofs.
-
-## Precedence (MPPScan)
-
-1. OpenAPI at `/openapi.json`
-2. Runtime **`402`** + **`WWW-Authenticate`** — must match the documented MPP behavior
-
-
-## <<< END FILE: docs/MPPSCAN_DISCOVERY.md
-
-
-## >>> BEGIN FILE: docs/ECOSYSTEM_SYNERGY.md
-
-# Ecosystem synergy (Clinical Tempo & friends)
-
-How **Clinical Tempo** fits next to other agent, MPP, and research stacks—not duplicate products, **composable layers**.
-
----
-
-## Technical: MPP + Tempo, different workload
-
-**[gakonst/mpp-nanogpt-modal](https://github.com/gakonst/mpp-nanogpt-modal)** is the clearest **technical** synergy with Clinical Tempo:
-
-- **Same rails:** [Tempo](https://tempo.xyz), [MPP](https://mpp.dev), **HTTP 402**, `tempo request`, stablecoin settlement — no API-key fiction.
-- **Different job:** that repo pays for **Modal GPU** time to run **[nanoGPT](https://github.com/karpathy/nanoGPT)** training; Clinical Tempo exposes **your** HTTP APIs (HealthTech routes, `402`, receipts).
-
-Together they tell one story: *agents pay on-chain for **compute** (nanoGPT sandbox) and for **APIs** (Clinical Tempo) with the same wallet behavior.*
-
----
-
-## Narrative: research stack vs product reference
-
-| Track | Examples | Role |
-|-------|----------|------|
-| **Research / LLM** | [nanoGPT](https://github.com/karpathy/nanoGPT) → [nanochat](https://github.com/karpathy/nanochat) → [autoresearch](https://github.com/karpathy/autoresearch) | Train models, leaderboards, **agent-in-the-loop** experiments (e.g. `val_bpb`, speedruns). |
-| **Product / protocol** | **Clinical Tempo** | Reference **superapp** + **HealthTech** patterns on **Tempo + MPP/x402** — battle, coaching, dance-extras, integrations, **`/openapi.json`**. |
-
-Same **agent + money + automation** arc, **different layer**: research stacks optimize **model metrics**; Clinical Tempo optimizes **verifiable payments and ops** for the dance industry (and serves as a **pattern library** for other domains).
-
----
-
-## OpenClaw: context + automation + plugins
-
-- **[ClawHub skill](https://clawhub.ai/arunnadarasa/clinicaltempo)** (this repo’s **`.cursor/skills/clawhub/`**) — *what to read* (`llm-full.txt`, `CLAWHUB.md`, smoke tests, MPPScan/OpenAPI).
-- **Clawflows-style automation** (multi-step OpenClaw flows) — *how* agents run long jobs across skills.
-- **OpenClaw plugins** (e.g. **`@anyway-sh/anyway-openclaw`**) — *extra gateway capabilities* alongside core OpenClaw.
-
-**Synergy:** plugins widen **what the gateway can do**; the Clinical Tempo skill defines **how to work this repo and its paid HTTP surface** — compose both for multi-step agent work against Clinical Tempo **and** the wider ecosystem.
-
----
-
-## See also
-
-- [MPPScan discovery](./MPPSCAN_DISCOVERY.md) — `GET /openapi.json`
-- [EVVM on Tempo](./EVVM_TEMPO.md)
-- [ClawHub + OpenClaw](../.cursor/skills/clawhub/references/openclaw-clinical-tempo.md)
-
-
-## <<< END FILE: docs/ECOSYSTEM_SYNERGY.md

@@ -8,7 +8,7 @@ function nowIso() {
   return new Date().toISOString()
 }
 
-/** Echo MPP receipt reference in JSON when the gate returned one (headers alone can be dropped by proxies). */
+/** Echo x402 receipt reference in JSON when the gate returned one (headers alone can be dropped by proxies). */
 function withReceipt(body, paymentCtx) {
   const ref = paymentCtx?.paymentReceiptRef
   if (ref != null && String(ref).length > 0) {

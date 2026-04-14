@@ -4,7 +4,7 @@ import { DocCodeBlock } from './components/DocCodeBlock'
 import { isAddress } from 'viem'
 import { launchTip20OnChain, mintTip20OnChain } from './tempoTip20Launch'
 import { appendTip20Launch, readTip20Launches, type Tip20StoredLaunch } from './tip20Storage'
-import { TEMPO_TIP20_DECIMALS } from './tempoMpp'
+import { TIP20_DECIMALS } from './evmWallet'
 import type { NhsNetwork } from './nhsSession'
 
 function explorerTxUrl(network: NhsNetwork, txHash: string) {
@@ -132,13 +132,13 @@ function Tip20Panel({ wallet, network }: { wallet: string; network: NhsNetwork }
     <article className="card">
       <h2>On-chain TIP-20 launch</h2>
       <p>
-        Calls <code>Actions.token.createSync</code> from <strong>viem/tempo</strong> against the Tempo TIP-20 factory on
-        whichever network you select in the header (<strong>tempo testnet</strong> or <strong>tempo mainnet</strong>). You
-        pay fees in the chain fee token.
+        Calls <code>Actions.token.createSync</code> from <strong>viem/tempo</strong> against the TIP-20 factory on
+        whichever network you select in the header (<strong>testnet</strong> or <strong>mainnet</strong>). You pay fees in
+        the chain fee token.
       </p>
       <p className="note">
         Initial supply is <strong>not</strong> set here — the factory creates the token; minting or policy is separate
-        TIP-20 flows. Default USDC-style tokens use <strong>{TEMPO_TIP20_DECIMALS}</strong> decimals on Tempo.
+        TIP-20 flows. Default USDC-style tokens use <strong>{TIP20_DECIMALS}</strong> decimals here.
       </p>
       <div className="actions" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Token name" />
@@ -154,7 +154,7 @@ function Tip20Panel({ wallet, network }: { wallet: string; network: NhsNetwork }
           <h3 style={{ marginTop: 0, fontSize: '1.05rem' }}>Mint {lastToken.symbol}</h3>
           <p className="note" style={{ marginTop: '0.35rem' }}>
             Calls <code>Actions.token.mintSync</code> on your latest token for this network ({lastToken.address.slice(0, 10)}…). Amount uses{' '}
-            <strong>{TEMPO_TIP20_DECIMALS}</strong> decimals. Minting needs <strong>ISSUER_ROLE</strong>; if you are the factory admin but not yet an issuer, the app signs{' '}
+            <strong>{TIP20_DECIMALS}</strong> decimals. Minting needs <strong>ISSUER_ROLE</strong>; if you are the factory admin but not yet an issuer, the app signs{' '}
             <code>Actions.token.grantRolesSync</code> with <code>issuer</code> first, then mints.
           </p>
           <div className="actions" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
@@ -257,21 +257,21 @@ function LaunchesTable({ networkFilter }: { networkFilter: NhsNetwork }) {
 export default function NhsTip20App() {
   return (
     <NhsShell
-      title="TIP-20 — Tempo token model"
-      subtitle="Create real TIP-20 tokens on Tempo testnet or mainnet from your browser wallet (viem Actions.token.createSync)."
+      title="TIP-20 token factory"
+      subtitle="Create TIP-20 tokens on testnet or mainnet from your browser wallet (viem Actions.token.createSync)."
     >
       {(session) => (
         <section className="grid">
           <article className="card">
             <h2>Why TIP-20 here?</h2>
             <p>
-              Stablecoins and app tokens on Tempo follow <strong>TIP-20</strong>. MPP and wallet errors often refer to{' '}
-              <code>InsufficientBalance</code> with 6-decimal amounts for USDC-style assets — see{' '}
-              <code>src/tempoMpp.ts</code> in this repo.
+              This screen uses the <strong>viem/tempo</strong> TIP-20 factory. Wallet errors often reference{' '}
+              <code>InsufficientBalance</code> with 6-decimal amounts for USDC-style assets — helpers live in{' '}
+              <code>src/evmWallet.ts</code>.
             </p>
             <p className="note">
-              Use <strong>tempo testnet</strong> and <strong>Get testnet funds</strong> before mainnet; mainnet uses real
-              USDC for fees.
+              Use <strong>testnet</strong> and <strong>Get testnet funds</strong> before mainnet; mainnet uses real funds
+              for fees.
             </p>
           </article>
           <Tip20Panel wallet={session.wallet} network={session.network} />
@@ -280,12 +280,12 @@ export default function NhsTip20App() {
             <h2>Implementation</h2>
             <p>
               Launch logic lives in <code>src/tempoTip20Launch.ts</code> (viem <code>Actions.token.createSync</code>). Shared
-              chain config: <code>src/tempoChains.ts</code>.
+              chain config: <code>src/tip20Chains.ts</code>.
             </p>
             <DocCodeBlock
               label="typescript"
               code={`import { Actions } from 'viem/tempo'
-// wallet client + tempoActions() on tempo testnet or mainnet
+// wallet client + tempoActions() on testnet or mainnet
 await Actions.token.createSync(client, {
   name: 'My Token',
   symbol: 'MTK',

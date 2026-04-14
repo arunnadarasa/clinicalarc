@@ -8,14 +8,14 @@ Do **not** use real patient-identifiable or sensitive clinical data.
 
 ## Context
 
-These notes summarize practical lessons from rewriting a Tempo/MPP app into NHS-aligned use cases:
+These notes summarize practical lessons from rewriting a Tempo/x402 app into NHS-aligned use cases:
 
 - GP access front door
 - Personalized care plans
 - Social prescribing referral and link-worker flow
 - Neighbourhood team coordination
 - Remote monitoring and proactive alerts
-- Wallet-authenticated MPP payments on Tempo testnet/mainnet
+- Wallet-authenticated x402 payments on Arc testnet/mainnet
 
 Aligned references:
 
@@ -29,7 +29,7 @@ Aligned references:
    Mapping concrete user journeys first (patient, GP, neighbourhood provider) kept scope focused and avoided overbuilding.
 
 2. **Separate domain logic from payment plumbing.**  
-   Putting NHS routes/model code in a dedicated module and keeping MPP handling reusable reduced complexity and made role rules clearer.
+   Putting NHS routes/model code in a dedicated module and keeping x402 handling reusable reduced complexity and made role rules clearer.
 
 3. **Role-based authorization early.**  
    Enforcing `patient`, `gp`, `nhc_provider` from day one prevented accidental workflow leaks and clarified expected behavior.
@@ -70,7 +70,7 @@ Aligned references:
    - `ui`
 
 2. **Treat payment as a cross-cutting concern.**  
-   Wrap write endpoints with a shared MPP gate rather than sprinkling payment logic route-by-route.
+   Wrap write endpoints with a shared x402 gate rather than sprinkling payment logic route-by-route.
 
 3. **Store immutable audit events for every write.**  
    Include actor role, wallet address, entity type, action, timestamp, and payment receipt/tx reference when present.
@@ -88,7 +88,7 @@ Aligned references:
    Prefix IDs and sample values to prevent accidental interpretation as real records.
 
 8. **Document operational toggles.**  
-   Example: payment-gate toggle and wallet prerequisites for live MPP testing.
+   Example: payment-gate toggle and wallet prerequisites for live x402 testing.
 
 ## How I Would Do It Differently Next Time
 
@@ -99,7 +99,7 @@ Aligned references:
    I would generate frontend types from OpenAPI at the beginning to remove drift and reduce repetitive response typing.
 
 3. **Payment gate policy matrix up front.**  
-   I would define exactly which endpoints require MPP and expected fees in a single policy file from day one.
+   I would define exactly which endpoints require x402 and expected fees in a single policy file from day one.
 
 4. **Event-sourced audit model earlier.**  
    I would start with an explicit event table schema and project read models from it, instead of adding projections later.
@@ -114,11 +114,11 @@ Aligned references:
 
 - [ ] Keep all data synthetic (no real patient data)
 - [ ] Define role permissions before coding pages
-- [ ] Build one reusable MPP route wrapper
+- [ ] Build one reusable x402 route wrapper
 - [ ] Add transaction logging and explorer links from day one
 - [ ] Implement one happy-path smoke script
 - [ ] Add role-aware UI disabling and hints
-- [ ] Verify both Tempo testnet and mainnet selectors
+- [ ] Verify both Arc testnet and mainnet selectors
 - [ ] Write a short runbook for setup and troubleshooting
 
 ## Final Safety Note

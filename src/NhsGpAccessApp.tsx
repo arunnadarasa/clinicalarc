@@ -60,7 +60,7 @@ export default function NhsGpAccessApp() {
             <p>Status: {status}</p>
             {txUrl ? (
               <p className="intent">
-                Transaction: <a href={txUrl} target="_blank" rel="noreferrer">View on Tempo explorer</a>
+                Transaction: <a href={txUrl} target="_blank" rel="noreferrer">View on Arc explorer</a>
               </p>
             ) : null}
           </article>

@@ -8,7 +8,7 @@ import { registerBatchScheme } from '@circle-fin/x402-batching/client'
 import { ExactEvmScheme } from '@x402/evm/exact/client'
 import { createWalletClient, custom, fallback, http, type WalletClient } from 'viem'
 import { arcTestnetChain } from './arcChains'
-import type { BrowserEthereumProvider } from './tempoMpp'
+import type { BrowserEthereumProvider } from './evmWallet'
 
 function wrapTransportWithArcPublicRpc(
   ethereum: BrowserEthereumProvider,

@@ -34,8 +34,8 @@ export default function NhsOwsApp() {
               drop an agent skill into supported IDEs.
             </p>
             <p className="note">
-              Clinical Tempo’s web UI still uses <strong>browser wallets</strong> for Tempo MPP. Use <code>ows</code> when you
-              want CLI/agent workflows alongside the same hackathon story.
+              Clinical Arc’s web UI uses <strong>browser wallets</strong> for Arc Testnet x402 flows. Use <code>ows</code> when
+              you want CLI/agent workflows alongside the same hackathon story.
             </p>
           </article>
 

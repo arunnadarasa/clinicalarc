@@ -11,11 +11,9 @@ Order matters for LLM context — matches the script’s `FILES` array:
 | 2 | `CLAWHUB.md` |
 | 3 | `HEALTHTECH_USE_CASES.md` |
 | 4 | `HEALTH_TECH_PROTOCOL_AZ.md` |
-| 5 | `docs/PURL_CLINICAL_TEMPO.md` |
-| 6 | `docs/TEMPO_WALLET_TEST.md` |
-| 7 | `docs/EVVM_TEMPO.md` |
-| 8 | `docs/MPPSCAN_DISCOVERY.md` |
-| 9 | `docs/ECOSYSTEM_SYNERGY.md` |
+| 5 | `docs/ARC_X402_NOTES.md` |
+| 6 | `docs/OPENAPI_DISCOVERY.md` |
+| 7 | `docs/OWS_NHS.md` |
 
 **Do not** hand-edit `public/llm-full.txt`. Edit the sources above, then regenerate.
 
