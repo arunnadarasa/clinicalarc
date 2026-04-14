@@ -10,14 +10,14 @@ This is a **reference implementation**: React (Vite) front ends, a Node/Express 
 
 ### Interaction modes (humans & agents)—one protocol, not four
 
-HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization). What changes is **who authorizes spend** and **who receives value**—often described informally as human↔human, human↔agent, or agent↔agent flows. Those labels are **use-case shorthand**, not separate protocols.
+HealthTech Protocol is **one** stack (Arc Testnet + Circle Gateway x402 authorization). What changes is **who authorizes spend** and **who receives value**—often described informally as human↔human, human↔agent, or agent↔agent flows. Those labels are **use-case shorthand**, not separate protocols.
 
 | Shorthand | Typical meaning here | How it maps in this repo |
 |-----------|----------------------|----------------------------|
 | **Human → human** | One person or org pays another (fees, passes, reimbursements, entry). | Wallet-mediated flows in **Clinical Tempo** (care and access requests); legacy routes also include battle / fan / clip **demos** in another domain. |
 | **Human → agent** | A person approves payment; an **orchestrator** (UI wizard, MCP tool, script) calls your HTTP APIs. | **`/nhs/*`** and shared hub routes; the **human still signs** with the browser wallet unless you delegate. |
 | **Agent → human** | Automated action delivers something to a person (email, alert, receipt, pass). | Ops bot + AgentMail, notifications; fulfillment after payment—not a second payment “protocol.” |
-| **Agent → agent** | Service-to-service: backends, cron, or **machine payments** between APIs. | `402` + `mppx` on the server, **API keys** where allowed (e.g. AgentMail after MPP), webhooks, `POST /api/*` from trusted workers. |
+| **Agent → agent** | Service-to-service: backends, cron, or **machine payments** between APIs. | `402` + Circle Gateway settlement on the server, **API keys** where allowed (e.g. AgentMail after x402), webhooks, `POST /api/*` from trusted workers. |
 
 **Roles (mental model):** **Payer** (human wallet vs server treasury vs delegated agent), **beneficiary** (human vs org vs system), **channel** (browser vs server). Ambient agents (e.g. coding assistants) consume **skills** like [`CLAWHUB.md`](./CLAWHUB.md), the **[ClawHub](https://clawhub.ai/)** skill for **Clinical Tempo** (search **clinicaltempo**), and repo **[`.cursor/skills/clawhub/`](./.cursor/skills/clawhub/README.md)**; runtime agents should call the **same** Express contracts with explicit trust boundaries.
 
