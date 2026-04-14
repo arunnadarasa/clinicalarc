@@ -4,7 +4,7 @@ import { PaymentRequest, Receipt } from 'mppx'
 /** Creates a mock receipt for demo/simulate mode. */
 export function createMockReceipt(intent) {
   const receipt = Receipt.from({
-    method: 'tempo',
+    method: 'x402',
     reference: `0x${crypto.randomBytes(32).toString('hex')}`,
     status: 'success',
     timestamp: new Date().toISOString(),
@@ -16,10 +16,10 @@ export function createMockReceipt(intent) {
 const DEFAULT_DECIMALS = 6
 const DEFAULT_AMOUNT = '10.00'
 
-// Tempo chain IDs and default currencies (mppx defaults)
-const TEMPO_CHAINS = {
-  mainnet: { chainId: 4217, currency: '0x20C000000000000000000000b9537d11c60E8b50' },
-  testnet: { chainId: 42431, currency: '0x20c0000000000000000000000000000000000000' },
+// Arc Testnet — USDC (Circle Gateway / Arc docs). Mainnet selector maps to same testnet until Arc mainnet is wired.
+const ARC_CHAINS = {
+  mainnet: { chainId: 5042002, currency: '0x3600000000000000000000000000000000000000' },
+  testnet: { chainId: 5042002, currency: '0x3600000000000000000000000000000000000000' },
 }
 
 const battleEntries = new Map()
@@ -36,8 +36,8 @@ function getPaymentConfig(options = {}) {
       ? true
       : requestedNetwork === 'mainnet'
         ? false
-        : process.env.TMPO_TESTNET !== 'false'
-  const chain = useTestnet ? TEMPO_CHAINS.testnet : TEMPO_CHAINS.mainnet
+        : process.env.ARC_TESTNET !== 'false'
+  const chain = useTestnet ? ARC_CHAINS.testnet : ARC_CHAINS.mainnet
   return {
     mode: process.env.PAYMENT_MODE || 'mock',
     testnet: useTestnet,
@@ -120,7 +120,7 @@ export function recoverBattleEntryPayment({ intentId, txHash }) {
   }
 
   const recoveredReceipt = Receipt.from({
-    method: 'tempo',
+    method: 'x402',
     reference: txHash,
     status: 'success',
     timestamp: new Date().toISOString(),
@@ -163,7 +163,7 @@ export function executeBattlePayout({ battleId, network }) {
 
   const payouts = result.winners.map((winner) => {
     const receipt = Receipt.from({
-      method: 'tempo',
+      method: 'x402',
       reference: `mock_settlement_${battleId}_${winner.dancerId}_${crypto.randomUUID()}`,
       status: 'success',
       timestamp: new Date().toISOString(),
@@ -229,7 +229,7 @@ export function endCoachingSession({ sessionId }) {
   const amount = toBaseUnits(amountDisplay, paymentConfig.decimals)
 
   const receipt = Receipt.from({
-    method: 'tempo',
+    method: 'x402',
     reference: `mock_coaching_${sessionId}_${crypto.randomUUID()}`,
     status: 'success',
     timestamp: new Date().toISOString(),
@@ -299,7 +299,7 @@ export function grantBeatLicense({ licenseId }) {
   if (license.status === 'active') return license
 
   const receipt = Receipt.from({
-    method: 'tempo',
+    method: 'x402',
     reference: `mock_beat_${license.beatId}_${license.consumerId}_${crypto.randomUUID()}`,
     status: 'success',
     timestamp: new Date().toISOString(),
@@ -361,7 +361,7 @@ export function createVirtualDebitCard({ walletAddress, amountDisplay, currency,
   }
 
   const receipt = Receipt.from({
-    method: 'tempo',
+    method: 'x402',
     reference: `mock_virtual_card_${cardId}`,
     status: 'success',
     timestamp: createdAt,

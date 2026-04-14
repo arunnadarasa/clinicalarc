@@ -2,9 +2,9 @@ import 'dotenv/config'
 import express from 'express'
 import multer from 'multer'
 import { Receipt } from 'mppx'
-import { Mppx as MppxServer, tempo as tempoServer } from 'mppx/server'
+import { createGatewayMiddleware } from '@circle-fin/x402-batching/server'
 import { createPublicClient, http } from 'viem'
-import { tempo as tempoMainnetChain, tempoModerato as tempoTestnetChain } from 'viem/chains'
+import { arcTestnet } from 'viem/chains'
 import {
   createBattleEntryIntent,
   createBeatLicenseIntent,
@@ -32,28 +32,19 @@ const openAiMppUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 },
 })
-const mppSecretKey =
-  process.env.MPP_SECRET_KEY || 'dev_only_replace_with_real_secret_key'
+const x402SellerAddress =
+  process.env.X402_SELLER_ADDRESS || process.env.MPP_RECIPIENT || '0x742d35Cc6634c0532925a3b844bC9e7595F8fE00'
 
-const liveMppByNetwork = {
-  testnet: MppxServer.create({
-    methods: [
-      tempoServer({
-        testnet: true,
-        recipient: process.env.MPP_RECIPIENT,
-      }),
-    ],
-    secretKey: mppSecretKey,
-  }),
-  mainnet: MppxServer.create({
-    methods: [
-      tempoServer({
-        testnet: false,
-        recipient: process.env.MPP_RECIPIENT,
-      }),
-    ],
-    secretKey: mppSecretKey,
-  }),
+/** Circle Gateway batched x402 — Arc Testnet (`eip155:5042002`). @see https://developers.circle.com/gateway/nanopayments */
+const arcGateway = createGatewayMiddleware({
+  sellerAddress: x402SellerAddress,
+  networks: ['eip155:5042002'],
+})
+
+function gatewayRequireUsd(price) {
+  const s = typeof price === 'number' ? price.toFixed(2) : String(price)
+  const withDollar = s.startsWith('$') ? s : `$${s}`
+  return (req, res, next) => arcGateway.require(withDollar)(req, res, next)
 }
 
 const judgeScores = []
@@ -71,16 +62,10 @@ const lasoCardAuthById = new Map()
 // When Laso rejects (e.g., geo restriction like "US only"), we fall back to the local mock card.
 const lasoCardDemoReasonById = new Map()
 
-const publicClientByNetwork = {
-  testnet: createPublicClient({
-    chain: tempoTestnetChain,
-    transport: http(tempoTestnetChain.rpcUrls.default.http[0]),
-  }),
-  mainnet: createPublicClient({
-    chain: tempoMainnetChain,
-    transport: http(tempoMainnetChain.rpcUrls.default.http[0]),
-  }),
-}
+const arcPublicClient = createPublicClient({
+  chain: arcTestnet,
+  transport: http(arcTestnet.rpcUrls.default.http[0]),
+})
 
 app.use(express.json({ limit: '1mb' }))
 
@@ -149,12 +134,11 @@ function getForwardAuthHeaders(req) {
   return headers
 }
 
-/** Tempo network selector from JSON body (same convention as battle/coaching/beats). */
-function normalizeTempoNetworkFromBody(body) {
+/** Arc Testnet network selector from JSON body (legacy mainnet/testnet tabs → same chain until Arc mainnet is available in viem). */
+function normalizeArcNetworkFromBody(body) {
   const n = body?.network
-  if (n === 'testnet' || n === 42431 || n === '42431') return { network: 'testnet', chainId: 42431 }
-  if (n === 'mainnet' || n === 4217 || n === '4217') return { network: 'mainnet', chainId: 4217 }
-  return { network: 'mainnet', chainId: 4217 }
+  if (n === 'mainnet' || n === 4217 || n === '4217') return { network: 'mainnet', chainId: 5042002 }
+  return { network: 'testnet', chainId: 5042002 }
 }
 
 /** Per-flow Tempo MPP charge — imported from openapi.mjs (single source for /openapi.json). */
@@ -164,7 +148,7 @@ function normalizeTempoNetworkFromBody(body) {
  * @returns {{ ok: true, status: number, result: object } | { ok: false, status: number, error: string }}
  */
 function executeDanceExtraFlow(flowKey, body) {
-  const tempoNet = normalizeTempoNetworkFromBody(body ?? {})
+  const arcNet = normalizeArcNetworkFromBody(body ?? {})
   switch (flowKey) {
     case 'judge-score': {
       const { battleId, roundId, judgeId, dancerId, score } = body ?? {}
@@ -192,7 +176,7 @@ function executeDanceExtraFlow(flowKey, body) {
       }
       judgeScores.push(entry)
       const receipt = Receipt.from({
-        method: 'tempo',
+        method: 'x402',
         reference: `mock_score_${battleId}_${roundId}_${judgeId}_${dancerId}`,
         status: 'success',
         timestamp: entry.createdAt,
@@ -201,7 +185,7 @@ function executeDanceExtraFlow(flowKey, body) {
       return {
         ok: true,
         status: 201,
-        result: { ...entry, receipt, network: tempoNet.network, chainId: tempoNet.chainId },
+        result: { ...entry, receipt, network: arcNet.network, chainId: arcNet.chainId },
       }
     }
     case 'cypher-micropot': {
@@ -231,7 +215,7 @@ function executeDanceExtraFlow(flowKey, body) {
       return {
         ok: true,
         status: 201,
-        result: { ...pot, network: tempoNet.network, chainId: tempoNet.chainId },
+        result: { ...pot, network: arcNet.network, chainId: arcNet.chainId },
       }
     }
     case 'clip-sale': {
@@ -245,7 +229,7 @@ function executeDanceExtraFlow(flowKey, body) {
       const saleId = `clip_${clipId}_${Date.now()}`
       const createdAt = new Date().toISOString()
       const receipt = Receipt.from({
-        method: 'tempo',
+        method: 'x402',
         reference: `mock_clip_${clipId}_${saleId}`,
         status: 'success',
         timestamp: createdAt,
@@ -264,7 +248,7 @@ function executeDanceExtraFlow(flowKey, body) {
       return {
         ok: true,
         status: 201,
-        result: { ...sale, network: tempoNet.network, chainId: tempoNet.chainId },
+        result: { ...sale, network: arcNet.network, chainId: arcNet.chainId },
       }
     }
     case 'reputation': {
@@ -286,7 +270,7 @@ function executeDanceExtraFlow(flowKey, body) {
       }
       reputationAttestations.push(attestation)
       const receipt = Receipt.from({
-        method: 'tempo',
+        method: 'x402',
         reference: `mock_reputation_${attestation.id}`,
         status: 'success',
         timestamp: attestation.createdAt,
@@ -295,7 +279,7 @@ function executeDanceExtraFlow(flowKey, body) {
       return {
         ok: true,
         status: 201,
-        result: { ...attestation, receipt, network: tempoNet.network, chainId: tempoNet.chainId },
+        result: { ...attestation, receipt, network: arcNet.network, chainId: arcNet.chainId },
       }
     }
     case 'ai-usage': {
@@ -317,7 +301,7 @@ function executeDanceExtraFlow(flowKey, body) {
       }
       studioUsageEvents.push(entry)
       const receipt = Receipt.from({
-        method: 'tempo',
+        method: 'x402',
         reference: `mock_ai_${entry.toolId}_${entry.id}`,
         status: 'success',
         timestamp: entry.createdAt,
@@ -326,7 +310,7 @@ function executeDanceExtraFlow(flowKey, body) {
       return {
         ok: true,
         status: 201,
-        result: { ...entry, receipt, network: tempoNet.network, chainId: tempoNet.chainId },
+        result: { ...entry, receipt, network: arcNet.network, chainId: arcNet.chainId },
       }
     }
     case 'bot-action': {
@@ -343,7 +327,7 @@ function executeDanceExtraFlow(flowKey, body) {
       }
       botActions.push(action)
       const receipt = Receipt.from({
-        method: 'tempo',
+        method: 'x402',
         reference: `mock_bot_${eventId}_${action.id}`,
         status: 'success',
         timestamp: action.createdAt,
@@ -352,7 +336,7 @@ function executeDanceExtraFlow(flowKey, body) {
       return {
         ok: true,
         status: 201,
-        result: { ...action, receipt, network: tempoNet.network, chainId: tempoNet.chainId },
+        result: { ...action, receipt, network: arcNet.network, chainId: arcNet.chainId },
       }
     }
     case 'fan-pass': {
@@ -363,7 +347,7 @@ function executeDanceExtraFlow(flowKey, body) {
       const passId = `pass_${fanId}_${Date.now()}`
       const createdAt = new Date().toISOString()
       const receipt = Receipt.from({
-        method: 'tempo',
+        method: 'x402',
         reference: `mock_pass_${fanId}_${passId}`,
         status: 'success',
         timestamp: createdAt,
@@ -381,7 +365,7 @@ function executeDanceExtraFlow(flowKey, body) {
       return {
         ok: true,
         status: 201,
-        result: { ...pass, network: tempoNet.network, chainId: tempoNet.chainId },
+        result: { ...pass, network: arcNet.network, chainId: arcNet.chainId },
       }
     }
     default:
@@ -401,14 +385,11 @@ app.get('/api/health', (_req, res) => {
 app.use(
   '/api/nhs',
   createNhsRouter({
-    liveMppByNetwork,
-    toFetchRequest,
-    sendFetchResponse,
+    gateway: arcGateway,
   }),
 )
 
-// Tempo faucet proxy (testnet only).
-// Avoids browser CORS issues by letting the Vite/Express server call the faucet API.
+// Arc Testnet: use Circle’s public faucet for USDC + native gas — see https://docs.arc.network/arc/references/connect-to-arc
 app.post('/api/tempo/faucet', async (req, res) => {
   const { address } = req.body ?? {}
 
@@ -425,87 +406,45 @@ app.post('/api/tempo/faucet', async (req, res) => {
     })
   }
 
-  try {
-    const upstream = await fetch('https://docs.tempo.xyz/api/faucet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: normalized }),
-    })
+  return res.status(200).json({
+    ok: true,
+    network: 'arc-testnet',
+    chainId: 5042002,
+    message:
+      'Use the Circle Faucet for Arc Testnet USDC and gas. This repo no longer proxies Tempo Moderato faucet.',
+    faucetUrl: 'https://faucet.circle.com',
+    docsUrl: 'https://docs.arc.network/arc/references/connect-to-arc',
+    address: normalized,
+  })
+})
 
-    const raw = await upstream.text()
-    let data = null
-    try {
-      data = raw ? JSON.parse(raw) : null
-    } catch {
-      data = null
-    }
+app.post(
+  '/api/battle/live/entry/:network',
+  (req, res, next) => {
+    const normalizedAmount = Number.parseFloat(req.body?.amountDisplay || '12.00')
+    const safeAmount = Number.isFinite(normalizedAmount) ? normalizedAmount : 12
+    gatewayRequireUsd(safeAmount.toFixed(2))(req, res, next)
+  },
+  (req, res) => {
+    const network = req.params.network === 'mainnet' ? 'mainnet' : 'testnet'
+    const { battleId, dancerId } = req.body ?? {}
 
-    if (!upstream.ok) {
-      return res.status(upstream.status).json({
-        error: 'Tempo faucet request failed.',
-        upstreamStatus: upstream.status,
-        details: data ?? raw,
+    if (typeof battleId !== 'string' || typeof dancerId !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid payload. Expected battleId and dancerId as strings.',
       })
     }
 
-    return res.status(upstream.status).json({
+    return res.status(200).json({
       ok: true,
-      upstreamStatus: upstream.status,
-      result: data ?? raw,
+      network,
+      battleId,
+      dancerId,
+      status: 'payment_finalized',
+      payment: req.payment ?? null,
     })
-  } catch (error) {
-    return res.status(500).json({
-      error: 'Tempo faucet proxy failed.',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    })
-  }
-})
-
-app.post('/api/battle/live/entry/:network', async (req, res) => {
-  const network = req.params.network === 'mainnet' ? 'mainnet' : 'testnet'
-  const { battleId, dancerId, amountDisplay } = req.body ?? {}
-
-  if (typeof battleId !== 'string' || typeof dancerId !== 'string') {
-    return res.status(400).json({
-      error: 'Invalid payload. Expected battleId and dancerId as strings.',
-    })
-  }
-
-  const mppx = liveMppByNetwork[network]
-  const normalizedAmount = Number.parseFloat(amountDisplay || '12.00')
-  const safeAmount = Number.isFinite(normalizedAmount) ? normalizedAmount : 12
-  // mppx charge amount is token-denominated decimal string, not base units.
-  const tokenAmount = safeAmount.toFixed(2)
-
-  try {
-    const handler = mppx.tempo.charge({
-      amount: tokenAmount,
-      description: `Battle ${battleId} entry for dancer ${dancerId}`,
-      externalId: `battle_live_${battleId}_${dancerId}_${Date.now()}`,
-    })
-    const mppResponse = await handler(toFetchRequest(req))
-
-    if (mppResponse.status === 402) {
-      return sendFetchResponse(res, mppResponse.challenge)
-    }
-
-    const successResponse = mppResponse.withReceipt(
-      Response.json({
-        ok: true,
-        network,
-        battleId,
-        dancerId,
-        status: 'payment_finalized',
-      }),
-    )
-    return sendFetchResponse(res, successResponse)
-  } catch (error) {
-    return res.status(400).json({
-      error: 'Live onchain payment failed.',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    })
-  }
-})
+  },
+)
 
 app.post('/api/battle/live/recover', (req, res) => {
   const { intentId, txHash, battleId, dancerId, amountDisplay, network } = req.body ?? {}
@@ -570,7 +509,7 @@ app.post('/api/battle/live/confirm-and-recover', async (req, res) => {
   }
 
   try {
-    const client = publicClientByNetwork[resolvedNetwork]
+    const client = arcPublicClient
     const receipt = await client.getTransactionReceipt({ hash: txHash })
     if (receipt.status !== 'success') {
       return res.status(409).json({
@@ -799,36 +738,28 @@ app.post('/api/coaching/start', (req, res) => {
   }
 })
 
-app.post('/api/coaching/live/start/:network', async (req, res) => {
-  const network = req.params.network === 'mainnet' ? 'mainnet' : 'testnet'
-  const { coachId, dancerId, ratePerMinute } = req.body ?? {}
+app.post(
+  '/api/coaching/live/start/:network',
+  (req, res, next) => {
+    const rate = Number(req.body?.ratePerMinute ?? '2.5')
+    const safe = Number.isFinite(rate) && rate > 0 ? rate : 2.5
+    gatewayRequireUsd(safe.toFixed(2))(req, res, next)
+  },
+  (req, res) => {
+    const network = req.params.network === 'mainnet' ? 'mainnet' : 'testnet'
+    const { coachId, dancerId, ratePerMinute } = req.body ?? {}
 
-  if (typeof coachId !== 'string' || typeof dancerId !== 'string') {
-    return res.status(400).json({
-      error: 'Invalid payload. Expected coachId and dancerId as strings.',
-    })
-  }
+    if (typeof coachId !== 'string' || typeof dancerId !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid payload. Expected coachId and dancerId as strings.',
+      })
+    }
 
-  const rate = Number(ratePerMinute ?? '2.5')
-  if (!Number.isFinite(rate) || rate <= 0) {
-    return res.status(400).json({
-      error: 'Invalid ratePerMinute. Expected positive number.',
-    })
-  }
-
-  // Charge one minute upfront for live coaching session creation.
-  const tokenAmount = rate.toFixed(2)
-  const mppx = liveMppByNetwork[network]
-  try {
-    const handler = mppx.tempo.charge({
-      amount: tokenAmount,
-      description: `Coaching session start for ${dancerId} with ${coachId}`,
-      externalId: `coaching_live_${coachId}_${dancerId}_${Date.now()}`,
-    })
-    const mppResponse = await handler(toFetchRequest(req))
-
-    if (mppResponse.status === 402) {
-      return sendFetchResponse(res, mppResponse.challenge)
+    const rate = Number(ratePerMinute ?? '2.5')
+    if (!Number.isFinite(rate) || rate <= 0) {
+      return res.status(400).json({
+        error: 'Invalid ratePerMinute. Expected positive number.',
+      })
     }
 
     const session = startCoachingSession({
@@ -837,24 +768,17 @@ app.post('/api/coaching/live/start/:network', async (req, res) => {
       ratePerMinute: rate,
     })
 
-    const successResponse = mppResponse.withReceipt(
-      Response.json({
-        ok: true,
-        network,
-        sessionId: session.id,
-        status: session.status,
-        ratePerMinute: session.ratePerMinute,
-        createdAt: session.createdAt,
-      }),
-    )
-    return sendFetchResponse(res, successResponse)
-  } catch (error) {
-    return res.status(400).json({
-      error: 'Live coaching session start failed.',
-      details: error instanceof Error ? error.message : 'Unknown error',
+    return res.status(201).json({
+      ok: true,
+      network,
+      sessionId: session.id,
+      status: session.status,
+      ratePerMinute: session.ratePerMinute,
+      createdAt: session.createdAt,
+      payment: req.payment ?? null,
     })
-  }
-})
+  },
+)
 
 app.post('/api/coaching/live/confirm-by-tx', async (req, res) => {
   const { txHash, coachId, dancerId, ratePerMinute, network } = req.body ?? {}
@@ -879,7 +803,7 @@ app.post('/api/coaching/live/confirm-by-tx', async (req, res) => {
   }
 
   try {
-    const client = publicClientByNetwork[resolvedNetwork]
+    const client = arcPublicClient
     const onchainReceipt = await client.getTransactionReceipt({ hash: txHash })
     if (onchainReceipt.status !== 'success') {
       return res.status(409).json({
@@ -1012,59 +936,53 @@ app.post('/api/beats/:id/license-intent', (req, res) => {
   }
 })
 
-app.post('/api/beats/live/:id/license/:network', async (req, res) => {
-  const network = req.params.network === 'mainnet' ? 'mainnet' : 'testnet'
-  const { id } = req.params
-  const { consumerId, amountDisplay } = req.body ?? {}
+app.post(
+  '/api/beats/live/:id/license/:network',
+  (req, res, next) => {
+    const normalizedAmount = Number.parseFloat(req.body?.amountDisplay || '12.00')
+    const safeAmount = Number.isFinite(normalizedAmount) ? normalizedAmount : 12
+    gatewayRequireUsd(safeAmount.toFixed(2))(req, res, next)
+  },
+  (req, res) => {
+    const network = req.params.network === 'mainnet' ? 'mainnet' : 'testnet'
+    const { id } = req.params
+    const { consumerId, amountDisplay } = req.body ?? {}
 
-  if (typeof consumerId !== 'string') {
-    return res.status(400).json({
-      error: 'Invalid payload. Expected consumerId as a string.',
-    })
-  }
-
-  const normalizedAmount = Number.parseFloat(amountDisplay || '12.00')
-  const safeAmount = Number.isFinite(normalizedAmount) ? normalizedAmount : 12
-  const tokenAmount = safeAmount.toFixed(2)
-  const mppx = liveMppByNetwork[network]
-
-  try {
-    const handler = mppx.tempo.charge({
-      amount: tokenAmount,
-      description: `Beat ${id} license for consumer ${consumerId}`,
-      externalId: `beats_live_${id}_${consumerId}_${Date.now()}`,
-    })
-    const mppResponse = await handler(toFetchRequest(req))
-
-    if (mppResponse.status === 402) {
-      return sendFetchResponse(res, mppResponse.challenge)
+    if (typeof consumerId !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid payload. Expected consumerId as a string.',
+      })
     }
 
-    const licenseIntent = createBeatLicenseIntent({
-      beatId: id,
-      consumerId,
-      amountDisplay: tokenAmount,
-    })
-    const license = grantBeatLicense({ licenseId: licenseIntent.licenseId })
+    const normalizedAmount = Number.parseFloat(amountDisplay || '12.00')
+    const safeAmount = Number.isFinite(normalizedAmount) ? normalizedAmount : 12
+    const tokenAmount = safeAmount.toFixed(2)
 
-    const successResponse = mppResponse.withReceipt(
-      Response.json({
+    try {
+      const licenseIntent = createBeatLicenseIntent({
+        beatId: id,
+        consumerId,
+        amountDisplay: tokenAmount,
+      })
+      const license = grantBeatLicense({ licenseId: licenseIntent.licenseId })
+
+      return res.status(200).json({
         ok: true,
         network,
         licenseId: license.licenseId,
         status: license.status,
         streamUrl: license.streamUrl,
         receipt: license.receipt,
-      }),
-    )
-    return sendFetchResponse(res, successResponse)
-  } catch (error) {
-    return res.status(400).json({
-      error: 'Live beat license payment failed.',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    })
-  }
-})
+        payment: req.payment ?? null,
+      })
+    } catch (error) {
+      return res.status(400).json({
+        error: 'Live beat license payment failed.',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      })
+    }
+  },
+)
 
 app.post('/api/beats/live/:id/confirm-by-tx', async (req, res) => {
   const { id } = req.params
@@ -1088,7 +1006,7 @@ app.post('/api/beats/live/:id/confirm-by-tx', async (req, res) => {
   const recoveryKey = `${resolvedNetwork}:${id}:${txHash}`
 
   try {
-    const client = publicClientByNetwork[resolvedNetwork]
+    const client = arcPublicClient
     const onchainReceipt = await client.getTransactionReceipt({ hash: txHash })
     if (onchainReceipt.status !== 'success') {
       return res.status(409).json({
@@ -1194,95 +1112,87 @@ app.post('/api/bot/action', (req, res) => {
   return res.status(r.status).json(r.result)
 })
 
-app.post('/api/ops/agentmail/send', async (req, res) => {
-  const { to, subject, text, html, inbox_id, network } = req.body ?? {}
-  const effectiveInboxId = typeof inbox_id === 'string' && inbox_id.trim() ? inbox_id.trim() : process.env.AGENTMAIL_INBOX_ID
-  const agentmailApiKey = process.env.AGENTMAIL_API_KEY
+app.post(
+  '/api/ops/agentmail/send',
+  (req, res, next) => {
+    const agentmailApiKey = process.env.AGENTMAIL_API_KEY
+    if (typeof agentmailApiKey === 'string' && agentmailApiKey.trim()) {
+      const amount = Number.parseFloat(process.env.AGENTMAIL_SEND_FEE || '0.01')
+      const safeAmount = Number.isFinite(amount) ? amount : 0.01
+      return gatewayRequireUsd(safeAmount.toFixed(2))(req, res, next)
+    }
+    return next()
+  },
+  async (req, res) => {
+    const { to, subject, text, html, inbox_id } = req.body ?? {}
+    const effectiveInboxId = typeof inbox_id === 'string' && inbox_id.trim() ? inbox_id.trim() : process.env.AGENTMAIL_INBOX_ID
+    const agentmailApiKey = process.env.AGENTMAIL_API_KEY
 
-  if (typeof to !== 'string' || typeof subject !== 'string') {
-    return res.status(400).json({
-      error: 'Invalid payload. Expected to and subject as strings.',
-    })
-  }
-
-  if (typeof effectiveInboxId !== 'string' || !effectiveInboxId.trim()) {
-    return res.status(400).json({
-      error: 'Missing inbox_id for AgentMail send.',
-      details: 'Provide `inbox_id` in request body or set AGENTMAIL_INBOX_ID on the server.',
-    })
-  }
-
-  // Alternative strategy (more reliable in this environment):
-  // 1) wallet pays this backend via Tempo MPP challenge
-  // 2) backend executes AgentMail send via stable API-key endpoint
-  //
-  // This preserves wallet-paid UX while avoiding AgentMail MPP inbox scope mismatch.
-  if (typeof agentmailApiKey === 'string' && agentmailApiKey.trim()) {
-    const selectedNetwork = network === 'testnet' ? 'testnet' : 'mainnet'
-    const mppx = liveMppByNetwork[selectedNetwork]
-    const amount = Number.parseFloat(process.env.AGENTMAIL_SEND_FEE || '0.01')
-    const safeAmount = Number.isFinite(amount) ? amount : 0.01
-    const tokenAmount = safeAmount.toFixed(2)
-
-    try {
-      const handler = mppx.tempo.charge({
-        amount: tokenAmount,
-        description: `AgentMail send to ${to}`,
-        externalId: `agentmail_send_${effectiveInboxId}_${Date.now()}`,
+    if (typeof to !== 'string' || typeof subject !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid payload. Expected to and subject as strings.',
       })
-      const mppResponse = await handler(toFetchRequest(req))
-      if (mppResponse.status === 402) return sendFetchResponse(res, mppResponse.challenge)
+    }
 
-      const apiBase = process.env.AGENTMAIL_BASE_URL || 'https://api.agentmail.to'
-      const endpoint = `${apiBase.replace(/\/$/, '')}/v0/inboxes/${encodeURIComponent(effectiveInboxId)}/messages/send`
-      const upstream = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${agentmailApiKey.trim()}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to,
-          subject,
-          ...(typeof text === 'string' ? { text } : {}),
-          ...(typeof html === 'string' ? { html } : {}),
-        }),
+    if (typeof effectiveInboxId !== 'string' || !effectiveInboxId.trim()) {
+      return res.status(400).json({
+        error: 'Missing inbox_id for AgentMail send.',
+        details: 'Provide `inbox_id` in request body or set AGENTMAIL_INBOX_ID on the server.',
       })
+    }
 
-      const raw = await upstream.text()
-      let data = null
+    // 1) Wallet pays this backend via Circle Gateway x402 (when AGENTMAIL_API_KEY is set).
+    // 2) Backend executes AgentMail send via stable API-key endpoint.
+    if (typeof agentmailApiKey === 'string' && agentmailApiKey.trim()) {
       try {
-        data = raw ? JSON.parse(raw) : null
-      } catch {
-        data = null
-      }
-
-      if (!upstream.ok) {
-        return res.status(upstream.status).json({
-          error: 'AgentMail send failed.',
-          upstreamStatus: upstream.status,
-          upstreamEndpoint: endpoint,
-          details: data ?? raw,
+        const apiBase = process.env.AGENTMAIL_BASE_URL || 'https://api.agentmail.to'
+        const endpoint = `${apiBase.replace(/\/$/, '')}/v0/inboxes/${encodeURIComponent(effectiveInboxId)}/messages/send`
+        const upstream = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${agentmailApiKey.trim()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to,
+            subject,
+            ...(typeof text === 'string' ? { text } : {}),
+            ...(typeof html === 'string' ? { html } : {}),
+          }),
         })
-      }
 
-      const success = mppResponse.withReceipt(
-        Response.json({
+        const raw = await upstream.text()
+        let data = null
+        try {
+          data = raw ? JSON.parse(raw) : null
+        } catch {
+          data = null
+        }
+
+        if (!upstream.ok) {
+          return res.status(upstream.status).json({
+            error: 'AgentMail send failed.',
+            upstreamStatus: upstream.status,
+            upstreamEndpoint: endpoint,
+            details: data ?? raw,
+          })
+        }
+
+        return res.status(201).json({
           provider: 'agentmail',
           status: 'sent',
           result: data ?? raw,
-        }, { status: 201 }),
-      )
-      return sendFetchResponse(res, success)
-    } catch (error) {
-      return res.status(500).json({
-        error: 'AgentMail request failed.',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      })
+          payment: req.payment ?? null,
+        })
+      } catch (error) {
+        return res.status(500).json({
+          error: 'AgentMail request failed.',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        })
+      }
     }
-  }
 
-  // No API key available: direct AgentMail MPP passthrough mode.
+    // No API key available: direct AgentMail MPP passthrough mode.
   const mppBaseUrl = process.env.AGENTMAIL_MPP_BASE_URL || 'https://mpp.api.agentmail.to'
   const endpoint = `${mppBaseUrl.replace(/\/$/, '')}/v0/inboxes/${encodeURIComponent(effectiveInboxId)}/messages/send`
 
@@ -1424,42 +1334,30 @@ app.get('/api/dance-extras/live', (_req, res) => {
 })
 
 /**
- * Wallet-paid Tempo MPP (x402) for the seven HealthTech “extra” flows — charges then runs the same scaffold as mock routes.
- * Body: same JSON as the corresponding `/api/...` route; `network` in the URL overrides body for Tempo chain selection.
+ * Wallet-paid Circle Gateway x402 for the seven HealthTech “extra” flows — charges then runs the same scaffold as mock routes.
+ * Body: same JSON as the corresponding `/api/...` route; `network` in the URL overrides body for chain selection (Arc Testnet).
  */
-app.post('/api/dance-extras/live/:flowKey/:networkParam', async (req, res) => {
-  const network = req.params.networkParam === 'mainnet' ? 'mainnet' : 'testnet'
-  const flowKey = req.params.flowKey
-  if (!DANCE_EXTRA_LIVE_AMOUNTS[flowKey]) {
-    return res.status(400).json({ error: 'Invalid flowKey for live MPP.' })
-  }
-  const amount = DANCE_EXTRA_LIVE_AMOUNTS[flowKey]
-  const mppx = liveMppByNetwork[network]
-  try {
-    const handler = mppx.tempo.charge({
-      amount,
-      description: `HealthTech ${flowKey}`,
-      externalId: `dance_extra_${flowKey}_${Date.now()}`,
-    })
-    const mppResponse = await handler(toFetchRequest(req))
-    if (mppResponse.status === 402) return sendFetchResponse(res, mppResponse.challenge)
-
+app.post(
+  '/api/dance-extras/live/:flowKey/:networkParam',
+  (req, res, next) => {
+    const flowKey = req.params.flowKey
+    const amount = DANCE_EXTRA_LIVE_AMOUNTS[flowKey]
+    if (!amount) {
+      return res.status(400).json({ error: 'Invalid flowKey for live x402.' })
+    }
+    gatewayRequireUsd(amount)(req, res, next)
+  },
+  (req, res) => {
+    const network = req.params.networkParam === 'mainnet' ? 'mainnet' : 'testnet'
+    const flowKey = req.params.flowKey
     const body = { ...(req.body ?? {}), network }
     const r = executeDanceExtraFlow(flowKey, body)
     if (!r.ok) {
-      return sendFetchResponse(res, Response.json({ error: r.error }, { status: r.status }))
+      return res.status(r.status).json({ error: r.error })
     }
-    const successResponse = mppResponse.withReceipt(
-      Response.json({ ...r.result, mpp: true, livePayment: true }),
-    )
-    return sendFetchResponse(res, successResponse)
-  } catch (error) {
-    return res.status(400).json({
-      error: 'Dance extra live payment failed.',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    })
-  }
-})
+    return res.status(r.status).json({ ...r.result, livePayment: true, payment: req.payment ?? null })
+  },
+)
 
 app.post('/api/travel/stable/flights-search', async (req, res) => {
   const { originLocationCode, destinationLocationCode, departureDate, adults, max } = req.body ?? {}
@@ -2182,43 +2080,52 @@ app.get('/api/social/stablesocial/jobs', async (req, res) => {
   }
 })
 
-app.post('/api/card/create', async (req, res) => {
-  const { walletAddress, amountDisplay, currency, label } = req.body ?? {}
-  const requestedNetwork = req.body?.network === 'mainnet' ? 'mainnet' : 'testnet'
+app.post(
+  '/api/card/create',
+  (req, res, next) => {
+    const providerMode = (process.env.CARD_PROVIDER || 'laso').toLowerCase()
+    const useLaso = providerMode === 'laso'
+    if (!useLaso) return next()
+    const normalizedAmount = Number.parseFloat(req.body?.amountDisplay || '5.00')
+    const safeAmount = Number.isFinite(normalizedAmount) ? normalizedAmount : 5
+    return gatewayRequireUsd(safeAmount.toFixed(2))(req, res, next)
+  },
+  async (req, res) => {
+    const { walletAddress, amountDisplay, currency, label } = req.body ?? {}
 
-  if (typeof walletAddress !== 'string' || !walletAddress.startsWith('0x')) {
-    return res.status(400).json({
-      error: 'Invalid payload. Expected walletAddress as 0x-prefixed string.',
-    })
-  }
-
-  const providerMode = (process.env.CARD_PROVIDER || 'laso').toLowerCase()
-  const useLaso = providerMode === 'laso'
-
-  const respondWithMock = () => {
-    try {
-      const card = createVirtualDebitCard({ walletAddress, amountDisplay, currency, label })
-      return res.status(201).json({
-        cardId: card.cardId,
-        brand: card.brand,
-        provider: card.provider,
-        cardNumber: card.cardNumber,
-        expiry: card.expiry,
-        cvv: card.cvv,
-        amountDisplay: card.amountDisplay,
-        currency: card.currency,
-        status: card.status,
-        label: card.label,
-        createdAt: card.createdAt,
-        receipt: card.receipt,
-      })
-    } catch (error) {
+    if (typeof walletAddress !== 'string' || !walletAddress.startsWith('0x')) {
       return res.status(400).json({
-        error: 'Failed to create virtual debit card.',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Invalid payload. Expected walletAddress as 0x-prefixed string.',
       })
     }
-  }
+
+    const providerMode = (process.env.CARD_PROVIDER || 'laso').toLowerCase()
+    const useLaso = providerMode === 'laso'
+
+    const respondWithMock = () => {
+      try {
+        const card = createVirtualDebitCard({ walletAddress, amountDisplay, currency, label })
+        return res.status(201).json({
+          cardId: card.cardId,
+          brand: card.brand,
+          provider: card.provider,
+          cardNumber: card.cardNumber,
+          expiry: card.expiry,
+          cvv: card.cvv,
+          amountDisplay: card.amountDisplay,
+          currency: card.currency,
+          status: card.status,
+          label: card.label,
+          createdAt: card.createdAt,
+          receipt: card.receipt,
+        })
+      } catch (error) {
+        return res.status(400).json({
+          error: 'Failed to create virtual debit card.',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        })
+      }
+    }
 
   const respondWithMockDemo = (demoReason) => {
     try {
@@ -2260,11 +2167,8 @@ app.post('/api/card/create', async (req, res) => {
 
   if (!useLaso) return respondWithMock()
 
-  const mppx = liveMppByNetwork[requestedNetwork]
   const normalizedAmount = Number.parseFloat(amountDisplay || '5.00')
   const safeAmount = Number.isFinite(normalizedAmount) ? normalizedAmount : 5
-  // mppx.tempo.charge expects a decimal-string amount (not base units).
-  const tokenAmount = safeAmount.toFixed(2)
 
   try {
     const lasoBase = process.env.LASO_BASE_URL || 'https://laso.mpp.paywithlocus.com'
@@ -2306,56 +2210,8 @@ app.post('/api/card/create', async (req, res) => {
       })
     }
 
-    let mppResponse = null
     if (upstream.status === 402) {
-      const handler = mppx.tempo.charge({
-        amount: tokenAmount,
-        description: `Virtual debit card creation for ${walletAddress}`,
-        externalId: `virtual_card_${walletAddress}_${Date.now()}`,
-      })
-
-      mppResponse = await handler(toFetchRequest(req))
-      if (mppResponse.status === 402) return sendFetchResponse(res, mppResponse.challenge)
-
-      // Retry Laso now that the request includes payment headers.
-      upstream = await fetch(lasoEndpoint, {
-        method: 'POST',
-        headers: lasoHeaders,
-        body: lasoRequestBody,
-      })
-
-      raw = await upstream.text()
-      data = null
-      try {
-        data = raw ? JSON.parse(raw) : null
-      } catch {
-        data = null
-      }
-
-      if (!upstream.ok) {
-        const lasoErrText = data ? JSON.stringify(data) : raw
-        if (
-          upstream.status === 402 &&
-          (lasoErrText.toLowerCase().includes('invalid challenge') || isUsOnlyBlocked(lasoErrText))
-        ) {
-          return respondWithMockDemo(
-            'Demo mode: Laso prepaid card ordering is restricted to the United States (US only).',
-          )
-        }
-        const payload = {
-          error: 'Laso virtual card request failed.',
-          details: data ?? raw,
-          endpoint: lasoEndpoint,
-          upstreamStatus: upstream.status,
-        }
-        const errRes = mppResponse.withReceipt(
-          new Response(JSON.stringify(payload), {
-            status: upstream.status,
-            headers: { 'Content-Type': 'application/json' },
-          }),
-        )
-        return sendFetchResponse(res, errRes)
-      }
+      return sendFetchResponse(res, upstream)
     }
 
     const cardData = data?.card || data?.result?.card || data?.result || data
@@ -2385,26 +2241,18 @@ app.post('/api/card/create', async (req, res) => {
       createdAt: new Date().toISOString(),
       receipt: null,
       raw: data ?? raw,
-    }
-
-    if (mppResponse) {
-      const successRes = mppResponse.withReceipt(
-        new Response(JSON.stringify(payload), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      )
-      return sendFetchResponse(res, successRes)
+      payment: req.payment ?? null,
     }
 
     return res.status(201).json(payload)
   } catch (error) {
     return res.status(400).json({
-      error: 'Virtual card MPP payment failed.',
+      error: 'Virtual card payment failed.',
       details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
-})
+  },
+)
 
 app.get('/api/card/:id', async (req, res) => {
   const providerMode = (process.env.CARD_PROVIDER || 'laso').toLowerCase()
@@ -2571,7 +2419,7 @@ function openAiMppPaymentHint(req) {
   const apiKey = process.env.OPENAI_API_KEY
   const forwardHeaders = getForwardAuthHeaders(req)
   return !apiKey?.trim() && !forwardHeaders.Payment && !forwardHeaders['Payment-Receipt']
-    ? 'Connect wallet on Tempo mainnet and complete payment (x402 / MPP), or set OPENAI_API_KEY on the server.'
+    ? 'Pay upstream x402 with your wallet (Arc Testnet + Circle Gateway in this app), or set OPENAI_API_KEY on the server.'
     : undefined
 }
 

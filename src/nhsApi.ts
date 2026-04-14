@@ -54,10 +54,8 @@ function extractTxHash(value: string): string | null {
   return match ? match[0] : null
 }
 
-function toExplorerUrl(network: NhsNetwork, txHash: string): string {
-  return network === 'mainnet'
-    ? `https://explore.tempo.xyz/tx/${txHash}`
-    : `https://explore.testnet.tempo.xyz/tx/${txHash}`
+function toExplorerUrl(_network: NhsNetwork, txHash: string): string {
+  return `https://testnet.arcscan.app/tx/${txHash}`
 }
 
 function auditRefFromPayload(payload: unknown): string {

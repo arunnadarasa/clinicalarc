@@ -33,7 +33,7 @@ export function buildOpenApiDocument(req) {
       title: 'Clinical Tempo NHS API',
       version: '1.0.0',
       description:
-        'NHS neighbourhood health + social prescribing reference backend with wallet identity, RBAC, and Tempo MPP payment gates.',
+        'NHS neighbourhood health + social prescribing reference backend with wallet identity, RBAC, and Arc Testnet Circle Gateway x402 payment gates.',
     },
     servers: [{ url: baseUrl, description: 'This API (same origin as /openapi.json)' }],
     'x-discovery': { ownershipProofs: [] },
@@ -52,7 +52,7 @@ export function buildOpenApiDocument(req) {
       '/api/dance-extras/live/{flowKey}/{network}': {
         post: {
           operationId: 'danceExtrasLivePaid',
-          summary: 'Execute legacy dance flow with Tempo MPP',
+          summary: 'Execute legacy dance flow with Arc x402 (Circle Gateway)',
           tags: ['Legacy'],
           parameters: [
             { name: 'flowKey', in: 'path', required: true, schema: { type: 'string', enum: Object.keys(DANCE_EXTRA_LIVE_AMOUNTS) } },

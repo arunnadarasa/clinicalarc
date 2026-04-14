@@ -1,30 +1,11 @@
 /**
- * Shared Tempo MPP helpers for live `POST /api/dance-extras/live/...` routes (browser wallet).
- * Used by ExtraDanceApp-style flows and PurlApp one-click pay.
+ * Arc Testnet + Circle Gateway x402 for `POST /api/dance-extras/live/...` (browser wallet).
  */
-import { Mppx as MppxClient, tempo as tempoClient } from 'mppx/client'
-import {
-  type BrowserEthereumProvider,
-  TEMPO_MPP_SESSION_MAX_DEPOSIT,
-  tempoBrowserWalletTransport,
-} from './tempoMpp'
-import { createWalletClient } from 'viem'
-import { tempo as tempoMainnet, tempoModerato } from 'viem/chains'
-import { tempoActions } from 'viem/tempo'
+import { createArcX402PaymentFetch } from './arcX402Fetch'
+import type { BrowserEthereumProvider } from './tempoMpp'
+import { arcTestnetChain } from './arcChains'
 
 export type TempoHubNetwork = 'testnet' | 'mainnet'
-
-export const tempoTestnetChain = tempoModerato.extend({
-  nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
-  feeToken: '0x20c0000000000000000000000000000000000001',
-  blockTime: 30_000,
-})
-
-export const tempoMainnetChain = tempoMainnet.extend({
-  nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
-  feeToken: '0x20c000000000000000000000b9537d11c60e8b50',
-  blockTime: 30_000,
-})
 
 export const toHexChainId = (id: number) => `0x${id.toString(16)}`
 
@@ -59,13 +40,13 @@ export function httpFailureMessage(res: Response, text: string, data: unknown, f
 export function mapLivePayError(message: string) {
   const lower = message.toLowerCase()
   if (lower.includes('timed out while waiting for call bundle id')) {
-    return 'Wallet submitted the call bundle, but confirmation polling timed out. Check Tempo explorer.'
+    return 'Wallet submitted the call bundle, but confirmation polling timed out. Check Arc explorer.'
   }
   if (lower.includes('user rejected') || lower.includes('rejected the request')) {
     return 'Transaction approval was rejected in wallet.'
   }
   if (lower.includes('insufficientbalance') || lower.includes('amount exceeds balance')) {
-    return 'Insufficient balance for this payment on selected network.'
+    return 'Insufficient balance for this payment on Arc Testnet.'
   }
   return message
 }
@@ -84,8 +65,8 @@ type EthWindow = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
 }
 
-export async function addTempoNetwork(ethereum: EthWindow, target: TempoHubNetwork) {
-  const chain = target === 'testnet' ? tempoTestnetChain : tempoMainnetChain
+export async function addTempoNetwork(ethereum: EthWindow, _target: TempoHubNetwork) {
+  const chain = arcTestnetChain
   const rpcUrl = chain.rpcUrls.default.http[0]
   await ethereum.request({
     method: 'wallet_addEthereumChain',
@@ -101,8 +82,8 @@ export async function addTempoNetwork(ethereum: EthWindow, target: TempoHubNetwo
   })
 }
 
-export async function ensureSelectedWalletNetwork(ethereum: EthWindow, network: TempoHubNetwork) {
-  const chain = network === 'testnet' ? tempoTestnetChain : tempoMainnetChain
+export async function ensureSelectedWalletNetwork(ethereum: EthWindow, _network: TempoHubNetwork) {
+  const chain = arcTestnetChain
   const chainIdHex = toHexChainId(chain.id)
   try {
     await ethereum.request({
@@ -112,7 +93,7 @@ export async function ensureSelectedWalletNetwork(ethereum: EthWindow, network: 
   } catch (err: unknown) {
     const e = err as { code?: number }
     if (e?.code === 4902) {
-      await addTempoNetwork(ethereum, network)
+      await addTempoNetwork(ethereum, 'testnet')
       await ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: chainIdHex }],
@@ -128,35 +109,10 @@ export async function liveMppFetch(
   init: RequestInit,
   opts: { walletAddress: `0x${string}`; network: TempoHubNetwork },
 ): Promise<Response> {
-  const { walletAddress, network } = opts
+  const { walletAddress } = opts
   const eth = window.ethereum as BrowserEthereumProvider | undefined
   if (!eth) throw new Error('Wallet not found.')
-  await ensureSelectedWalletNetwork(eth as EthWindow, network)
-  const chain = network === 'testnet' ? tempoTestnetChain : tempoMainnetChain
-  const walletClient = createWalletClient({
-    chain,
-    transport: tempoBrowserWalletTransport(eth, chain.rpcUrls.default.http[0]),
-    account: walletAddress,
-  }).extend(tempoActions())
-
-  const makeMppx = (mode: 'push' | 'pull') =>
-    MppxClient.create({
-      methods: [
-        tempoClient({
-          account: walletAddress,
-          mode,
-          maxDeposit: TEMPO_MPP_SESSION_MAX_DEPOSIT,
-          getClient: async () => walletClient,
-        }),
-      ],
-      polyfill: false,
-    })
-
-  try {
-    return await makeMppx('push').fetch(url, init)
-  } catch (pushErr) {
-    const isMetaMask = Boolean((eth as { isMetaMask?: boolean }).isMetaMask)
-    if (isMetaMask) throw pushErr
-    return await makeMppx('pull').fetch(url, init)
-  }
+  await ensureSelectedWalletNetwork(eth as EthWindow, opts.network)
+  const fetchWithPay = createArcX402PaymentFetch(eth, walletAddress)
+  return fetchWithPay(url, init)
 }

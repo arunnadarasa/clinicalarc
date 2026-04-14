@@ -2,7 +2,7 @@ import crypto from 'node:crypto'
 import express from 'express'
 import { appendAudit, all, get, insert, listPatientTimeline, run } from './db.js'
 import { ensurePatientRecordForWallet, getActor, requireRoles, resolvePatientIdForActor } from './auth.js'
-import { withTempoGate } from './payment.js'
+import { withArcGatewayGate } from './payment.js'
 
 function nowIso() {
   return new Date().toISOString()
@@ -19,7 +19,7 @@ function withReceipt(body, paymentCtx) {
 
 export function createNhsRouter(deps) {
   const router = express.Router()
-  const gate = (config, handler) => withTempoGate(deps, config, handler)
+  const gate = (config, handler) => withArcGatewayGate(deps, config, handler)
   const paymentGateEnabled = process.env.NHS_ENABLE_PAYMENT_GATE !== 'false'
 
   router.post('/identity/bootstrap', (req, res) => {
@@ -31,7 +31,7 @@ export function createNhsRouter(deps) {
 
   router.post(
     '/gp-access/requests',
-    gate({ enabled: paymentGateEnabled, amount: '0.02', description: 'NHS GP access request', externalIdPrefix: 'nhs_gp' }, (req, res, paymentCtx) => {
+    ...gate({ enabled: paymentGateEnabled, amount: '0.02', description: 'NHS GP access request', externalIdPrefix: 'nhs_gp' }, (req, res, paymentCtx) => {
       const actor = getActor(req)
       if (actor.error) return res.status(400).json({ error: actor.error })
       const forbidden = requireRoles(actor, ['patient'])
@@ -83,7 +83,7 @@ export function createNhsRouter(deps) {
     return res.json(row)
   })
 
-  router.post('/care-plans', gate({
+  router.post('/care-plans', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.02',
     description: 'NHS care plan write',
@@ -137,7 +137,7 @@ export function createNhsRouter(deps) {
     return res.json({ items: plans })
   })
 
-  router.post('/care-plans/:planId/updates', gate({
+  router.post('/care-plans/:planId/updates', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.01',
     description: 'NHS care plan update',
@@ -171,7 +171,7 @@ export function createNhsRouter(deps) {
     return res.status(201).json(withReceipt({ id, planId: req.params.planId, note: note.trim() }, paymentCtx))
   }))
 
-  router.post('/social-prescribing/referrals', gate({
+  router.post('/social-prescribing/referrals', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.02',
     description: 'NHS social prescribing referral',
@@ -224,7 +224,7 @@ export function createNhsRouter(deps) {
     return res.json(row)
   })
 
-  router.post('/social-prescribing/link-worker-plan', gate({
+  router.post('/social-prescribing/link-worker-plan', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.01',
     description: 'NHS link worker plan write',
@@ -281,7 +281,7 @@ export function createNhsRouter(deps) {
     return res.status(201).json(withReceipt({ id, referralId, whatMatters, interventions }, paymentCtx))
   }))
 
-  router.post('/neighbourhood-teams/coordinate', gate({
+  router.post('/neighbourhood-teams/coordinate', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.01',
     description: 'NHS neighbourhood coordination write',
@@ -316,7 +316,7 @@ export function createNhsRouter(deps) {
     return res.status(201).json(withReceipt({ id, patientId, eventType, detail }, paymentCtx))
   }))
 
-  router.post('/monitoring/sessions', gate({
+  router.post('/monitoring/sessions', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.02',
     description: 'NHS monitoring session create',
@@ -355,7 +355,7 @@ export function createNhsRouter(deps) {
     return res.status(201).json(withReceipt({ id, patientId, metric, status: 'active' }, paymentCtx))
   }))
 
-  router.post('/monitoring/readings', gate({
+  router.post('/monitoring/readings', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.01',
     description: 'NHS monitoring reading write',
@@ -421,7 +421,7 @@ export function createNhsRouter(deps) {
     return res.status(201).json(withReceipt({ id: readingId, sessionId, value: readingValue, alert }, paymentCtx))
   }))
 
-  router.post('/monitoring/alerts/:alertId/resolve', gate({
+  router.post('/monitoring/alerts/:alertId/resolve', ...gate({
     enabled: paymentGateEnabled,
     amount: '0.01',
     description: 'NHS monitoring alert resolve',

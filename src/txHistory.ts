@@ -51,7 +51,5 @@ export const clearTxHistory = () => {
   window.localStorage.removeItem(STORAGE_KEY)
 }
 
-export const explorerTxUrl = (network: TxNetwork, hash: string) =>
-  network === 'testnet'
-    ? `https://explore.testnet.tempo.xyz/tx/${hash}`
-    : `https://explore.tempo.xyz/tx/${hash}`
+export const explorerTxUrl = (_network: TxNetwork, hash: string) =>
+  `https://testnet.arcscan.app/tx/${hash}`

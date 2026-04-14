@@ -1,20 +1,15 @@
-import { Mppx as MppxClient, tempo as tempoClient } from 'mppx/client'
-import { createWalletClient } from 'viem'
-import { tempoActions } from 'viem/tempo'
-import {
-  TEMPO_MPP_SESSION_MAX_DEPOSIT,
-  tempoBrowserWalletTransport,
-  type BrowserEthereumProvider,
-} from './tempoMpp'
+import { arcTestnetChain } from './arcChains'
+import { createArcX402PaymentFetch } from './arcX402Fetch'
+import type { BrowserEthereumProvider } from './tempoMpp'
 import type { NhsNetwork } from './nhsSession'
-import { tempoMainnetChain, tempoTestnetChain } from './tempoChains'
 
 function toHexChainId(id: number) {
   return `0x${id.toString(16)}`
 }
 
-export async function ensureWalletOnNetwork(ethereum: BrowserEthereumProvider, network: NhsNetwork) {
-  const chain = network === 'mainnet' ? tempoMainnetChain : tempoTestnetChain
+/** Arc Testnet only; `mainnet` in UI maps to the same chain until Arc mainnet is wired in viem. */
+export async function ensureWalletOnNetwork(ethereum: BrowserEthereumProvider, _network: NhsNetwork) {
+  const chain = arcTestnetChain
   const chainId = toHexChainId(chain.id)
   try {
     await ethereum.request({
@@ -49,35 +44,9 @@ export async function nhsMppFetch(
   opts: { wallet: string; network: NhsNetwork },
 ) {
   const provider = (window as Window & { ethereum?: BrowserEthereumProvider }).ethereum
-  if (!provider) throw new Error('Wallet provider not found for MPP payment mode.')
-  if (!opts.wallet) throw new Error('Connect wallet to use MPP mode.')
+  if (!provider) throw new Error('Wallet provider not found for x402 payment mode.')
+  if (!opts.wallet) throw new Error('Connect wallet to use x402 mode.')
   await ensureWalletOnNetwork(provider, opts.network)
-  const chain = opts.network === 'mainnet' ? tempoMainnetChain : tempoTestnetChain
-  const walletClient = createWalletClient({
-    chain,
-    transport: tempoBrowserWalletTransport(provider, chain.rpcUrls.default.http[0]),
-    account: opts.wallet as `0x${string}`,
-  }).extend(tempoActions())
-
-  const makeMppx = (mode: 'push' | 'pull') =>
-    MppxClient.create({
-      methods: [
-        tempoClient({
-          account: opts.wallet as `0x${string}`,
-          mode,
-          maxDeposit: TEMPO_MPP_SESSION_MAX_DEPOSIT,
-          getClient: async () => walletClient,
-        }),
-      ],
-      polyfill: false,
-    })
-
-  try {
-    return await makeMppx('push').fetch(url, init)
-  } catch (error) {
-    const isMetaMask = Boolean((window as Window & { ethereum?: { isMetaMask?: boolean } }).ethereum?.isMetaMask)
-    if (isMetaMask) throw error
-    return await makeMppx('pull').fetch(url, init)
-  }
+  const fetchWithPay = createArcX402PaymentFetch(provider, opts.wallet as `0x${string}`)
+  return fetchWithPay(url, init)
 }
-

@@ -1,12 +1,12 @@
-# HealthTech Protocol · Clinical Tempo
+# HealthTech Protocol · Clinical Arc
 
-**Clinical Tempo** is the **core app** in this repository: an **NHS-aligned neighbourhood health** experience—**wallet-linked identity**, **GP access requests**, **care plans**, **social prescribing** (referrals and link-worker plans), **neighbourhood team coordination**, **remote monitoring** with proactive alerts, **transaction history**, and **Tempo / MPP** payment gates on selected service writes—plus **Stripe purl**, **Open Wallet Standard (OWS)**, **AgentMail**, and **TIP-20** flows. The **NHS hub** is at **`/`** and **`/nhs`**; feature screens live under **`/nhs/*`**.
+**Clinical Arc** is the **core app** in this repository: an **NHS-aligned neighbourhood health** experience—**wallet-linked identity**, **GP access requests**, **care plans**, **social prescribing** (referrals and link-worker plans), **neighbourhood team coordination**, **remote monitoring** with proactive alerts, **transaction history**, and **Arc Testnet + Circle Gateway x402** payment gates on selected service writes—plus **Stripe purl**, **Open Wallet Standard (OWS)**, **AgentMail**, and **TIP-20** (Tempo-only) flows. The **NHS hub** is at **`/`** and **`/nhs`**; feature screens live under **`/nhs/*`**.
 
-**HealthTech Protocol** is the open **pattern stack** that powers it: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Tempo](https://tempo.xyz)** and **authorized via MPP / x402** so patients, clinicians, care teams, and agents can pay for APIs and services with predictable receipts. The repo also includes **reference demos** (legacy event-style flows such as **`/dance-extras`**, battle, coaching, beats) that exercise the same rails in another domain.
+**HealthTech Protocol** is the open **pattern stack** that powers it: verifiable payments, session metering, care pathways, remote monitoring, and AI-assisted workflows—**settled on [Arc](https://docs.arc.network/arc/references/connect-to-arc)** with **gasless USDC nanopayments** via [Circle Gateway](https://developers.circle.com/gateway/nanopayments) and the **x402** HTTP payment protocol ([overview](https://developers.circle.com/gateway/nanopayments/concepts/x402)). The repo also includes **reference demos** (legacy event-style flows such as **`/dance-extras`**, battle, coaching, beats) that exercise the same rails in another domain.
 
 This is a **reference implementation**: React (Vite) front ends, a Node/Express API, and production-style persistence for NHS flows. **Treat [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) as the behavioral contract** for routes, endpoints, and testing.
 
-**This repository is [arunnadarasa/clinicaltempo](https://github.com/arunnadarasa/clinicaltempo)** — use it for **`git clone`**, **`git pull`**, and **`git push`**. **NHS / hackathon notes:** [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md). **Data safety:** use **dummy or synthetic** patient data in demos only — never real patient-identifiable data.
+**Primary remote:** **[arunnadarasa/clinicalarc](https://github.com/arunnadarasa/clinicalarc)**. Upstream **Clinical Tempo** (Tempo + MPP) history may live at **`clinicaltempo`**. **NHS / hackathon notes:** [`OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md`](./OPENCLAW_CLINICAL_HACKATHON_LEARNINGS.md). **Data safety:** use **dummy or synthetic** patient data in demos only — never real patient-identifiable data.
 
 ### Interaction modes (humans & agents)—one protocol, not four
 
@@ -38,7 +38,7 @@ HealthTech Protocol is **one** stack (Tempo settlement + MPP/x402 authorization)
 ## Tech stack
 
 - **Frontend:** React 19, TypeScript, Vite 8  
-- **Payments:** `mppx` (client + server), **viem** + **Tempo** chain actions (`viem/tempo`, `viem/chains`)  
+- **Payments:** **Circle Gateway** x402 (`@circle-fin/x402-batching`), **x402** stack (`@x402/core`, `@x402/fetch`, `@x402/evm`), **viem** + **Arc Testnet** (`arcTestnet`, chain id **5042002**); `mppx` types still used for mock receipts  
 - **Backend:** Node.js, Express 5  
 - **Docs in repo:** [`HEALTHTECH_USE_CASES.md`](./HEALTHTECH_USE_CASES.md) — flows, endpoints, testing notes  
 - **Landing / Lovable handoff:** [`HEALTH_TECH_PROTOCOL_AZ.md`](./HEALTH_TECH_PROTOCOL_AZ.md) — A–Z narrative + GitHub links for marketing sites  
